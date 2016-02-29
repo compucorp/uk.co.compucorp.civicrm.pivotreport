@@ -1,0 +1,21 @@
+/* CSS overriding for PivotTable extension due to CiviCRM base styles */
+#reportPivotTable table.pvtTable tr td.col1, #reportPivotTable table.pvtTable tr td.col2 {
+    color: #3D3D3D;
+    padding: 5px;
+    background-color: #FFF;
+    border: 1px solid #ddd;
+    vertical-align: top;
+    text-align: right;
+    float: none;
+    width: auto;
+    margin: auto;
+}
+
+/* Customizing CSS for PivotTable */
+.pvtAxisContainer li span.pvtAttr {
+    height: auto;
+}
+
+th.pvtAxisLabel, th.pvtRowLabel, th.pvtColLabel {
+    text-transform: none;
+}

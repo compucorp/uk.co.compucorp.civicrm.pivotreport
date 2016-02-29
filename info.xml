@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<extension key="uk.co.compucorp.civicrm.activityreport" type="module">
+  <file>activityreport</file>
+  <name>Activity Report</name>
+  <description>Report page with Pivot Table containing Activity data.</description>
+  <license>AGPL-3.0</license>
+  <maintainer>
+    <author>coldrunKacper</author>
+    <email>kacper@coldrun.pl</email>
+  </maintainer>
+  <urls>
+    <url desc="Licensing">http://www.gnu.org/licenses/agpl-3.0.html</url>
+  </urls>
+  <releaseDate>2016-02-25</releaseDate>
+  <version>1.0</version>
+  <develStage>alpha</develStage>
+  <compatibility>
+    <ver>4.2</ver>
+  </compatibility>
+  <comments></comments>
+  <civix>
+    <namespace>CRM/Activityreport</namespace>
+  </civix>
+</extension>
