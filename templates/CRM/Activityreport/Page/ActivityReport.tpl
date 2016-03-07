@@ -21,8 +21,22 @@
             aggregatorName: "Count",
             unusedAttrsVertical: false,
             derivedAttributes: {
-                "Activity Date Months": jQuery.pivotUtilities.derivers.dateFormat("Activity Date", "%y-%m")
-            }
+                "Activity Start Date Months": jQuery.pivotUtilities.derivers.dateFormat("Activity Date", "%y-%m"),
+                "Activity is a test": function(row) {
+                    if (parseInt(row["Activity is a test"], 10) === 0) {
+                        return "No";
+                    }
+                    return "Yes";
+                },
+                "Activity Expire Date": function(row) {
+                  if (!row["Expire Date"]) {
+                    return "";
+                  }
+                  var expireDateParts = row["Expire Date"].split(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+                  return expireDateParts[3] + "-" + expireDateParts[1] + "-" + expireDateParts[2];
+                }
+            },
+            hiddenAttributes: ["Test", "Expire Date"]
         }, false);
     });
 </script>

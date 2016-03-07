@@ -139,3 +139,16 @@ function activityreport_civicrm_pageRun($page) {
       ->addStyleFile('uk.co.compucorp.civicrm.activityreport', 'css/style.css');
   }
 }
+
+/**
+ * Implementation of hook_civicrm_permission
+ *
+ * @param array $permissions
+ * @return void
+ */
+function activityreport_civicrm_permission(&$permissions) {
+  $prefix = ts('CiviCRM Reports') . ': '; // name of extension or module
+  $permissions += array(
+    'access CiviCRM pivot table reports' => $prefix . ts('access CiviCRM pivot table reports'),
+  );
+}

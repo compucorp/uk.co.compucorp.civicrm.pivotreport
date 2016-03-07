@@ -4,6 +4,6 @@
     <path>civicrm/activity-report</path>
     <page_callback>CRM_Activityreport_Page_ActivityReport</page_callback>
     <title>ActivityReport</title>
-    <access_arguments>access CiviCRM</access_arguments>
+    <access_arguments>access CiviCRM pivot table reports</access_arguments>
   </item>
 </menu>

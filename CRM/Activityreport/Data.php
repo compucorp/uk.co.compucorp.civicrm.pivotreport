@@ -18,6 +18,7 @@ class CRM_Activityreport_Data {
 
     $activities = civicrm_api3('Activity', 'get', array(
       'sequential' => 1,
+      'return' => implode(',', array_keys(self::$fields)),
       'options' => array('sort' => 'id ASC', 'limit' => 0),
     ));
 
@@ -41,6 +42,9 @@ class CRM_Activityreport_Data {
         $result = self::$emptyRow;
       }
       foreach ($data as $key => $value) {
+        if (empty(self::$fields[$key]) && !$root) {
+          continue;
+        }
         $dataKey = $key;
         if (!empty(self::$fields[$key]['title'])) {
           $key = self::$fields[$key]['title'];
@@ -101,6 +105,18 @@ class CRM_Activityreport_Data {
       }
       $result[$key] = $value;
       $result[$key]['optionValues'] = self::getOptionValues($value);
+    }
+
+    $customFieldsResult = CRM_Core_DAO::executeQuery(
+      'SELECT g.id AS group_id, f.id AS id, f.label AS label FROM `civicrm_custom_group` g ' .
+      'LEFT JOIN `civicrm_custom_field` f ON f.custom_group_id = g.id ' .
+      'WHERE g.extends = \'Activity\' and g.is_active = 1'
+    );
+    while ($customFieldsResult->fetch()) {
+      $result['custom_' . $customFieldsResult->id] = array(
+        'name' => 'custom_' . $customFieldsResult->id,
+        'title' => $customFieldsResult->label,
+      );
     }
 
     return $result;
