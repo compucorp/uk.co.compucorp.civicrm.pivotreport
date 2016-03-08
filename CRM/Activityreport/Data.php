@@ -99,24 +99,28 @@ class CRM_Activityreport_Data {
     $keys = CRM_Activity_DAO_Activity::fieldKeys();
     $result = array();
 
+    $customFieldsResult = CRM_Core_DAO::executeQuery(
+      'SELECT g.id AS group_id, f.id AS id, f.label AS label, og.name AS option_group_name FROM `civicrm_custom_group` g ' .
+      'LEFT JOIN `civicrm_custom_field` f ON f.custom_group_id = g.id ' .
+      'LEFT JOIN `civicrm_option_group` og ON og.id = f.option_group_id ' .
+      'WHERE g.extends = \'Activity\' and g.is_active = 1'
+    );
+    while ($customFieldsResult->fetch()) {
+      $fields['custom_' . $customFieldsResult->id] = array(
+        'name' => 'custom_' . $customFieldsResult->id,
+        'title' => $customFieldsResult->label,
+        'pseudoconstant' => array(
+          'optionGroupName' => $customFieldsResult->option_group_name,
+        ),
+      );
+    }
+
     foreach ($fields as $key => $value) {
       if (!empty($keys[$value['name']])) {
         $key = $value['name'];
       }
       $result[$key] = $value;
       $result[$key]['optionValues'] = self::getOptionValues($value);
-    }
-
-    $customFieldsResult = CRM_Core_DAO::executeQuery(
-      'SELECT g.id AS group_id, f.id AS id, f.label AS label FROM `civicrm_custom_group` g ' .
-      'LEFT JOIN `civicrm_custom_field` f ON f.custom_group_id = g.id ' .
-      'WHERE g.extends = \'Activity\' and g.is_active = 1'
-    );
-    while ($customFieldsResult->fetch()) {
-      $result['custom_' . $customFieldsResult->id] = array(
-        'name' => 'custom_' . $customFieldsResult->id,
-        'title' => $customFieldsResult->label,
-      );
     }
 
     return $result;
