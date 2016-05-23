@@ -20,6 +20,7 @@ class CRM_Activityreport_Data {
 
     $activities = civicrm_api3('Activity', 'get', array(
       'sequential' => 1,
+      'api.ActivityContact.get' => array(),
       'return' => implode(',', array_keys(self::$fields)),
       'options' => array('sort' => 'id ASC', 'limit' => 0),
     ));
@@ -106,6 +107,9 @@ class CRM_Activityreport_Data {
       foreach ($data as $key => $value) {
         if (empty(self::$fields[$key]) && $level) {
           continue;
+        }
+        if (empty($value['api.ActivityContact.get']['values'])) {
+            continue;
         }
         $dataKey = $key;
         if (!empty(self::$fields[$key]['title'])) {
