@@ -108,7 +108,7 @@ class CRM_Activityreport_Data {
         if (empty(self::$fields[$key]) && $level) {
           continue;
         }
-        if (empty($value['api.ActivityContact.get']['values'])) {
+        if ($level === 0 && empty($value['api.ActivityContact.get']['values'])) {
             continue;
         }
         $dataKey = $key;
@@ -201,6 +201,12 @@ class CRM_Activityreport_Data {
   protected static function getActivityFields() {
     // Get standard Fields of Activity entity.
     $fields = CRM_Activity_DAO_Activity::fields();
+    if (!empty($fields['source_record_id'])) {
+        $fields['source_record_id']['title'] = t('Source Record ID');
+    }
+    if (!empty($fields['activity_type_id'])) {
+        $fields['activity_type_id']['title'] = t('Activity Type');
+    }
     $keys = CRM_Activity_DAO_Activity::fieldKeys();
     $result = array();
 
