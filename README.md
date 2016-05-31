@@ -12,7 +12,7 @@ Go to
 
 and install Activity Report (uk.co.compucorp.civicrm.activityreport) extension.
 
-No additional steps is required.
+No additional steps are required.
 
 Usage
 ------
@@ -52,4 +52,3 @@ The Pivot Table contains every Activity field including any Custom Fields with v
 - Contact Reference
 
 If a Custom Field relates to Option Group then its value is automatically picked from relevant Option Value so Pivot Table shows human readable values / labels instead of relational ID.
-
