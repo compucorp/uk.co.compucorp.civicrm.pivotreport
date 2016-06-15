@@ -237,6 +237,9 @@ class CRM_Activityreport_Data {
     if (!empty($fields['activity_type_id'])) {
         $fields['activity_type_id']['title'] = t('Activity Type');
     }
+    if (!empty($fields['activity_date_time'])) {
+        $fields['activity_date_time']['title'] = t('Activity Date Time');
+    }
     $keys = CRM_Activity_DAO_Activity::fieldKeys();
     $result = array();
 

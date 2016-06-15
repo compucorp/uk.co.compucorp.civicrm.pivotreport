@@ -21,7 +21,8 @@
             aggregatorName: "Count",
             unusedAttrsVertical: false,
             derivedAttributes: {
-                "Activity Start Date Months": jQuery.pivotUtilities.derivers.dateFormat("Activity Date", "%y-%m"),
+                "Activity Date": jQuery.pivotUtilities.derivers.dateFormat("Activity Date Time", "%y-%m-%d"),
+                "Activity Start Date Months": jQuery.pivotUtilities.derivers.dateFormat("Activity Date Time", "%y-%m"),
                 "Activity is a test": function(row) {
                     if (parseInt(row["Activity is a test"], 10) === 0) {
                         return "No";
