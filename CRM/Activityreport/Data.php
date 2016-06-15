@@ -192,15 +192,17 @@ class CRM_Activityreport_Data {
     $result = $value;
     switch ($key) {
       case 'campaign_id':
-        $campaign = civicrm_api3('Campaign', 'getsingle', array(
-          'sequential' => 1,
-          'return' => "title",
-          'id' => $value,
-        ));
-        if ($campaign['is_error']) {
-          $result = '';
+        if (!empty($value)) {
+          $campaign = civicrm_api3('Campaign', 'getsingle', array(
+            'sequential' => 1,
+            'return' => "title",
+            'id' => $value,
+          ));
+          if ($campaign['is_error']) {
+            $result = '';
+          }
+          $result = $campaign['title'];
         }
-        $result = $campaign['title'];
       break;
     }
     return $result;
