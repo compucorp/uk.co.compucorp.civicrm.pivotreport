@@ -200,8 +200,9 @@ class CRM_Activityreport_Data {
           ));
           if ($campaign['is_error']) {
             $result = '';
+          } else {
+            $result = $campaign['title'];
           }
-          $result = $campaign['title'];
         }
       break;
     }
