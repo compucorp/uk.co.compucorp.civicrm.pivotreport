@@ -4,6 +4,17 @@
 
 {literal}
 <script type="text/javascript">
+    // Handle jQuery prop() method if it's not supported.
+    (function($){
+        if (typeof $.fn.prop !== 'function')
+        $.fn.prop = function(name, value){
+            if (typeof value === 'undefined') {
+                return this.attr(name);
+            } else {
+                return this.attr(name, value);
+            }
+        };
+    })(jQuery);
     CRM.$(function () {
         var data = {/literal}{$activityData}{literal};
         
