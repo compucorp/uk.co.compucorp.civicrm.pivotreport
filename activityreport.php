@@ -128,6 +128,7 @@ function activityreport_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
 function activityreport_civicrm_pageRun($page) {
   if ($page instanceof CRM_Activityreport_Page_ActivityReport) {
     CRM_Core_Resources::singleton()
+      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/pivottable/jquery-ui.js')
       ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/pivottable/jquery-ui-1.9.2.custom.min.js')
       ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/pivottable/pivot.min.js', CRM_Core_Resources::DEFAULT_WEIGHT, 'page-header')
       ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/pivottable/c3.min.js')
