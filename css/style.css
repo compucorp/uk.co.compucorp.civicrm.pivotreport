@@ -19,3 +19,8 @@
 th.pvtAxisLabel, th.pvtRowLabel, th.pvtColLabel {
     text-transform: none;
 }
+
+.pvtAttrDropdown {
+    width: 191px;
+}
+
