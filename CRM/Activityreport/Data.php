@@ -176,7 +176,37 @@ class CRM_Activityreport_Data {
     if (!empty(self::$fields[$key]['optionValues'])) {
       return self::$fields[$key]['optionValues'][$value];
     }
-    return strip_tags($value);
+    return strip_tags(self::customizeValue($key, $value));
+  }
+
+  /**
+   * Additional function for customizing Activity value by its key
+   * (if it's needed). For example: we want to return Campaign's title
+   * instead of ID.
+   * 
+   * @param string $key
+   * @param string $value
+   * @return string
+   */
+  protected static function customizeValue($key, $value) {
+    $result = $value;
+    switch ($key) {
+      case 'campaign_id':
+        if (!empty($value)) {
+          $campaign = civicrm_api3('Campaign', 'getsingle', array(
+            'sequential' => 1,
+            'return' => "title",
+            'id' => $value,
+          ));
+          if ($campaign['is_error']) {
+            $result = '';
+          } else {
+            $result = $campaign['title'];
+          }
+        }
+      break;
+    }
+    return $result;
   }
 
   protected static function getEmptyRow() {
@@ -206,6 +236,9 @@ class CRM_Activityreport_Data {
     }
     if (!empty($fields['activity_type_id'])) {
         $fields['activity_type_id']['title'] = t('Activity Type');
+    }
+    if (!empty($fields['activity_date_time'])) {
+        $fields['activity_date_time']['title'] = t('Activity Date Time');
     }
     $keys = CRM_Activity_DAO_Activity::fieldKeys();
     $result = array();
