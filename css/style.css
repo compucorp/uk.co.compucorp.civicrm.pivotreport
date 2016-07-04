@@ -12,6 +12,20 @@
 }
 
 /* Customizing CSS for PivotTable */
+table.pvtUi {
+    max-width: 100%;
+    table-layout: fixed;
+}
+
+table.pvtUi td:first-child {
+    width: 20%;
+    overflow: hidden;
+}
+
+table.pvtUi td:last-child {
+    width: 80%;
+}
+
 .pvtAxisContainer li span.pvtAttr {
     height: auto;
 }
