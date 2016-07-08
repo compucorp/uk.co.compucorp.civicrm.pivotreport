@@ -239,9 +239,7 @@ class CRM_Activityreport_Data {
     unset($fields['source_contact_id']);
     unset($fields['phone_id']);
     unset($fields['relationship_id']);
-    if (!empty($fields['source_record_id'])) {
-        $fields['source_record_id']['title'] = t('Source Record ID');
-    }
+    unset($fields['source_record_id']);
     if (!empty($fields['activity_type_id'])) {
         $fields['activity_type_id']['title'] = t('Activity Type');
     }
