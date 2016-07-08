@@ -38,3 +38,10 @@ th.pvtAxisLabel, th.pvtRowLabel, th.pvtColLabel {
     width: 191px;
 }
 
+.pvtRendererArea {
+    overflow-x: scroll;
+}
+
+select.pvtAggregator {
+    width: 100%;
+}
