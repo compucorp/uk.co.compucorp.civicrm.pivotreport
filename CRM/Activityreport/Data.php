@@ -235,6 +235,7 @@ class CRM_Activityreport_Data {
     $fields = CRM_Activity_DAO_Activity::fields();
     unset($fields['is_current_revision']);
     unset($fields['activity_is_deleted']);
+    unset($fields['weight']);
     if (!empty($fields['source_record_id'])) {
         $fields['source_record_id']['title'] = t('Source Record ID');
     }
