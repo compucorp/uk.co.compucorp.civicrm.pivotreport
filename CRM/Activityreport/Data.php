@@ -21,6 +21,7 @@ class CRM_Activityreport_Data {
     $activities = civicrm_api3('Activity', 'get', array(
       'sequential' => 1,
       'is_current_revision' => 1,
+      'is_deleted' => 0,
       'api.ActivityContact.get' => array(),
       'return' => implode(',', array_keys(self::$fields)),
       'options' => array('sort' => 'id ASC', 'limit' => 0),
@@ -233,6 +234,7 @@ class CRM_Activityreport_Data {
     // Get standard Fields of Activity entity.
     $fields = CRM_Activity_DAO_Activity::fields();
     unset($fields['is_current_revision']);
+    unset($fields['activity_is_deleted']);
     if (!empty($fields['source_record_id'])) {
         $fields['source_record_id']['title'] = t('Source Record ID');
     }
