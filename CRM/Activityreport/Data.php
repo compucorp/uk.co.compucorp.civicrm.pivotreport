@@ -236,6 +236,9 @@ class CRM_Activityreport_Data {
     unset($fields['is_current_revision']);
     unset($fields['activity_is_deleted']);
     unset($fields['weight']);
+    unset($fields['source_contact_id']);
+    unset($fields['phone_id']);
+    unset($fields['relationship_id']);
     if (!empty($fields['source_record_id'])) {
         $fields['source_record_id']['title'] = t('Source Record ID');
     }
