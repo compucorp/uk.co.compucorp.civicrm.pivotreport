@@ -122,6 +122,15 @@ class CRM_Activityreport_Data {
           self::$multiValues[$baseKey][] = $key;
         }
       }
+      if ($level === 1) {
+          $result = array_merge($result, array(
+            'Activity Date' => null,
+            'Activity Start Date Months' => null,
+            'Activity is a test' => null,
+            'Activity Expire Date' => null,
+          ));
+          ksort($result);
+      }
     } else {
       return self::formatValue($dataKey, $data);
     }
