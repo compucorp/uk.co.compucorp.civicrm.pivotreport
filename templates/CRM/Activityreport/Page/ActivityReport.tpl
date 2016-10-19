@@ -5,26 +5,26 @@
 {literal}
 <script type="text/javascript">
     // Handle jQuery prop() method if it's not supported.
-    (function($){
-        if (typeof $.fn.prop !== 'function')
-        $.fn.prop = function(name, value){
-            if (typeof value === 'undefined') {
-                return this.attr(name);
-            } else {
-                return this.attr(name, value);
-            }
-        };
-    })(jQuery);
-    CRM.$(function () {
+//    (function($){
+//        if (typeof $.fn.prop !== 'function')
+//        $.fn.prop = function(name, value){
+//            if (typeof value === 'undefined') {
+//                return this.attr(name);
+//            } else {
+//                return this.attr(name, value);
+//            }
+//        };
+//    })(jQuery);
+    CRM.$(function ($) {
         var data = {/literal}{$activityData}{literal};
-        
+
         /*** PivotTable library initialization: ***/
-        jQuery("#reportPivotTable").pivotUI(data, {
+        $("#reportPivotTable").pivotUI(data, {
             rendererName: "Table",
-            renderers: CRM.$.extend(
-                jQuery.pivotUtilities.renderers, 
-                jQuery.pivotUtilities.c3_renderers,
-                jQuery.pivotUtilities.export_renderers
+            renderers: $.extend(
+                $.pivotUtilities.renderers,
+                $.pivotUtilities.c3_renderers,
+                $.pivotUtilities.export_renderers
             ),
             vals: ["Total"],
             rows: [],
@@ -32,8 +32,8 @@
             aggregatorName: "Count",
             unusedAttrsVertical: false,
             derivedAttributes: {
-                "Activity Date": jQuery.pivotUtilities.derivers.dateFormat("Activity Date Time", "%y-%m-%d"),
-                "Activity Start Date Months": jQuery.pivotUtilities.derivers.dateFormat("Activity Date Time", "%y-%m"),
+                "Activity Date": $.pivotUtilities.derivers.dateFormat("Activity Date Time", "%y-%m-%d"),
+                "Activity Start Date Months": $.pivotUtilities.derivers.dateFormat("Activity Date Time", "%y-%m"),
                 "Activity is a test": function(row) {
                     if (parseInt(row["Activity is a test"], 10) === 0) {
                         return "No";

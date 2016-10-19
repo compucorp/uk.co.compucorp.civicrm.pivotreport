@@ -128,12 +128,10 @@ function activityreport_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
 function activityreport_civicrm_pageRun($page) {
   if ($page instanceof CRM_Activityreport_Page_ActivityReport) {
     CRM_Core_Resources::singleton()
-      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/pivottable/jquery-migrate-1.4.1.min.js', 1, 'page-header')
-      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/pivottable/jquery-ui-1.9.2.custom.min.js', 2, 'page-header')
-      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/pivottable/pivot.min.js', 3, 'page-header')
-      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/pivottable/c3.min.js', 4, 'page-header')
-      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/pivottable/c3_renderers.js', 5, 'page-header')
-      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/pivottable/export_renderers.js', 6, 'page-header');
+      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/pivottable/pivot.min.js', 3, 'html-header')
+      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/pivottable/c3.min.js', 4, 'html-header')
+      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/pivottable/c3_renderers.js', 5, 'html-header')
+      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/pivottable/export_renderers.js', 6, 'html-header');
     CRM_Core_Resources::singleton()
       ->addStyleFile('uk.co.compucorp.civicrm.activityreport', 'css/pivottable/pivot.css')
       ->addStyleFile('uk.co.compucorp.civicrm.activityreport', 'css/pivottable/c3.min.css')
