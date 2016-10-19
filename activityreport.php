@@ -128,14 +128,16 @@ function activityreport_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
 function activityreport_civicrm_pageRun($page) {
   if ($page instanceof CRM_Activityreport_Page_ActivityReport) {
     CRM_Core_Resources::singleton()
-      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/pivottable/pivot.min.js', 3, 'html-header')
-      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/pivottable/c3.min.js', 4, 'html-header')
-      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/pivottable/c3_renderers.js', 5, 'html-header')
-      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/pivottable/export_renderers.js', 6, 'html-header');
+      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'packages/d3/d3.min.js', 1, 'html-header')
+      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'packages/c3/c3.min.js', 2, 'html-header')
+      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'packages/pivottable/pivot.min.js', 3, 'html-header')
+      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'packages/pivottable/c3_renderers.min.js', 5, 'html-header')
+      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'packages/pivottable/d3_renderers.min.js', 6, 'html-header')
+      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'packages/pivottable/export_renderers.min.js', 7, 'html-header');
     CRM_Core_Resources::singleton()
-      ->addStyleFile('uk.co.compucorp.civicrm.activityreport', 'css/pivottable/pivot.css')
-      ->addStyleFile('uk.co.compucorp.civicrm.activityreport', 'css/pivottable/c3.min.css')
-      ->addStyleFile('uk.co.compucorp.civicrm.activityreport', 'css/style.css');
+      ->addStyleFile('uk.co.compucorp.civicrm.activityreport', 'packages/c3/c3.min.css', 1)
+      ->addStyleFile('uk.co.compucorp.civicrm.activityreport', 'packages/pivottable/pivot.min.css', 2)
+      ->addStyleFile('uk.co.compucorp.civicrm.activityreport', 'css/style.css', 3);
   }
 }
 
