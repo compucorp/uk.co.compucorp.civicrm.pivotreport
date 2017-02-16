@@ -24,3 +24,6 @@ th.pvtAxisLabel, th.pvtRowLabel, th.pvtColLabel {
     width: 191px;
 }
 
+.pvtHorizList li {
+    display: inline-block;
+}

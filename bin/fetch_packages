@@ -1,0 +1,33 @@
+#!/bin/sh
+
+# Fetch package files
+
+c3ver=0.4.11
+d3ver=4.2.7
+pver=2.1.0
+
+rm -rf packages
+
+d3dir="packages/d3"
+d3url="https://cdnjs.cloudflare.com/ajax/libs/d3/$d3ver"
+mkdir -p $d3dir
+(cd $d3dir; echo $d3ver > version; 
+  wget $d3url/d3.min.js)
+
+c3dir="packages/c3"
+c3url="https://cdnjs.cloudflare.com/ajax/libs/c3/$c3ver"
+mkdir -p $c3dir
+(cd $c3dir; echo $c3ver > version; 
+  wget $c3url/c3.min.js;
+  wget $c3url/c3.min.css)
+
+pdir="packages/pivottable"
+purl="https://cdnjs.cloudflare.com/ajax/libs/pivottable/$pver"
+mkdir -p $pdir
+(cd $pdir;  echo $pver > version;
+  wget $purl/c3_renderers.min.js;
+  wget $purl/d3_renderers.min.js;
+  wget $purl/export_renderers.min.js;
+  wget $purl/pivot.min.js;
+  wget $purl/pivot.min.css)
+ 
