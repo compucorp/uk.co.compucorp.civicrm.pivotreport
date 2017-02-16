@@ -7,10 +7,13 @@ class CRM_Activityreport_Data {
   protected static $fields = array();
   protected static $emptyRow = array();
   protected static $multiValues = array();
+  static $ignore = array( 'activity_details', 'phone_id', 'phone_number', 'parent_id',
+    'original_id', 'is_test', 'is_current_revision', 'is_deleted', 'is_auto');
+  static $filters = array( 'is_test' => 0, 'is_current_revision' => 1, 'is_deleted' => 0);
 
   /**
    * Return an array containing formatted Activity data.
-   * 
+   *
    * @return array
    */
   public static function get() {
@@ -18,23 +21,25 @@ class CRM_Activityreport_Data {
     self::$emptyRow = self::getEmptyRow();
     self::$multiValues = array();
 
-    $activities = civicrm_api3('Activity', 'get', array(
+    $params = self::$filters + array(
       'sequential' => 1,
-      'api.ActivityContact.get' => array(),
+//      'api.ActivityContact.get' => array(),
       'return' => implode(',', array_keys(self::$fields)),
-      'options' => array('sort' => 'id ASC', 'limit' => 0),
-    ));
-
-    return self::splitMultiValues(self::formatResult($activities['values']));
+//      'options' => array('sort' => 'id ASC', 'limit' => 0),
+      'options' => array('limit' => 0),
+    );
+    $activities = civicrm_api3('Activity', 'get', $params);
+//    print_r(self::formatResult($activities['values'])); exit;
+    return self::splitMultiValues(self::formatResult2($activities['values']));
   }
 
   /**
    * Return an array containing $data rows and each row containing multiple values
    * of at least one field is populated into separate row for each field's
    * multiple value.
-   * 
+   *
    * @param array   $data       array containing a set of Activities
-   * 
+   *
    * @return array
    */
   protected static function splitMultiValues(array $data) {
@@ -55,11 +60,11 @@ class CRM_Activityreport_Data {
   /**
    * Return an array containing set of rows which are built basing on given $row
    * and $fields array with indexes of multi values of the $row.
-   * 
+   *
    * @param array   $row        a single Activity row
    * @param array   $fields     array containing Activity multi value fields
    *                            as keys and integer indexes as values
-   * 
+   *
    * @return array
    */
   protected static function populateMultiValuesRow(array $row, array $fields) {
@@ -89,11 +94,11 @@ class CRM_Activityreport_Data {
 
   /**
    * Return a result of recursively parsed and formatted $data.
-   * 
+   *
    * @param mixed   $data       data element
    * @param string  $dataKey    key of current $data item
    * @param int     $level      how deep we are relative to the root of our data
-   * 
+   *
    * @return type
    */
   protected static function formatResult($data, $dataKey = null, $level = 0) {
@@ -128,16 +133,41 @@ class CRM_Activityreport_Data {
   }
 
   /**
+   * Format the results
+   * Alternative non-recursive version of formatResult
+   * Does not rely on having 'api.ActivityContact.get'
+   *
+   * @param mixed $data  data array to format
+   *
+   * @return array - formatted results
+   */
+  protected static function formatResult2($data) {
+    $blank_activity = array_fill_keys(array_column(self::$fields, 'title') , '');
+    $result = array();
+    foreach ($data as $activity) {
+      $new_activity = $blank_activity;
+      foreach ($activity as $key => $value) {
+        if (!empty(self::$fields[$key]['title'])) {
+          $new_key = self::$fields[$key]['title'];
+          $new_activity[$new_key] = self::formatValue($key, $value);
+        }
+      }
+      $result[] = $new_activity;
+    }
+    return $result;
+  }
+
+  /**
    * Return $value formatted by available Option Values for the $key Field.
    * If there is no Option Values for the field, then return $value itself
    * with HTML tags stripped.
    * If $value contains an array of values then the method works recursively
    * returning an array of formatted values.
-   * 
+   *
    * @param string $key     field name
    * @param string $value   field value
    * @param int $level      recursion level
-   * 
+   *
    * @return string
    */
   protected static function formatValue($key, $value, $level = 0) {
@@ -183,7 +213,7 @@ class CRM_Activityreport_Data {
    * Additional function for customizing Activity value by its key
    * (if it's needed). For example: we want to return Campaign's title
    * instead of ID.
-   * 
+   *
    * @param string $key
    * @param string $value
    * @return string
@@ -225,12 +255,15 @@ class CRM_Activityreport_Data {
   /**
    * Return an array containing all Fields and Custom Fields of Activity entity,
    * keyed by their API keys and extended with available fields Option Values.
-   * 
+   *
    * @return array
    */
   protected static function getActivityFields() {
     // Get standard Fields of Activity entity.
     $fields = CRM_Activity_DAO_Activity::fields();
+    foreach (self::$ignore as $ignore_field) {
+      unset($fields[$ignore_field]);
+    }
     if (!empty($fields['source_record_id'])) {
         $fields['source_record_id']['title'] = t('Source Record ID');
     }
@@ -280,9 +313,9 @@ class CRM_Activityreport_Data {
   /**
    * Return available Option Values of specified $field array.
    * If there is no available Option Values for the field, then return null.
-   * 
+   *
    * @param array $field
-   * 
+   *
    * @return array
    */
   protected static function getOptionValues($field) {
