@@ -8,8 +8,8 @@ class CRM_Activityreport_Data {
   protected static $emptyRow = array();
   protected static $multiValues = array();
   static $ignore = array( 'activity_details', 'phone_id', 'phone_number', 'parent_id',
-    'original_id', 'is_test', 'is_current_revision', 'is_deleted', 'is_auto');
-  static $filters = array( 'is_test' => 0, 'is_current_revision' => 1, 'is_deleted' => 0);
+    'original_id', 'activity_is_test', 'is_current_revision', 'activity_is_deleted', 'is_auto');
+  static $filters = array( 'activity_is_test' => 0, 'is_current_revision' => 1, 'activity_is_deleted' => 0);
 
   /**
    * Return an array containing formatted Activity data.
