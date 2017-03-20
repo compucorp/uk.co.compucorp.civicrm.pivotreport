@@ -20,6 +20,8 @@ class CRM_Activityreport_Data {
 
     $activities = civicrm_api3('Activity', 'get', array(
       'sequential' => 1,
+      'is_current_revision' => 1,
+      'is_deleted' => 0,
       'api.ActivityContact.get' => array(),
       'return' => implode(',', array_keys(self::$fields)),
       'options' => array('sort' => 'id ASC', 'limit' => 0),
@@ -119,6 +121,15 @@ class CRM_Activityreport_Data {
         if ($level === 1 && is_array($result[$key])) {
           self::$multiValues[$baseKey][] = $key;
         }
+      }
+      if ($level === 1) {
+          $result = array_merge($result, array(
+            'Activity Date' => null,
+            'Activity Start Date Months' => null,
+            'Activity is a test' => null,
+            'Activity Expire Date' => null,
+          ));
+          ksort($result);
       }
     } else {
       return self::formatValue($dataKey, $data);
@@ -231,9 +242,13 @@ class CRM_Activityreport_Data {
   protected static function getActivityFields() {
     // Get standard Fields of Activity entity.
     $fields = CRM_Activity_DAO_Activity::fields();
-    if (!empty($fields['source_record_id'])) {
-        $fields['source_record_id']['title'] = t('Source Record ID');
-    }
+    unset($fields['is_current_revision']);
+    unset($fields['activity_is_deleted']);
+    unset($fields['weight']);
+    unset($fields['source_contact_id']);
+    unset($fields['phone_id']);
+    unset($fields['relationship_id']);
+    unset($fields['source_record_id']);
     if (!empty($fields['activity_type_id'])) {
         $fields['activity_type_id']['title'] = t('Activity Type');
     }

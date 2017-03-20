@@ -31,6 +31,13 @@
             cols: [],
             aggregatorName: "Count",
             unusedAttrsVertical: false,
+            rendererOptions: {
+                c3: {
+                    size: {
+                        width: parseInt(jQuery('#reportPivotTable').width() * 0.78, 10)
+                    }
+                },
+            },
             derivedAttributes: {
                 "Activity Date": jQuery.pivotUtilities.derivers.dateFormat("Activity Date Time", "%y-%m-%d"),
                 "Activity Start Date Months": jQuery.pivotUtilities.derivers.dateFormat("Activity Date Time", "%y-%m"),
