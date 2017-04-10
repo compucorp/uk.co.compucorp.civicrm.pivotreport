@@ -7,25 +7,32 @@ class CRM_Activityreport_Data {
   protected static $fields = array();
   protected static $emptyRow = array();
   protected static $multiValues = array();
+  protected static $formattedValues = array();
+  protected static $customizedValues = array();
 
   /**
    * Return an array containing formatted Activity data.
    * 
    * @return array
    */
-  public static function get() {
+  public static function get($offset = 0, $limit = 0) {
     self::$fields = self::getActivityFields();
     self::$emptyRow = self::getEmptyRow();
     self::$multiValues = array();
 
-    $activities = civicrm_api3('Activity', 'get', array(
+    $params = array(
       'sequential' => 1,
       'is_current_revision' => 1,
       'is_deleted' => 0,
       'api.ActivityContact.get' => array(),
       'return' => implode(',', array_keys(self::$fields)),
-      'options' => array('sort' => 'id ASC', 'limit' => 0),
-    ));
+      'options' => array(
+        'sort' => 'id ASC',
+        'offset' => $offset,
+        'limit' => $limit,
+      ),
+    );
+    $activities = civicrm_api3('Activity', 'get', $params);
 
     return self::splitMultiValues(self::formatResult($activities['values']));
   }
@@ -67,6 +74,21 @@ class CRM_Activityreport_Data {
   protected static function populateMultiValuesRow(array $row, array $fields) {
     $result = array();
     $found = true;
+
+    /*
+     * Check how many combinations of one $row needs to be created.
+     * We need to skip the row if combinations number is is too high
+     * (due to memory limit issues).
+     */
+    $combinations = 1;
+    foreach ($fields as $key => $value) {
+      if (!empty($row[$key]) && is_array($row[$key])) {
+        $combinations *= count($row[$key]);
+      }
+    }
+    if ($combinations > 1024) {
+      return $result;
+    }
 
     while ($found) {
       $rowResult = array();
@@ -163,10 +185,15 @@ class CRM_Activityreport_Data {
       }
       return $valueArray;
     }
+    if (!empty(self::$formattedValues[$key][$value])) {
+      return self::$formattedValues[$key][$value];
+    }
     if (!empty(self::$fields[$key]['customField'])) {
       switch (self::$fields[$key]['customField']['data_type']) {
         case 'File':
-          return CRM_Utils_System::formatWikiURL($value['fileURL'] . ' ' . $value['fileName']);
+          $result = CRM_Utils_System::formatWikiURL($value['fileURL'] . ' ' . $value['fileName']);
+          self::$formattedValues[$key][$value] = $result;
+          return $result;
         break;
         // For few field types we can use 'formatCustomValues()' core method.
         case 'Date':
@@ -176,7 +203,9 @@ class CRM_Activityreport_Data {
         case 'Country':
           $data = array('data' => $value);
           CRM_Utils_System::url();
-          return CRM_Core_BAO_CustomGroup::formatCustomValues($data, self::$fields[$key]['customField']);
+          $result = CRM_Core_BAO_CustomGroup::formatCustomValues($data, self::$fields[$key]['customField']);
+          self::$formattedValues[$key][$value] = $result;
+          return $result;
         break;
         // Anyway, 'formatCustomValues()' core method doesn't handle some types
         // such as 'CheckBox' (looks like they aren't implemented there) so
@@ -185,9 +214,13 @@ class CRM_Activityreport_Data {
     }
 
     if (!empty(self::$fields[$key]['optionValues'])) {
-      return self::$fields[$key]['optionValues'][$value];
+      $result = self::$fields[$key]['optionValues'][$value];
+      self::$formattedValues[$key][$value] = $result;
+      return $result;
     }
-    return strip_tags(self::customizeValue($key, $value));
+    $result = strip_tags(self::customizeValue($key, $value));
+    self::$formattedValues[$key][$value] = $result;
+    return $result;
   }
 
   /**
@@ -200,6 +233,9 @@ class CRM_Activityreport_Data {
    * @return string
    */
   protected static function customizeValue($key, $value) {
+    if (!empty(self::$customizedValues[$key][$value])) {
+      return self::$customizedValues[$key][$value];
+    }
     $result = $value;
     switch ($key) {
       case 'campaign_id':
@@ -217,6 +253,7 @@ class CRM_Activityreport_Data {
         }
       break;
     }
+    self::$customizedValues[$key][$value] = $result;
     return $result;
   }
 
