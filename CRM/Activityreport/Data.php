@@ -4,6 +4,7 @@
  * Provide static methods to retrieve and format an Activity data.
  */
 class CRM_Activityreport_Data {
+  const ROWS_TO_RETURN = 1000;
   protected static $fields = array();
   protected static $emptyRow = array();
   protected static $multiValues = array();
@@ -15,26 +16,32 @@ class CRM_Activityreport_Data {
    * 
    * @return array
    */
-  public static function get($offset = 0, $limit = 0) {
+  public static function get($offset = 0, $limit = 0, $multiValuesOffset = 0) {
     self::$fields = self::getActivityFields();
     self::$emptyRow = self::getEmptyRow();
     self::$multiValues = array();
+    $cacheKey = 'get-' . $offset . ',' . $limit . ',' . $multiValuesOffset;
 
-    $params = array(
-      'sequential' => 1,
-      'is_current_revision' => 1,
-      'is_deleted' => 0,
-      'api.ActivityContact.get' => array(),
-      'return' => implode(',', array_keys(self::$fields)),
-      'options' => array(
-        'sort' => 'id ASC',
-        'offset' => $offset,
-        'limit' => $limit,
-      ),
-    );
-    $activities = civicrm_api3('Activity', 'get', $params);
+    $result = CRM_Core_BAO_Cache::getItem('activityreport', $cacheKey);
+    if (empty($result)) {
+      $params = array(
+        'sequential' => 1,
+        'is_current_revision' => 1,
+        'is_deleted' => 0,
+        'return' => implode(',', array_keys(self::$fields)),
+        'options' => array(
+          'sort' => 'id ASC',
+          'offset' => $offset,
+          'limit' => $limit,
+        ),
+      );
+      $activities = civicrm_api3('Activity', 'get', $params);
+      $formattedActivities = self::formatResult($activities['values']);
+      $result = self::splitMultiValues($formattedActivities, $offset, $multiValuesOffset);
+      CRM_Core_BAO_Cache::setItem($result, 'activityreport', $cacheKey);
+    }
 
-    return self::splitMultiValues(self::formatResult($activities['values']));
+    return $result;
   }
 
   /**
@@ -42,38 +49,86 @@ class CRM_Activityreport_Data {
    * of at least one field is populated into separate row for each field's
    * multiple value.
    * 
-   * @param array   $data       array containing a set of Activities
+   * @param array   $data               array containing a set of Activities
+   * @param int     $totalOffset        Activity absolute offset we start with
+   * @param int     $multiValuesOffset  Multi Values offset
    * 
    * @return array
    */
-  protected static function splitMultiValues(array $data) {
+  protected static function splitMultiValues(array $data, $totalOffset, $multiValuesOffset) {
     $result = array();
+    $messages = array();
+    $i = 0;
 
     foreach ($data as $key => $row) {
+      $multiValuesRows = array();
       if (!empty(self::$multiValues[$key])) {
         $multiValuesFields = array_combine(self::$multiValues[$key], array_fill(0, count(self::$multiValues[$key]), 0));
-        $result = array_merge($result, self::populateMultiValuesRow($row, $multiValuesFields));
+        $multiValuesRows = self::populateMultiValuesRow($row, $multiValuesFields, $multiValuesOffset, self::ROWS_TO_RETURN - $i);
+        $result = array_merge($result, $multiValuesRows['data']);
+        $messages = array_merge($messages, $multiValuesRows['info']['messages']);
+        $multiValuesOffset = 0;
       } else {
         $result[] = $row;
       }
+      $i = count($result);
+      if ($i === self::ROWS_TO_RETURN) {
+        break;
+      }
+      $totalOffset++;
     }
 
-    return $result;
+    $header = self::getHeader();
+    $output = array(array_keys($header));
+    foreach ($result as $row) {
+      $output[] = array_values($row);
+    }
+
+    return array(
+      array(
+        'info' => array(
+          'nextOffset' => !empty($multiValuesRows['info']['multiValuesOffset']) ? $totalOffset : $totalOffset + 1,
+          'multiValuesOffset' => !empty($multiValuesRows['info']['multiValuesOffset']) ? $multiValuesRows['info']['multiValuesOffset'] : 0,
+          'multiValuesTotal' => !empty($multiValuesRows['info']['multiValuesTotal']) ? $multiValuesRows['info']['multiValuesTotal'] : 0,
+          'messages' => $messages,
+        ),
+        'data' => $output,
+      ),
+    );
+  }
+
+  protected static function getHeader() {
+    $header = array_merge(self::$emptyRow, array(
+      'Activity Date' => null,
+      'Activity Start Date Months' => null,
+      'Activity is a test' => null,
+      'Activity Expire Date' => null,
+    ));
+    ksort($header);
+    return $header;
   }
 
   /**
    * Return an array containing set of rows which are built basing on given $row
    * and $fields array with indexes of multi values of the $row.
    * 
-   * @param array   $row        a single Activity row
-   * @param array   $fields     array containing Activity multi value fields
-   *                            as keys and integer indexes as values
+   * @param array   $row          a single Activity row
+   * @param array   $fields       array containing Activity multi value fields
+   *                              as keys and integer indexes as values
+   * @param int     $offset       combination offset to start from
+   * @param int     $limit        how many records can we generate?
    * 
    * @return array
    */
-  protected static function populateMultiValuesRow(array $row, array $fields) {
-    $result = array();
+  protected static function populateMultiValuesRow(array $row, array $fields, $offset, $limit) {
+    $data = array();
+    $info = array(
+      'multiValuesTotal' => 0,
+      'multiValuesOffset' => 0,
+      'messages' => array(),
+    );
     $found = true;
+    $i = 0;
 
     /*
      * Check how many combinations of one $row needs to be created.
@@ -86,16 +141,19 @@ class CRM_Activityreport_Data {
         $combinations *= count($row[$key]);
       }
     }
-    if ($combinations > 1024) {
-      return $result;
+    $info['multiValuesTotal'] = $combinations;
+    if ($combinations > 1 && $offset === 0) {
+      $info['messages'][] = 'Activity ID#' . $row['Activity ID'] . ' has ' . $combinations . ' multivalues combinations.';
     }
 
     while ($found) {
-      $rowResult = array();
-      foreach ($fields as $key => $index) {
-        $rowResult[$key] = $row[$key][$index];
+      if ($i >= $offset) {
+        $rowResult = array();
+        foreach ($fields as $key => $index) {
+          $rowResult[$key] = $row[$key][$index];
+        }
+        $data[] = array_merge($row, $rowResult);
       }
-      $result[] = array_merge($row, $rowResult);
       foreach ($fields as $key => $index) {
         $found = false;
         if ($index + 1 === count($row[$key])) {
@@ -106,9 +164,17 @@ class CRM_Activityreport_Data {
         $found = true;
         break;
       }
+      $i++;
+      if (($i - $offset === $limit) && $found) {
+        $info['multiValuesOffset'] = $i;
+        break;
+      }
     }
 
-    return $result;
+    return array(
+      'info' => $info,
+      'data' => $data,
+    );
   }
 
   /**
@@ -131,9 +197,6 @@ class CRM_Activityreport_Data {
       foreach ($data as $key => $value) {
         if (empty(self::$fields[$key]) && $level) {
           continue;
-        }
-        if ($level === 0 && empty($value['api.ActivityContact.get']['values'])) {
-            continue;
         }
         $dataKey = $key;
         if (!empty(self::$fields[$key]['title'])) {
@@ -286,6 +349,9 @@ class CRM_Activityreport_Data {
     unset($fields['phone_id']);
     unset($fields['relationship_id']);
     unset($fields['source_record_id']);
+    unset($fields['activity_is_test']);
+    unset($fields['parent_id']);
+    unset($fields['activity_details']);
     if (!empty($fields['activity_type_id'])) {
         $fields['activity_type_id']['title'] = t('Activity Type');
     }
@@ -302,7 +368,7 @@ class CRM_Activityreport_Data {
       'FROM `civicrm_custom_group` g ' .
       'LEFT JOIN `civicrm_custom_field` f ON f.custom_group_id = g.id ' .
       'LEFT JOIN `civicrm_option_group` og ON og.id = f.option_group_id ' .
-      'WHERE g.extends = \'Activity\' AND g.is_active = 1 AND f.is_active = 1'
+      'WHERE g.extends = \'Activity\' AND g.is_active = 1 AND f.is_active = 1 AND f.html_type NOT IN (\'Text\', \'TextArea\') '
     );
     while ($customFieldsResult->fetch()) {
       $customField = new CRM_Core_BAO_CustomField();

@@ -4,6 +4,9 @@
   <div id="activity-report-preloader">
     Loading <span id="activity-report-loading-count">0</span> of <span id="activity-report-loading-total">0</span> Activities.
   </div>
+  <div id="activity-report-debug-container">
+    <div id="activity-report-loader-messages"></div>
+  </div>
 </div>
 
 {literal}
@@ -23,20 +26,51 @@
         var data = [];
         var limit = 1000;
 
-        function loadData(offset, limit, total, last) {
+        function loadData(offset, limit, total, multiValuesOffset, multiValuesTotal) {
           CRM.$('span#activity-report-loading-count').text(offset);
+          var localLimit = limit;
+          if (multiValuesOffset > 0 && multiValuesTotal > 0) {
+            localLimit = limit - (multiValuesTotal - multiValuesOffset);
+          }
+          if (multiValuesTotal - multiValuesOffset > limit) {
+            localLimit = 1;
+          }
           CRM.api3('ActivityReport', 'get', {
             "sequential": 1,
             "offset": offset,
-            "limit": limit
+            "limit": localLimit,
+            "multiValuesOffset": multiValuesOffset
           }).done(function(result) {
-            data = data.concat(result['values']);
-            if (last) {
+            if (result['values'][0]['info'].messages.length) {
+              for (var i in result['values'][0]['info'].messages) {
+                CRM.$('div#activity-report-loader-messages').append(result['values'][0]['info'].messages[i] + '<br>');
+              }
+            }
+            data = data.concat(processData(result['values'][0].data));
+            var nextOffset = parseInt(result['values'][0].info.nextOffset, 10);
+            if (nextOffset > total) {
               initPivotTable(data);
             } else {
-              loadData(offset + limit, limit, total, ((offset + limit * 2) > total) ? true : false);
+              var multiValuesOffset = parseInt(result['values'][0]['info'].multiValuesOffset, 10);
+              var multiValuesTotal = parseInt(result['values'][0]['info'].multiValuesTotal, 10);
+              loadData(nextOffset, limit, total, multiValuesOffset, multiValuesTotal);
             }
           });
+        }
+
+        function processData(data) {
+          var result = [];
+          var i, j;
+          var header = data[0];
+          delete data[0];
+          for (i in data) {
+            var row = {};
+            for (j in data[i]) {
+              row[header[j]] = data[i][j];
+            }
+            result.push(row);
+          }
+          return result;
         }
 
         CRM.api3('Activity', 'getcount', {
@@ -46,7 +80,7 @@
         }).done(function(result) {
           var total = parseInt(result.result, 10);
           CRM.$('span#activity-report-loading-total').text(total);
-          loadData(0, limit, total, (limit > total) ? true : false);
+          loadData(0, limit, total, 0, 0);
         });
 
         function initPivotTable(data) {
