@@ -21,5 +21,8 @@ function _civicrm_api3_activity_report_get_spec(&$spec) {
 function civicrm_api3_activity_report_get($params) {
   $offset = !empty($params['offset']) ? (int)$params['offset'] : 0;
   $limit = !empty($params['limit']) ? (int)$params['limit'] : 1000;
-  return civicrm_api3_create_success(CRM_Activityreport_Data::get($offset, $limit), $params);
+
+  $multiValuesOffset = !empty($params['multiValuesOffset']) ? (int)$params['multiValuesOffset'] : 0;
+
+  return civicrm_api3_create_success(CRM_Activityreport_Data::get($offset, $limit, $multiValuesOffset), $params);
 }

@@ -4,6 +4,9 @@
   <div id="activity-report-preloader">
     Loading <span id="activity-report-loading-count">0</span> of <span id="activity-report-loading-total">0</span> Activities.
   </div>
+  <div id="activity-report-debug-container">
+    <div id="activity-report-loader-messages"></div>
+  </div>
 </div>
 
 {literal}
@@ -23,22 +26,88 @@
         var data = [];
         var limit = 1000;
 
-        function loadData(offset, limit, total, last) {
+        /**
+         * Load a pack of Activities data. If there is more data to load
+         * (depending on the total value and the response) then we run
+         * the function recursively.
+         *
+         * @param int offset
+         *   Offset to start with (initially should be 0)
+         * @param int limit
+         *   Limit of data to load with one call
+         * @param int total
+         *   Helper parameter telling us if we need to keep loading the data
+         * @param int multiValuesOffset
+         *   In case we are in the middle of a multivalues activity,
+         *   we know the combination to start with another call.
+         * @param int multiValuesTotal
+         *   In case we are in the middle of a multivalues activity,
+         *   we know the total number of multivalues combinations for
+         *   this particular Activity
+         */
+        function loadData(offset, limit, total, multiValuesOffset, multiValuesTotal) {
           CRM.$('span#activity-report-loading-count').text(offset);
+          var localLimit = limit;
+
+          if (multiValuesOffset > 0 && multiValuesTotal > 0) {
+            localLimit = limit - (multiValuesTotal - multiValuesOffset);
+          }
+          if (multiValuesTotal - multiValuesOffset > limit) {
+            localLimit = 1;
+          }
+
           CRM.api3('ActivityReport', 'get', {
             "sequential": 1,
             "offset": offset,
-            "limit": limit
+            "limit": localLimit,
+            "multiValuesOffset": multiValuesOffset
           }).done(function(result) {
-            data = data.concat(result['values']);
-            if (last) {
+            if (result['values'][0]['info'].messages.length) {
+              for (var i in result['values'][0]['info'].messages) {
+                CRM.$('div#activity-report-loader-messages').append(result['values'][0]['info'].messages[i] + '<br>');
+              }
+            }
+
+            data = data.concat(processData(result['values'][0].data));
+            var nextOffset = parseInt(result['values'][0].info.nextOffset, 10);
+
+            if (nextOffset > total) {
               initPivotTable(data);
             } else {
-              loadData(offset + limit, limit, total, ((offset + limit * 2) > total) ? true : false);
+              var multiValuesOffset = parseInt(result['values'][0]['info'].multiValuesOffset, 10);
+              var multiValuesTotal = parseInt(result['values'][0]['info'].multiValuesTotal, 10);
+              loadData(nextOffset, limit, total, multiValuesOffset, multiValuesTotal);
             }
           });
         }
 
+        /**
+         * Format incoming data (combine header with fields values)
+         * to be compatible with Pivot library.
+         *
+         * @param array data
+         * @returns array
+         */
+        function processData(data) {
+          var result = [];
+          var i, j;
+          var header = data[0];
+
+          delete data[0];
+
+          for (i in data) {
+            var row = {};
+            for (j in data[i]) {
+              row[header[j]] = data[i][j];
+            }
+            result.push(row);
+          }
+
+          return result;
+        }
+
+        // Initially we check total number of Activities and then start
+        // data fetching.
         CRM.api3('Activity', 'getcount', {
           "sequential": 1,
           "is_current_revision": 1,
@@ -46,9 +115,14 @@
         }).done(function(result) {
           var total = parseInt(result.result, 10);
           CRM.$('span#activity-report-loading-total').text(total);
-          loadData(0, limit, total, (limit > total) ? true : false);
+          loadData(0, limit, total, 0, 0);
         });
 
+        /*
+         * Init Pivot Table with given data.
+         *
+         * @param array data
+         */
         function initPivotTable(data) {
           jQuery("#reportPivotTable").pivotUI(data, {
               rendererName: "Table",
