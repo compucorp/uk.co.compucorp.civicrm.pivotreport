@@ -13,7 +13,13 @@ class CRM_Activityreport_Data {
 
   /**
    * Return an array containing formatted Activity data.
-   * 
+   *
+   * @param int $offset
+   *   Offset for API call
+   * @param int $limit
+   *   Limit for API call
+   * @param int $multiValuesOffset
+   *   Multivalues offset
    * @return array
    */
   public static function get($offset = 0, $limit = 0, $multiValuesOffset = 0) {
@@ -35,9 +41,12 @@ class CRM_Activityreport_Data {
           'limit' => $limit,
         ),
       );
+
       $activities = civicrm_api3('Activity', 'get', $params);
+
       $formattedActivities = self::formatResult($activities['values']);
       $result = self::splitMultiValues($formattedActivities, $offset, $multiValuesOffset);
+
       CRM_Core_BAO_Cache::setItem($result, 'activityreport', $cacheKey);
     }
 
@@ -48,11 +57,13 @@ class CRM_Activityreport_Data {
    * Return an array containing $data rows and each row containing multiple values
    * of at least one field is populated into separate row for each field's
    * multiple value.
-   * 
-   * @param array   $data               array containing a set of Activities
-   * @param int     $totalOffset        Activity absolute offset we start with
-   * @param int     $multiValuesOffset  Multi Values offset
-   * 
+   *
+   * @param array $data
+   *   Array containing a set of Activities
+   * @param int $totalOffset
+   *   Activity absolute offset we start with
+   * @param int $multiValuesOffset
+   *   Multi Values offset
    * @return array
    */
   protected static function splitMultiValues(array $data, $totalOffset, $multiValuesOffset) {
@@ -64,7 +75,9 @@ class CRM_Activityreport_Data {
       $multiValuesRows = array();
       if (!empty(self::$multiValues[$key])) {
         $multiValuesFields = array_combine(self::$multiValues[$key], array_fill(0, count(self::$multiValues[$key]), 0));
+
         $multiValuesRows = self::populateMultiValuesRow($row, $multiValuesFields, $multiValuesOffset, self::ROWS_TO_RETURN - $i);
+
         $result = array_merge($result, $multiValuesRows['data']);
         $messages = array_merge($messages, $multiValuesRows['info']['messages']);
         $multiValuesOffset = 0;
@@ -72,6 +85,7 @@ class CRM_Activityreport_Data {
         $result[] = $row;
       }
       $i = count($result);
+
       if ($i === self::ROWS_TO_RETURN) {
         break;
       }
@@ -97,6 +111,11 @@ class CRM_Activityreport_Data {
     );
   }
 
+  /**
+   * Prepare an array containing data header with fields labels.
+   *
+   * @return array
+   */
   protected static function getHeader() {
     $header = array_merge(self::$emptyRow, array(
       'Activity Date' => null,
@@ -104,20 +123,25 @@ class CRM_Activityreport_Data {
       'Activity is a test' => null,
       'Activity Expire Date' => null,
     ));
+
     ksort($header);
+
     return $header;
   }
 
   /**
    * Return an array containing set of rows which are built basing on given $row
    * and $fields array with indexes of multi values of the $row.
-   * 
-   * @param array   $row          a single Activity row
-   * @param array   $fields       array containing Activity multi value fields
-   *                              as keys and integer indexes as values
-   * @param int     $offset       combination offset to start from
-   * @param int     $limit        how many records can we generate?
-   * 
+   *
+   * @param array $row
+   *   A single Activity row
+   * @param array $fields
+   *   Array containing Activity multi value fields as keys and integer
+   *   indexes as values
+   * @param int $offset
+   *   Combination offset to start from
+   * @param int $limit
+   *   How many records can we generate?
    * @return array
    */
   protected static function populateMultiValuesRow(array $row, array $fields, $offset, $limit) {
@@ -179,11 +203,13 @@ class CRM_Activityreport_Data {
 
   /**
    * Return a result of recursively parsed and formatted $data.
-   * 
-   * @param mixed   $data       data element
-   * @param string  $dataKey    key of current $data item
-   * @param int     $level      how deep we are relative to the root of our data
-   * 
+   *
+   * @param mixed $data
+   *   Data element
+   * @param string $dataKey
+   *   Key of current $data item
+   * @param int $level
+   *   How deep we are relative to the root of our data
    * @return type
    */
   protected static function formatResult($data, $dataKey = null, $level = 0) {
@@ -229,11 +255,13 @@ class CRM_Activityreport_Data {
    * with HTML tags stripped.
    * If $value contains an array of values then the method works recursively
    * returning an array of formatted values.
-   * 
-   * @param string $key     field name
-   * @param string $value   field value
-   * @param int $level      recursion level
-   * 
+   *
+   * @param string $key
+   *   Field name
+   * @param string $value
+   *   Field value
+   * @param int $level
+   *   Recursion level
    * @return string
    */
   protected static function formatValue($key, $value, $level = 0) {
@@ -290,9 +318,11 @@ class CRM_Activityreport_Data {
    * Additional function for customizing Activity value by its key
    * (if it's needed). For example: we want to return Campaign's title
    * instead of ID.
-   * 
+   *
    * @param string $key
+   *   Field key
    * @param string $value
+   *   Field value
    * @return string
    */
   protected static function customizeValue($key, $value) {
@@ -336,28 +366,36 @@ class CRM_Activityreport_Data {
   /**
    * Return an array containing all Fields and Custom Fields of Activity entity,
    * keyed by their API keys and extended with available fields Option Values.
-   * 
+   *
    * @return array
    */
   protected static function getActivityFields() {
+    $unsetFields = array(
+      'is_current_revision',
+      'activity_is_deleted',
+      'weight',
+      'source_contact_id',
+      'phone_id',
+      'relationship_id',
+      'source_record_id',
+      'activity_is_test',
+      'parent_id',
+      'activity_details',
+    );
     // Get standard Fields of Activity entity.
     $fields = CRM_Activity_DAO_Activity::fields();
-    unset($fields['is_current_revision']);
-    unset($fields['activity_is_deleted']);
-    unset($fields['weight']);
-    unset($fields['source_contact_id']);
-    unset($fields['phone_id']);
-    unset($fields['relationship_id']);
-    unset($fields['source_record_id']);
-    unset($fields['activity_is_test']);
-    unset($fields['parent_id']);
-    unset($fields['activity_details']);
+
+    foreach ($unsetFields as $unsetField) {
+      unset($fields[$unsetField]);
+    }
+
     if (!empty($fields['activity_type_id'])) {
         $fields['activity_type_id']['title'] = t('Activity Type');
     }
     if (!empty($fields['activity_date_time'])) {
         $fields['activity_date_time']['title'] = t('Activity Date Time');
     }
+
     $keys = CRM_Activity_DAO_Activity::fieldKeys();
     $result = array();
 
@@ -370,10 +408,12 @@ class CRM_Activityreport_Data {
       'LEFT JOIN `civicrm_option_group` og ON og.id = f.option_group_id ' .
       'WHERE g.extends = \'Activity\' AND g.is_active = 1 AND f.is_active = 1 AND f.html_type NOT IN (\'Text\', \'TextArea\') '
     );
+
     while ($customFieldsResult->fetch()) {
       $customField = new CRM_Core_BAO_CustomField();
       $customField->id = $customFieldsResult->id;
       $customField->find(true);
+
       $fields['custom_' . $customFieldsResult->id] = array(
         'name' => 'custom_' . $customFieldsResult->id,
         'title' => $customFieldsResult->label,
@@ -398,9 +438,9 @@ class CRM_Activityreport_Data {
   /**
    * Return available Option Values of specified $field array.
    * If there is no available Option Values for the field, then return null.
-   * 
+   *
    * @param array $field
-   * 
+   *   Field key
    * @return array
    */
   protected static function getOptionValues($field) {
