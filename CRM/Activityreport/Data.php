@@ -37,7 +37,7 @@ class CRM_Activityreport_Data {
         'is_test' => 0,
         'return' => implode(',', array_keys(self::$fields)),
         'options' => array(
-          'sort' => 'id ASC',
+          'sort' => 'activity_date_time DESC',
           'offset' => $offset,
           'limit' => $limit,
         ),
@@ -150,6 +150,17 @@ class CRM_Activityreport_Data {
     );
     $found = true;
     $i = 0;
+
+    /*
+     * Check how many combinations of one $row needs to be created.
+     */
+    $combinations = 1;
+    foreach ($fields as $key => $value) {
+      if (!empty($row[$key]) && is_array($row[$key])) {
+        $combinations *= count($row[$key]);
+      }
+    }
+    $info['multiValuesTotal'] = $combinations;
 
     while ($found) {
       if ($i >= $offset) {
