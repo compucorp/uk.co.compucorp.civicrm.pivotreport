@@ -34,6 +34,7 @@ class CRM_Activityreport_Data {
         'sequential' => 1,
         'is_current_revision' => 1,
         'is_deleted' => 0,
+        'is_test' => 0,
         'return' => implode(',', array_keys(self::$fields)),
         'options' => array(
           'sort' => 'id ASC',
@@ -406,7 +407,7 @@ class CRM_Activityreport_Data {
       'FROM `civicrm_custom_group` g ' .
       'LEFT JOIN `civicrm_custom_field` f ON f.custom_group_id = g.id ' .
       'LEFT JOIN `civicrm_option_group` og ON og.id = f.option_group_id ' .
-      'WHERE g.extends = \'Activity\' AND g.is_active = 1 AND f.is_active = 1 AND f.html_type NOT IN (\'Text\', \'TextArea\') '
+      'WHERE g.extends = \'Activity\' AND g.is_active = 1 AND f.is_active = 1 AND f.html_type NOT IN (\'TextArea\', \'RichTextEditor\') AND (f.data_type <> \'String\' OR (f.data_type = \'String\' AND f.html_type <> \'Text\')) '
     );
 
     while ($customFieldsResult->fetch()) {
