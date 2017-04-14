@@ -4,9 +4,6 @@
   <div id="activity-report-preloader">
     Loading <span id="activity-report-loading-count">0</span> of <span id="activity-report-loading-total">0</span> Activities.
   </div>
-  <div id="activity-report-debug-container">
-    <div id="activity-report-loader-messages"></div>
-  </div>
 </div>
 
 {literal}
@@ -62,12 +59,6 @@
             "limit": localLimit,
             "multiValuesOffset": multiValuesOffset
           }).done(function(result) {
-            if (result['values'][0]['info'].messages.length) {
-              for (var i in result['values'][0]['info'].messages) {
-                CRM.$('div#activity-report-loader-messages').append(result['values'][0]['info'].messages[i] + '<br>');
-              }
-            }
-
             data = data.concat(processData(result['values'][0].data));
             var nextOffset = parseInt(result['values'][0].info.nextOffset, 10);
 

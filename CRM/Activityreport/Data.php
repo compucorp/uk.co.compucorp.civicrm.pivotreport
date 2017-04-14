@@ -69,7 +69,6 @@ class CRM_Activityreport_Data {
    */
   protected static function splitMultiValues(array $data, $totalOffset, $multiValuesOffset) {
     $result = array();
-    $messages = array();
     $i = 0;
 
     foreach ($data as $key => $row) {
@@ -80,7 +79,6 @@ class CRM_Activityreport_Data {
         $multiValuesRows = self::populateMultiValuesRow($row, $multiValuesFields, $multiValuesOffset, self::ROWS_TO_RETURN - $i);
 
         $result = array_merge($result, $multiValuesRows['data']);
-        $messages = array_merge($messages, $multiValuesRows['info']['messages']);
         $multiValuesOffset = 0;
       } else {
         $result[] = $row;
@@ -105,7 +103,6 @@ class CRM_Activityreport_Data {
           'nextOffset' => !empty($multiValuesRows['info']['multiValuesOffset']) ? $totalOffset : $totalOffset + 1,
           'multiValuesOffset' => !empty($multiValuesRows['info']['multiValuesOffset']) ? $multiValuesRows['info']['multiValuesOffset'] : 0,
           'multiValuesTotal' => !empty($multiValuesRows['info']['multiValuesTotal']) ? $multiValuesRows['info']['multiValuesTotal'] : 0,
-          'messages' => $messages,
         ),
         'data' => $output,
       ),
@@ -150,26 +147,9 @@ class CRM_Activityreport_Data {
     $info = array(
       'multiValuesTotal' => 0,
       'multiValuesOffset' => 0,
-      'messages' => array(),
     );
     $found = true;
     $i = 0;
-
-    /*
-     * Check how many combinations of one $row needs to be created.
-     * We need to skip the row if combinations number is is too high
-     * (due to memory limit issues).
-     */
-    $combinations = 1;
-    foreach ($fields as $key => $value) {
-      if (!empty($row[$key]) && is_array($row[$key])) {
-        $combinations *= count($row[$key]);
-      }
-    }
-    $info['multiValuesTotal'] = $combinations;
-    if ($combinations > 1 && $offset === 0) {
-      $info['messages'][] = 'Activity ID#' . $row['Activity ID'] . ' has ' . $combinations . ' multivalues combinations.';
-    }
 
     while ($found) {
       if ($i >= $offset) {
