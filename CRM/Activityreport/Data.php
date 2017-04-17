@@ -139,22 +139,11 @@ class CRM_Activityreport_Data {
   protected static function populateMultiValuesRow(array $row, array $fields, $offset, $limit) {
     $data = array();
     $info = array(
-      'multiValuesTotal' => 0,
+      'multiValuesTotal' => self::getTotalCombinations($row, $fields),
       'multiValuesOffset' => 0,
     );
     $found = true;
     $i = 0;
-
-    /*
-     * Check how many combinations of one $row needs to be created.
-     */
-    $combinations = 1;
-    foreach ($fields as $key => $value) {
-      if (!empty($row[$key]) && is_array($row[$key])) {
-        $combinations *= count($row[$key]);
-      }
-    }
-    $info['multiValuesTotal'] = $combinations;
 
     while ($found) {
       if ($i >= $offset) {
@@ -185,6 +174,27 @@ class CRM_Activityreport_Data {
       'info' => $info,
       'data' => $data,
     );
+  }
+
+  /**
+   * Get number of multivalues combinations for given Activity row.
+   *
+   * @param array $row
+   *   Activity row
+   * @param array $fields
+   *   Array containing all Activity fields
+   * @return int
+   */
+  protected static function getTotalCombinations(array $row, array $fields) {
+    $combinations = 1;
+
+    foreach ($fields as $key => $value) {
+      if (!empty($row[$key]) && is_array($row[$key])) {
+        $combinations *= count($row[$key]);
+      }
+    }
+
+    return $combinations;
   }
 
   /**
