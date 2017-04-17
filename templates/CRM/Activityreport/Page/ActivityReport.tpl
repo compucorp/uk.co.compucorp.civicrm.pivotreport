@@ -1,12 +1,17 @@
 <h3>Activity Pivot Table</h3>
 
-<div id="reportPivotTable">
-  <div id="activity-report-preloader">
-    Loading <span id="activity-report-loading-count">0</span> of <span id="activity-report-loading-total">0</span> Activities.
-  </div>
-  <div id="activity-report-debug-container">
-    <div id="activity-report-loader-messages"></div>
-  </div>
+<div id="activity-report-preloader">
+  Loading <span id="activity-report-loading-count">0</span> of <span id="activity-report-loading-total">0</span> Activities.
+</div>
+<div id="activity-report-filters" class="hidden">
+  <form>
+    <label for="activity_start_date">Activity start date</label>
+    <input type="text" name="activity_start_date" value="">
+    <input class="apply-filters-button" type="button" value="Apply filters">
+    <input class="load-all-data-button hidden" type="button" value="Load all data">
+  </form>
+</div>
+<div id="activity-report-pivot-table">
 </div>
 
 {literal}
@@ -22,9 +27,19 @@
             }
         };
     })(jQuery);
+
     CRM.$(function () {
         var data = [];
         var limit = 1000;
+        var total = 0;
+
+        /**
+         * Reset data array and init empty Pivot Table.
+         */
+        function resetData() {
+          data = [];
+          initPivotTable([]);
+        }
 
         /**
          * Load a pack of Activities data. If there is more data to load
@@ -55,6 +70,9 @@
           if (multiValuesTotal - multiValuesOffset > limit) {
             localLimit = 1;
           }
+          if (offset + localLimit > total) {
+            localLimit = total - offset;
+          }
 
           CRM.api3('ActivityReport', 'get', {
             "sequential": 1,
@@ -62,23 +80,33 @@
             "limit": localLimit,
             "multiValuesOffset": multiValuesOffset
           }).done(function(result) {
-            if (result['values'][0]['info'].messages.length) {
-              for (var i in result['values'][0]['info'].messages) {
-                CRM.$('div#activity-report-loader-messages').append(result['values'][0]['info'].messages[i] + '<br>');
-              }
-            }
-
             data = data.concat(processData(result['values'][0].data));
             var nextOffset = parseInt(result['values'][0].info.nextOffset, 10);
 
             if (nextOffset > total) {
-              initPivotTable(data);
+              loadComplete(data);
+
+              CRM.alert(total + ' Activities loaded.', '', 'info');
             } else {
               var multiValuesOffset = parseInt(result['values'][0]['info'].multiValuesOffset, 10);
               var multiValuesTotal = parseInt(result['values'][0]['info'].multiValuesTotal, 10);
+
               loadData(nextOffset, limit, total, multiValuesOffset, multiValuesTotal);
             }
           });
+        }
+
+        /**
+         * Hide preloader, show filters and init Pivot Table.
+         *
+         * @param array data
+         */
+        function loadComplete(data) {
+          CRM.$('#activity-report-preloader').addClass('hidden');
+          CRM.$('#activity-report-filters').removeClass('hidden');
+
+          initPivotTable(data);
+          data = [];
         }
 
         /**
@@ -106,17 +134,96 @@
           return result;
         }
 
+        var activityReportForm = CRM.$('#activity-report-filters form');
+        var activityReportDateInput = CRM.$('input[name="activity_start_date"]', activityReportForm);
+
+        CRM.$('input[type="button"].apply-filters-button', activityReportForm).click(function(e) {
+          CRM.$('#activity-report-preloader').removeClass('hidden');
+          CRM.$('#activity-report-filters').addClass('hidden');
+
+          loadDataByDateFilter(activityReportDateInput.val());
+        });
+
+        CRM.$('input[type="button"].load-all-data-button', activityReportForm).click(function(e) {
+          CRM.confirm({ message: 'This operation may take some time to load all data for big data sets. Do you really want to load all Activities data?' }).on('crmConfirm:yes', function() {
+            loadAllData();
+          });
+        });
+
+        activityReportDateInput.crmDatepicker({
+          time: false
+        });
+
         // Initially we check total number of Activities and then start
         // data fetching.
         CRM.api3('Activity', 'getcount', {
           "sequential": 1,
           "is_current_revision": 1,
           "is_deleted": 0,
+          "is_test": 0,
         }).done(function(result) {
-          var total = parseInt(result.result, 10);
-          CRM.$('span#activity-report-loading-total').text(total);
-          loadData(0, limit, total, 0, 0);
+          total = parseInt(result.result, 10);
+
+          if (total > 5000) {
+            CRM.alert('There is more than 5000 Activities, getting only Activities from last month.', '', 'info');
+
+            CRM.$('input[type="button"].load-all-data-button', activityReportForm).removeClass('hidden');
+            var dateFilterValue = new Date();
+            dateFilterValue.setMonth(dateFilterValue.getMonth()-1);
+
+            loadDataByDateFilter(dateFilterValue.toISOString().substring(0, 10));
+          } else {
+            loadAllData();
+          }
         });
+
+        /**
+         * Run data loading by specified date.
+         *
+         * @param string dateFilterValue
+         */
+        function loadDataByDateFilter(dateFilterValue) {
+          resetData();
+
+          activityReportDateInput.val(dateFilterValue).trigger('change');
+
+          CRM.$("#activity-report-pivot-table").html('');
+
+          CRM.api3('Activity', 'getcount', {
+            "sequential": 1,
+            "is_current_revision": 1,
+            "is_deleted": 0,
+            "is_test": 0,
+            "activity_date_time": {">=": dateFilterValue}
+          }).done(function(result) {
+            var totalFiltered = parseInt(result.result, 10);
+
+            if (!totalFiltered) {
+              CRM.$('#activity-report-preloader').addClass('hidden');
+              CRM.$('#activity-report-filters').removeClass('hidden');
+
+              CRM.alert('There is no Activities created within ' + dateFilterValue + ' date.');
+            } else {
+              CRM.$('span#activity-report-loading-total').text(totalFiltered);
+
+              loadData(0, limit, totalFiltered, 0, 0);
+            }
+          });
+        }
+
+        /**
+         * Run all data loading.
+         */
+        function loadAllData() {
+          resetData();
+
+          CRM.$("#activity-report-pivot-table").html('');
+          CRM.$('#activity-report-preloader').removeClass('hidden');
+          CRM.$('#activity-report-filters').addClass('hidden');
+          CRM.$('span#activity-report-loading-total').text(total);
+
+          loadData(0, limit, total, 0, 0);
+        }
 
         /*
          * Init Pivot Table with given data.
@@ -124,7 +231,7 @@
          * @param array data
          */
         function initPivotTable(data) {
-          jQuery("#reportPivotTable").pivotUI(data, {
+          jQuery("#activity-report-pivot-table").pivotUI(data, {
               rendererName: "Table",
               renderers: CRM.$.extend(
                   jQuery.pivotUtilities.renderers, 
@@ -139,7 +246,7 @@
               rendererOptions: {
                   c3: {
                       size: {
-                          width: parseInt(jQuery('#reportPivotTable').width() * 0.78, 10)
+                          width: parseInt(jQuery('#activity-report-pivot-table').width() * 0.78, 10)
                       }
                   },
               },

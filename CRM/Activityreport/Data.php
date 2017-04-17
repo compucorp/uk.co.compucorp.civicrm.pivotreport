@@ -5,11 +5,11 @@
  */
 class CRM_Activityreport_Data {
   const ROWS_TO_RETURN = 1000;
-  protected static $fields = array();
-  protected static $emptyRow = array();
-  protected static $multiValues = array();
-  protected static $formattedValues = array();
-  protected static $customizedValues = array();
+  private static $fields = array();
+  private static $emptyRow = array();
+  private static $multiValues = array();
+  private static $formattedValues = array();
+  private static $customizedValues = array();
 
   /**
    * Return an array containing formatted Activity data.
@@ -26,29 +26,24 @@ class CRM_Activityreport_Data {
     self::$fields = self::getActivityFields();
     self::$emptyRow = self::getEmptyRow();
     self::$multiValues = array();
-    $cacheKey = 'get-' . $offset . ',' . $limit . ',' . $multiValuesOffset;
 
-    $result = CRM_Core_BAO_Cache::getItem('activityreport', $cacheKey);
-    if (empty($result)) {
-      $params = array(
-        'sequential' => 1,
-        'is_current_revision' => 1,
-        'is_deleted' => 0,
-        'return' => implode(',', array_keys(self::$fields)),
-        'options' => array(
-          'sort' => 'id ASC',
-          'offset' => $offset,
-          'limit' => $limit,
-        ),
-      );
+    $params = array(
+      'sequential' => 1,
+      'is_current_revision' => 1,
+      'is_deleted' => 0,
+      'is_test' => 0,
+      'return' => implode(',', array_keys(self::$fields)),
+      'options' => array(
+        'sort' => 'activity_date_time DESC',
+        'offset' => $offset,
+        'limit' => $limit,
+      ),
+    );
 
-      $activities = civicrm_api3('Activity', 'get', $params);
+    $activities = civicrm_api3('Activity', 'get', $params);
 
-      $formattedActivities = self::formatResult($activities['values']);
-      $result = self::splitMultiValues($formattedActivities, $offset, $multiValuesOffset);
-
-      CRM_Core_BAO_Cache::setItem($result, 'activityreport', $cacheKey);
-    }
+    $formattedActivities = self::formatResult($activities['values']);
+    $result = self::splitMultiValues($formattedActivities, $offset, $multiValuesOffset);
 
     return $result;
   }
@@ -66,9 +61,8 @@ class CRM_Activityreport_Data {
    *   Multi Values offset
    * @return array
    */
-  protected static function splitMultiValues(array $data, $totalOffset, $multiValuesOffset) {
+  private static function splitMultiValues(array $data, $totalOffset, $multiValuesOffset) {
     $result = array();
-    $messages = array();
     $i = 0;
 
     foreach ($data as $key => $row) {
@@ -79,7 +73,6 @@ class CRM_Activityreport_Data {
         $multiValuesRows = self::populateMultiValuesRow($row, $multiValuesFields, $multiValuesOffset, self::ROWS_TO_RETURN - $i);
 
         $result = array_merge($result, $multiValuesRows['data']);
-        $messages = array_merge($messages, $multiValuesRows['info']['messages']);
         $multiValuesOffset = 0;
       } else {
         $result[] = $row;
@@ -104,7 +97,6 @@ class CRM_Activityreport_Data {
           'nextOffset' => !empty($multiValuesRows['info']['multiValuesOffset']) ? $totalOffset : $totalOffset + 1,
           'multiValuesOffset' => !empty($multiValuesRows['info']['multiValuesOffset']) ? $multiValuesRows['info']['multiValuesOffset'] : 0,
           'multiValuesTotal' => !empty($multiValuesRows['info']['multiValuesTotal']) ? $multiValuesRows['info']['multiValuesTotal'] : 0,
-          'messages' => $messages,
         ),
         'data' => $output,
       ),
@@ -116,7 +108,7 @@ class CRM_Activityreport_Data {
    *
    * @return array
    */
-  protected static function getHeader() {
+  private static function getHeader() {
     $header = array_merge(self::$emptyRow, array(
       'Activity Date' => null,
       'Activity Start Date Months' => null,
@@ -144,31 +136,14 @@ class CRM_Activityreport_Data {
    *   How many records can we generate?
    * @return array
    */
-  protected static function populateMultiValuesRow(array $row, array $fields, $offset, $limit) {
+  private static function populateMultiValuesRow(array $row, array $fields, $offset, $limit) {
     $data = array();
     $info = array(
-      'multiValuesTotal' => 0,
+      'multiValuesTotal' => self::getTotalCombinations($row, $fields),
       'multiValuesOffset' => 0,
-      'messages' => array(),
     );
     $found = true;
     $i = 0;
-
-    /*
-     * Check how many combinations of one $row needs to be created.
-     * We need to skip the row if combinations number is is too high
-     * (due to memory limit issues).
-     */
-    $combinations = 1;
-    foreach ($fields as $key => $value) {
-      if (!empty($row[$key]) && is_array($row[$key])) {
-        $combinations *= count($row[$key]);
-      }
-    }
-    $info['multiValuesTotal'] = $combinations;
-    if ($combinations > 1 && $offset === 0) {
-      $info['messages'][] = 'Activity ID#' . $row['Activity ID'] . ' has ' . $combinations . ' multivalues combinations.';
-    }
 
     while ($found) {
       if ($i >= $offset) {
@@ -202,6 +177,27 @@ class CRM_Activityreport_Data {
   }
 
   /**
+   * Get number of multivalues combinations for given Activity row.
+   *
+   * @param array $row
+   *   Activity row
+   * @param array $fields
+   *   Array containing all Activity fields
+   * @return int
+   */
+  private static function getTotalCombinations(array $row, array $fields) {
+    $combinations = 1;
+
+    foreach ($fields as $key => $value) {
+      if (!empty($row[$key]) && is_array($row[$key])) {
+        $combinations *= count($row[$key]);
+      }
+    }
+
+    return $combinations;
+  }
+
+  /**
    * Return a result of recursively parsed and formatted $data.
    *
    * @param mixed $data
@@ -212,7 +208,7 @@ class CRM_Activityreport_Data {
    *   How deep we are relative to the root of our data
    * @return type
    */
-  protected static function formatResult($data, $dataKey = null, $level = 0) {
+  private static function formatResult($data, $dataKey = null, $level = 0) {
     $result = array();
 
     if ($level < 2) {
@@ -264,7 +260,7 @@ class CRM_Activityreport_Data {
    *   Recursion level
    * @return string
    */
-  protected static function formatValue($key, $value, $level = 0) {
+  private static function formatValue($key, $value, $level = 0) {
     if (empty($value) || $level > 1) {
       return '';
     }
@@ -325,7 +321,7 @@ class CRM_Activityreport_Data {
    *   Field value
    * @return string
    */
-  protected static function customizeValue($key, $value) {
+  private static function customizeValue($key, $value) {
     if (!empty(self::$customizedValues[$key][$value])) {
       return self::$customizedValues[$key][$value];
     }
@@ -350,7 +346,7 @@ class CRM_Activityreport_Data {
     return $result;
   }
 
-  protected static function getEmptyRow() {
+  private static function getEmptyRow() {
     $result = array();
 
     foreach (self::$fields as $key => $value) {
@@ -369,7 +365,7 @@ class CRM_Activityreport_Data {
    *
    * @return array
    */
-  protected static function getActivityFields() {
+  private static function getActivityFields() {
     $unsetFields = array(
       'is_current_revision',
       'activity_is_deleted',
@@ -406,7 +402,7 @@ class CRM_Activityreport_Data {
       'FROM `civicrm_custom_group` g ' .
       'LEFT JOIN `civicrm_custom_field` f ON f.custom_group_id = g.id ' .
       'LEFT JOIN `civicrm_option_group` og ON og.id = f.option_group_id ' .
-      'WHERE g.extends = \'Activity\' AND g.is_active = 1 AND f.is_active = 1 AND f.html_type NOT IN (\'Text\', \'TextArea\') '
+      'WHERE g.extends = \'Activity\' AND g.is_active = 1 AND f.is_active = 1 AND f.html_type NOT IN (\'TextArea\', \'RichTextEditor\') AND (f.data_type <> \'String\' OR (f.data_type = \'String\' AND f.html_type <> \'Text\')) '
     );
 
     while ($customFieldsResult->fetch()) {
@@ -443,7 +439,7 @@ class CRM_Activityreport_Data {
    *   Field key
    * @return array
    */
-  protected static function getOptionValues($field) {
+  private static function getOptionValues($field) {
     if (empty($field['pseudoconstant']['optionGroupName'])) {
       return null;
     }
