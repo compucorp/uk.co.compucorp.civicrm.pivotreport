@@ -5,11 +5,11 @@
  */
 class CRM_Activityreport_Data {
   const ROWS_TO_RETURN = 1000;
-  protected static $fields = array();
-  protected static $emptyRow = array();
-  protected static $multiValues = array();
-  protected static $formattedValues = array();
-  protected static $customizedValues = array();
+  private static $fields = array();
+  private static $emptyRow = array();
+  private static $multiValues = array();
+  private static $formattedValues = array();
+  private static $customizedValues = array();
 
   /**
    * Return an array containing formatted Activity data.
@@ -61,7 +61,7 @@ class CRM_Activityreport_Data {
    *   Multi Values offset
    * @return array
    */
-  protected static function splitMultiValues(array $data, $totalOffset, $multiValuesOffset) {
+  private static function splitMultiValues(array $data, $totalOffset, $multiValuesOffset) {
     $result = array();
     $i = 0;
 
@@ -108,7 +108,7 @@ class CRM_Activityreport_Data {
    *
    * @return array
    */
-  protected static function getHeader() {
+  private static function getHeader() {
     $header = array_merge(self::$emptyRow, array(
       'Activity Date' => null,
       'Activity Start Date Months' => null,
@@ -136,7 +136,7 @@ class CRM_Activityreport_Data {
    *   How many records can we generate?
    * @return array
    */
-  protected static function populateMultiValuesRow(array $row, array $fields, $offset, $limit) {
+  private static function populateMultiValuesRow(array $row, array $fields, $offset, $limit) {
     $data = array();
     $info = array(
       'multiValuesTotal' => self::getTotalCombinations($row, $fields),
@@ -185,7 +185,7 @@ class CRM_Activityreport_Data {
    *   Array containing all Activity fields
    * @return int
    */
-  protected static function getTotalCombinations(array $row, array $fields) {
+  private static function getTotalCombinations(array $row, array $fields) {
     $combinations = 1;
 
     foreach ($fields as $key => $value) {
@@ -208,7 +208,7 @@ class CRM_Activityreport_Data {
    *   How deep we are relative to the root of our data
    * @return type
    */
-  protected static function formatResult($data, $dataKey = null, $level = 0) {
+  private static function formatResult($data, $dataKey = null, $level = 0) {
     $result = array();
 
     if ($level < 2) {
@@ -260,7 +260,7 @@ class CRM_Activityreport_Data {
    *   Recursion level
    * @return string
    */
-  protected static function formatValue($key, $value, $level = 0) {
+  private static function formatValue($key, $value, $level = 0) {
     if (empty($value) || $level > 1) {
       return '';
     }
@@ -321,7 +321,7 @@ class CRM_Activityreport_Data {
    *   Field value
    * @return string
    */
-  protected static function customizeValue($key, $value) {
+  private static function customizeValue($key, $value) {
     if (!empty(self::$customizedValues[$key][$value])) {
       return self::$customizedValues[$key][$value];
     }
@@ -346,7 +346,7 @@ class CRM_Activityreport_Data {
     return $result;
   }
 
-  protected static function getEmptyRow() {
+  private static function getEmptyRow() {
     $result = array();
 
     foreach (self::$fields as $key => $value) {
@@ -365,7 +365,7 @@ class CRM_Activityreport_Data {
    *
    * @return array
    */
-  protected static function getActivityFields() {
+  private static function getActivityFields() {
     $unsetFields = array(
       'is_current_revision',
       'activity_is_deleted',
@@ -439,7 +439,7 @@ class CRM_Activityreport_Data {
    *   Field key
    * @return array
    */
-  protected static function getOptionValues($field) {
+  private static function getOptionValues($field) {
     if (empty($field['pseudoconstant']['optionGroupName'])) {
       return null;
     }
