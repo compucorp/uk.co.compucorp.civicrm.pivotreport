@@ -26,30 +26,24 @@ class CRM_Activityreport_Data {
     self::$fields = self::getActivityFields();
     self::$emptyRow = self::getEmptyRow();
     self::$multiValues = array();
-    $cacheKey = 'get-' . $offset . ',' . $limit . ',' . $multiValuesOffset;
 
-    $result = CRM_Core_BAO_Cache::getItem('activityreport', $cacheKey);
-    if (empty($result)) {
-      $params = array(
-        'sequential' => 1,
-        'is_current_revision' => 1,
-        'is_deleted' => 0,
-        'is_test' => 0,
-        'return' => implode(',', array_keys(self::$fields)),
-        'options' => array(
-          'sort' => 'activity_date_time DESC',
-          'offset' => $offset,
-          'limit' => $limit,
-        ),
-      );
+    $params = array(
+      'sequential' => 1,
+      'is_current_revision' => 1,
+      'is_deleted' => 0,
+      'is_test' => 0,
+      'return' => implode(',', array_keys(self::$fields)),
+      'options' => array(
+        'sort' => 'activity_date_time DESC',
+        'offset' => $offset,
+        'limit' => $limit,
+      ),
+    );
 
-      $activities = civicrm_api3('Activity', 'get', $params);
+    $activities = civicrm_api3('Activity', 'get', $params);
 
-      $formattedActivities = self::formatResult($activities['values']);
-      $result = self::splitMultiValues($formattedActivities, $offset, $multiValuesOffset);
-
-      CRM_Core_BAO_Cache::setItem($result, 'activityreport', $cacheKey);
-    }
+    $formattedActivities = self::formatResult($activities['values']);
+    $result = self::splitMultiValues($formattedActivities, $offset, $multiValuesOffset);
 
     return $result;
   }
