@@ -20,12 +20,17 @@ class CRM_Activityreport_Data {
    *   Limit for API call
    * @param int $multiValuesOffset
    *   Multivalues offset
+   * @param string $startYearMonth
+   *   Date in YYYY-MM format to tell API the year and month of Activities
+   *   we want to pick.
    * @return array
    */
-  public static function get($offset = 0, $limit = 0, $multiValuesOffset = 0) {
+  public static function get($offset = 0, $limit = 0, $multiValuesOffset = 0, $startYearMonth = null) {
     self::$fields = self::getActivityFields();
     self::$emptyRow = self::getEmptyRow();
     self::$multiValues = array();
+
+    $order = empty($startYearMonth) ? 'DESC' : 'ASC';
 
     $params = array(
       'sequential' => 1,
@@ -34,11 +39,15 @@ class CRM_Activityreport_Data {
       'is_test' => 0,
       'return' => implode(',', array_keys(self::$fields)),
       'options' => array(
-        'sort' => 'activity_date_time DESC',
+        'sort' => 'activity_date_time ' . $order,
         'offset' => $offset,
         'limit' => $limit,
       ),
     );
+
+    if (!empty($startYearMonth)) {
+      $params['activity_date_time'] = array('>=' => $startYearMonth);
+    }
 
     $activities = civicrm_api3('Activity', 'get', $params);
 

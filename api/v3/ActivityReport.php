@@ -23,6 +23,7 @@ function civicrm_api3_activity_report_get($params) {
   $limit = !empty($params['limit']) ? (int)$params['limit'] : 1000;
 
   $multiValuesOffset = !empty($params['multiValuesOffset']) ? (int)$params['multiValuesOffset'] : 0;
+  $startYearMonth = !empty($params['startYearMonth']) ? $params['startYearMonth'] : null;
 
-  return civicrm_api3_create_success(CRM_Activityreport_Data::get($offset, $limit, $multiValuesOffset), $params);
+  return civicrm_api3_create_success(CRM_Activityreport_Data::get($offset, $limit, $multiValuesOffset, $startYearMonth), $params);
 }

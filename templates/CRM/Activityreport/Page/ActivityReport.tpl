@@ -5,8 +5,16 @@
 </div>
 <div id="activity-report-filters" class="hidden">
   <form>
-    <label for="activity_start_date">Activity start date</label>
-    <input type="text" name="activity_start_date" value="">
+    <select name="activity_year">
+      {foreach from=$years key=k item=year}
+          <option value="{$k}">{$year}</option>
+      {/foreach}
+    </select>
+    <select name="activity_month">
+      {foreach from=$months key=k item=month}
+          <option value="{$k}">{$month}</option>
+      {/foreach}
+    </select>
     <input class="apply-filters-button" type="button" value="Apply filters">
     <input class="load-all-data-button hidden" type="button" value="Load all data">
   </form>
@@ -59,8 +67,11 @@
          *   In case we are in the middle of a multivalues activity,
          *   we know the total number of multivalues combinations for
          *   this particular Activity
+         * @param string startYearMonth
+         *   Date in YYYY-MM format to tell API the year and month of
+         *   Activities we want to pick.
          */
-        function loadData(offset, limit, total, multiValuesOffset, multiValuesTotal) {
+        function loadData(offset, limit, total, multiValuesOffset, multiValuesTotal, startYearMonth) {
           CRM.$('span#activity-report-loading-count').text(offset);
           var localLimit = limit;
 
@@ -78,7 +89,8 @@
             "sequential": 1,
             "offset": offset,
             "limit": localLimit,
-            "multiValuesOffset": multiValuesOffset
+            "multiValuesOffset": multiValuesOffset,
+            "startYearMonth": startYearMonth
           }).done(function(result) {
             data = data.concat(processData(result['values'][0].data));
             var nextOffset = parseInt(result['values'][0].info.nextOffset, 10);
@@ -91,7 +103,7 @@
               var multiValuesOffset = parseInt(result['values'][0]['info'].multiValuesOffset, 10);
               var multiValuesTotal = parseInt(result['values'][0]['info'].multiValuesTotal, 10);
 
-              loadData(nextOffset, limit, total, multiValuesOffset, multiValuesTotal);
+              loadData(nextOffset, limit, total, multiValuesOffset, multiValuesTotal, startYearMonth);
             }
           });
         }
@@ -135,23 +147,25 @@
         }
 
         var activityReportForm = CRM.$('#activity-report-filters form');
-        var activityReportDateInput = CRM.$('input[name="activity_start_date"]', activityReportForm);
+        var activityReportYear = CRM.$('select[name="activity_year"]', activityReportForm);
+        var activityReportMonth = CRM.$('select[name="activity_month"]', activityReportForm);
 
         CRM.$('input[type="button"].apply-filters-button', activityReportForm).click(function(e) {
+          if (!activityReportYear.val().length || !activityReportMonth.val().length) {
+            CRM.alert('Please select valid year and month.');
+            return false;
+          }
+
           CRM.$('#activity-report-preloader').removeClass('hidden');
           CRM.$('#activity-report-filters').addClass('hidden');
 
-          loadDataByDateFilter(activityReportDateInput.val());
+          loadDataByYearMonthFilter(activityReportYear.val(), activityReportMonth.val());
         });
 
         CRM.$('input[type="button"].load-all-data-button', activityReportForm).click(function(e) {
           CRM.confirm({ message: 'This operation may take some time to load all data for big data sets. Do you really want to load all Activities data?' }).on('crmConfirm:yes', function() {
             loadAllData();
           });
-        });
-
-        activityReportDateInput.crmDatepicker({
-          time: false
         });
 
         // Initially we check total number of Activities and then start
@@ -185,8 +199,6 @@
         function loadDataByDateFilter(dateFilterValue) {
           resetData();
 
-          activityReportDateInput.val(dateFilterValue).trigger('change');
-
           CRM.$("#activity-report-pivot-table").html('');
 
           CRM.api3('Activity', 'getcount', {
@@ -207,6 +219,63 @@
               CRM.$('span#activity-report-loading-total').text(totalFiltered);
 
               loadData(0, limit, totalFiltered, 0, 0);
+            }
+          });
+        }
+
+        /**
+         * Run data loading by specified year and month.
+         *
+         * @param string activityYear
+         * @param string activityMonth
+         */
+        function loadDataByYearMonthFilter(activityYear, activityMonth) {
+          resetData();
+
+          CRM.$("#activity-report-pivot-table").html('');
+
+          var startDate = new Date(activityYear, activityMonth - 1);
+          var startMonthString = startDate.getMonth() + 1;
+
+          if (startMonthString < 10) {
+            startMonthString = '0' + startMonthString;
+          }
+          var startDateString = startDate.getFullYear() + '-' + startMonthString;
+
+          var endDate = startDate;
+          endDate.setMonth(endDate.getMonth() + 1);
+          endDate.setDate(endDate.getDate() - 1);
+          var endMonthString = endDate.getMonth() + 1;
+
+          if (endMonthString < 10) {
+            endMonthString = '0' + endMonthString;
+          }
+
+          var endDateString = endDate.getFullYear() + '-' + endMonthString + '-' + endDate.getDate() + ' 23:59:59';
+
+          CRM.api3('Activity', 'getcount', {
+            "sequential": 1,
+            "is_current_revision": 1,
+            "is_deleted": 0,
+            "is_test": 0,
+            "activity_date_time": {
+              "BETWEEN":[
+                startDateString,
+                endDateString
+              ]
+            }
+          }).done(function(result) {
+            var totalFiltered = parseInt(result.result, 10);
+
+            if (!totalFiltered) {
+              CRM.$('#activity-report-preloader').addClass('hidden');
+              CRM.$('#activity-report-filters').removeClass('hidden');
+
+              CRM.alert('There is no Activities starting in ' + startDateString + ' date.');
+            } else {
+              CRM.$('span#activity-report-loading-total').text(totalFiltered);
+
+              loadData(0, limit, totalFiltered, 0, 0, startDateString);
             }
           });
         }
