@@ -165,11 +165,11 @@
           total = parseInt(result.result, 10);
 
           if (total > 5000) {
-            CRM.alert('There is more than 5000 Activities, getting only Activities from last month.', '', 'info');
+            CRM.alert('There is more than 5000 Activities, getting only Activities from last 30 days.', '', 'info');
 
             CRM.$('input[type="button"].load-all-data-button', activityReportForm).removeClass('hidden');
             var dateFilterValue = new Date();
-            dateFilterValue.setMonth(dateFilterValue.getMonth()-1);
+            dateFilterValue.setDate(dateFilterValue.getDate() - 30);
 
             loadDataByDateFilter(dateFilterValue.toISOString().substring(0, 10));
           } else {
@@ -202,7 +202,7 @@
               CRM.$('#activity-report-preloader').addClass('hidden');
               CRM.$('#activity-report-filters').removeClass('hidden');
 
-              CRM.alert('There is no Activities created within ' + dateFilterValue + ' date.');
+              CRM.alert('There is no Activities starting from ' + dateFilterValue + ' date.');
             } else {
               CRM.$('span#activity-report-loading-total').text(totalFiltered);
 
