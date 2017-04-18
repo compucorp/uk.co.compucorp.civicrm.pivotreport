@@ -112,7 +112,6 @@ class CRM_Activityreport_Data {
     $header = array_merge(self::$emptyRow, array(
       'Activity Date' => null,
       'Activity Start Date Months' => null,
-      'Activity is a test' => null,
       'Activity Expire Date' => null,
     ));
 
@@ -233,7 +232,6 @@ class CRM_Activityreport_Data {
           $result = array_merge($result, array(
             'Activity Date' => null,
             'Activity Start Date Months' => null,
-            'Activity is a test' => null,
             'Activity Expire Date' => null,
           ));
           ksort($result);
@@ -375,7 +373,9 @@ class CRM_Activityreport_Data {
       'relationship_id',
       'source_record_id',
       'activity_is_test',
+      'is_test',
       'parent_id',
+      'original_id',
       'activity_details',
     );
     // Get standard Fields of Activity entity.
