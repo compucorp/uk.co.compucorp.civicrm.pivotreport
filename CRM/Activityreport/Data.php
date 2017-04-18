@@ -20,12 +20,17 @@ class CRM_Activityreport_Data {
    *   Limit for API call
    * @param int $multiValuesOffset
    *   Multivalues offset
+   * @param string $startYearMonth
+   *   Date in YYYY-MM format to tell API the year and month of Activities
+   *   we want to pick.
    * @return array
    */
-  public static function get($offset = 0, $limit = 0, $multiValuesOffset = 0) {
+  public static function get($offset = 0, $limit = 0, $multiValuesOffset = 0, $startYearMonth = null) {
     self::$fields = self::getActivityFields();
     self::$emptyRow = self::getEmptyRow();
     self::$multiValues = array();
+
+    $order = empty($startYearMonth) ? 'DESC' : 'ASC';
 
     $params = array(
       'sequential' => 1,
@@ -34,11 +39,15 @@ class CRM_Activityreport_Data {
       'is_test' => 0,
       'return' => implode(',', array_keys(self::$fields)),
       'options' => array(
-        'sort' => 'activity_date_time DESC',
+        'sort' => 'activity_date_time ' . $order,
         'offset' => $offset,
         'limit' => $limit,
       ),
     );
+
+    if (!empty($startYearMonth)) {
+      $params['activity_date_time'] = array('>=' => $startYearMonth);
+    }
 
     $activities = civicrm_api3('Activity', 'get', $params);
 
@@ -112,7 +121,6 @@ class CRM_Activityreport_Data {
     $header = array_merge(self::$emptyRow, array(
       'Activity Date' => null,
       'Activity Start Date Months' => null,
-      'Activity is a test' => null,
       'Activity Expire Date' => null,
     ));
 
@@ -233,7 +241,6 @@ class CRM_Activityreport_Data {
           $result = array_merge($result, array(
             'Activity Date' => null,
             'Activity Start Date Months' => null,
-            'Activity is a test' => null,
             'Activity Expire Date' => null,
           ));
           ksort($result);
@@ -375,7 +382,9 @@ class CRM_Activityreport_Data {
       'relationship_id',
       'source_record_id',
       'activity_is_test',
+      'is_test',
       'parent_id',
+      'original_id',
       'activity_details',
     );
     // Get standard Fields of Activity entity.
