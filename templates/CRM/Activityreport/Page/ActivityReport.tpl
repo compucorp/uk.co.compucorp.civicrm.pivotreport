@@ -186,7 +186,7 @@
           total = parseInt(result.result, 10);
 
           if (total > 5000) {
-            CRM.alert('There is more than 5000 Activities, getting only Activities from last 30 days.', '', 'info');
+            CRM.alert('There are more than 5000 Activities, getting only Activities from last 30 days.', '', 'info');
 
             CRM.$('input[type="button"].load-all-data-button', activityReportForm).removeClass('hidden');
             var startDateFilterValue = new Date();
