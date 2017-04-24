@@ -20,34 +20,38 @@ class CRM_Activityreport_Data {
    *   Limit for API call
    * @param int $multiValuesOffset
    *   Multivalues offset
-   * @param string $startYearMonth
-   *   Date in YYYY-MM format to tell API the year and month of Activities
-   *   we want to pick.
+   * @param string $startDate
+   *   "Date from" value to filter Activities by their date
+   * @param string $endDate
+   *   "Date to" value to filter Activities by their date
    * @return array
    */
-  public static function get($offset = 0, $limit = 0, $multiValuesOffset = 0, $startYearMonth = null) {
+  public static function get($offset = 0, $limit = 0, $multiValuesOffset = 0, $startDate = null, $endDate = null) {
     self::$fields = self::getActivityFields();
     self::$emptyRow = self::getEmptyRow();
     self::$multiValues = array();
 
-    $order = empty($startYearMonth) ? 'DESC' : 'ASC';
+    if (empty($startDate)) {
+      $startDate = self::getDefaultStartDate();
+    }
+
+    if (empty($endDate)) {
+      $endDate = self::getDefaultEndDate();
+    }
 
     $params = array(
       'sequential' => 1,
       'is_current_revision' => 1,
       'is_deleted' => 0,
       'is_test' => 0,
+      'activity_date_time' => array('BETWEEN' => array($startDate, $endDate)),
       'return' => implode(',', array_keys(self::$fields)),
       'options' => array(
-        'sort' => 'activity_date_time ' . $order,
+        'sort' => 'activity_date_time DESC',
         'offset' => $offset,
         'limit' => $limit,
       ),
     );
-
-    if (!empty($startYearMonth)) {
-      $params['activity_date_time'] = array('>=' => $startYearMonth);
-    }
 
     $activities = civicrm_api3('Activity', 'get', $params);
 
@@ -55,6 +59,34 @@ class CRM_Activityreport_Data {
     $result = self::splitMultiValues($formattedActivities, $offset, $multiValuesOffset);
 
     return $result;
+  }
+
+  /**
+   * Get datetime of the oldesc Activity or today date if there is no Activity
+   * found (YYYY-MM-DD HH:ii:ss format).
+   *
+   * @return string
+   */
+  private static function getDefaultStartDate() {
+    $activity = civicrm_api3('Activity', 'get', array(
+      'sequential' => 1,
+      'is_current_revision' => 1,
+      'is_deleted' => 0,
+      'is_test' => 0,
+      'return' => 'activity_date_time',
+      'options' => array('sort' => 'activity_date_time ASC', 'limit' => 1),
+    ));
+
+    return !empty($activity['values'][0]['activity_date_time']) ? $activity['values'][0]['activity_date_time'] : date('Y-m-d') . ' 00:00:00';
+  }
+
+  /**
+   * Get today date with time set to 23:59:59 (YYYY-MM-DD HH:ii:ss format).
+   *
+   * @return string
+   */
+  private static function getDefaultEndDate() {
+    return date('Y-m-d' . ' 23:59:59');
   }
 
   /**
