@@ -247,7 +247,7 @@
 
         /**
          * Return an array containing API date filter conditions basing on specified
-         * dates. Return NULL if dates are not specified.
+         * dates.
          *
          * @param string $startDate
          * @param string $endDate
