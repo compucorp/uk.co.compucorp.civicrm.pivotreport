@@ -275,6 +275,8 @@
         function loadAllData() {
           resetData();
 
+          activityReportStartDateInput.val(null).trigger('change');
+
           CRM.$("#activity-report-pivot-table").html('');
           CRM.$('#activity-report-preloader').removeClass('hidden');
           CRM.$('#activity-report-filters').addClass('hidden');
