@@ -20,17 +20,17 @@ class CRM_Activityreport_Data {
    *   Limit for API call
    * @param int $multiValuesOffset
    *   Multivalues offset
-   * @param string $startYearMonth
-   *   Date in YYYY-MM format to tell API the year and month of Activities
-   *   we want to pick.
+   * @param string $startDate
+   *   "Date from" value to filter Activities by their date
+   * @param string $endDate
+   *   "Date to" value to filter Activities by their date
+   *
    * @return array
    */
-  public static function get($offset = 0, $limit = 0, $multiValuesOffset = 0, $startYearMonth = null) {
+  public static function get($offset = 0, $limit = 0, $multiValuesOffset = 0, $startDate = null, $endDate = null) {
     self::$fields = self::getActivityFields();
     self::$emptyRow = self::getEmptyRow();
     self::$multiValues = array();
-
-    $order = empty($startYearMonth) ? 'DESC' : 'ASC';
 
     $params = array(
       'sequential' => 1,
@@ -39,14 +39,15 @@ class CRM_Activityreport_Data {
       'is_test' => 0,
       'return' => implode(',', array_keys(self::$fields)),
       'options' => array(
-        'sort' => 'activity_date_time ' . $order,
+        'sort' => 'activity_date_time DESC',
         'offset' => $offset,
         'limit' => $limit,
       ),
     );
 
-    if (!empty($startYearMonth)) {
-      $params['activity_date_time'] = array('>=' => $startYearMonth);
+    $activityDateFilter = self::getAPIDateFilter($startDate, $endDate);
+    if (!empty($activityDateFilter)) {
+      $params['activity_date_time'] = $activityDateFilter;
     }
 
     $activities = civicrm_api3('Activity', 'get', $params);
@@ -55,6 +56,31 @@ class CRM_Activityreport_Data {
     $result = self::splitMultiValues($formattedActivities, $offset, $multiValuesOffset);
 
     return $result;
+  }
+
+  /**
+   * Return an array containing API date filter conditions basing on specified
+   * dates.
+   *
+   * @param string $startDate
+   * @param string $endDate
+   *
+   * @return array|NULL
+   */
+  private static function getAPIDateFilter($startDate, $endDate) {
+    $apiFilter = null;
+
+    if (!empty($startDate) && !empty($endDate)) {
+      $apiFilter = array('BETWEEN' => array($startDate, $endDate));
+    }
+    else if (!empty($startDate) && empty($endDate)) {
+      $apiFilter = array('>=' => $startDate);
+    }
+    else if (empty($startDate) && !empty($endDate)) {
+      $apiFilter = array('<=' => $endDate);
+    }
+
+    return $apiFilter;
   }
 
   /**
@@ -68,6 +94,7 @@ class CRM_Activityreport_Data {
    *   Activity absolute offset we start with
    * @param int $multiValuesOffset
    *   Multi Values offset
+   *
    * @return array
    */
   private static function splitMultiValues(array $data, $totalOffset, $multiValuesOffset) {
@@ -142,6 +169,7 @@ class CRM_Activityreport_Data {
    *   Combination offset to start from
    * @param int $limit
    *   How many records can we generate?
+   *
    * @return array
    */
   private static function populateMultiValuesRow(array $row, array $fields, $offset, $limit) {
@@ -191,6 +219,7 @@ class CRM_Activityreport_Data {
    *   Activity row
    * @param array $fields
    *   Array containing all Activity fields
+   *
    * @return int
    */
   private static function getTotalCombinations(array $row, array $fields) {
@@ -214,6 +243,7 @@ class CRM_Activityreport_Data {
    *   Key of current $data item
    * @param int $level
    *   How deep we are relative to the root of our data
+   *
    * @return type
    */
   private static function formatResult($data, $dataKey = null, $level = 0) {
@@ -265,6 +295,7 @@ class CRM_Activityreport_Data {
    *   Field value
    * @param int $level
    *   Recursion level
+   *
    * @return string
    */
   private static function formatValue($key, $value, $level = 0) {
@@ -326,6 +357,7 @@ class CRM_Activityreport_Data {
    *   Field key
    * @param string $value
    *   Field value
+   *
    * @return string
    */
   private static function customizeValue($key, $value) {
@@ -446,6 +478,7 @@ class CRM_Activityreport_Data {
    *
    * @param array $field
    *   Field key
+   *
    * @return array
    */
   private static function getOptionValues($field) {

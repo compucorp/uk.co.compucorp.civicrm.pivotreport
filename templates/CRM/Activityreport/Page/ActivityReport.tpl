@@ -5,16 +5,10 @@
 </div>
 <div id="activity-report-filters" class="hidden">
   <form>
-    <select name="activity_year">
-      {foreach from=$years key=k item=year}
-          <option value="{$k}">{$year}</option>
-      {/foreach}
-    </select>
-    <select name="activity_month">
-      {foreach from=$months key=k item=month}
-          <option value="{$k}">{$month}</option>
-      {/foreach}
-    </select>
+    <label for="activity_start_date">Activity start date</label>
+    <input type="text" name="activity_start_date" value="">
+    <label for="activity_end_date">Activity end date</label>
+    <input type="text" name="activity_end_date" value="">
     <input class="apply-filters-button" type="button" value="Apply filters">
     <input class="load-all-data-button hidden" type="button" value="Load all data">
   </form>
@@ -67,11 +61,12 @@
          *   In case we are in the middle of a multivalues activity,
          *   we know the total number of multivalues combinations for
          *   this particular Activity
-         * @param string startYearMonth
-         *   Date in YYYY-MM format to tell API the year and month of
-         *   Activities we want to pick.
+         * @param string startDate
+         *   "Date from" value to filter Activities by their date
+         * @param string endDate
+         *   "Date to" value to filter Activities by their date
          */
-        function loadData(offset, limit, total, multiValuesOffset, multiValuesTotal, startYearMonth) {
+        function loadData(offset, limit, total, multiValuesOffset, multiValuesTotal, startDate, endDate) {
           CRM.$('span#activity-report-loading-count').text(offset);
           var localLimit = limit;
 
@@ -90,7 +85,8 @@
             "offset": offset,
             "limit": localLimit,
             "multiValuesOffset": multiValuesOffset,
-            "startYearMonth": startYearMonth
+            "startDate": startDate,
+            "endDate": endDate
           }).done(function(result) {
             data = data.concat(processData(result['values'][0].data));
             var nextOffset = parseInt(result['values'][0].info.nextOffset, 10);
@@ -103,7 +99,7 @@
               var multiValuesOffset = parseInt(result['values'][0]['info'].multiValuesOffset, 10);
               var multiValuesTotal = parseInt(result['values'][0]['info'].multiValuesTotal, 10);
 
-              loadData(nextOffset, limit, total, multiValuesOffset, multiValuesTotal, startYearMonth);
+              loadData(nextOffset, limit, total, multiValuesOffset, multiValuesTotal, startDate, endDate);
             }
           });
         }
@@ -147,25 +143,30 @@
         }
 
         var activityReportForm = CRM.$('#activity-report-filters form');
-        var activityReportYear = CRM.$('select[name="activity_year"]', activityReportForm);
-        var activityReportMonth = CRM.$('select[name="activity_month"]', activityReportForm);
+        var activityReportStartDateInput = CRM.$('input[name="activity_start_date"]', activityReportForm);
+        var activityReportEndDateInput = CRM.$('input[name="activity_end_date"]', activityReportForm);
 
         CRM.$('input[type="button"].apply-filters-button', activityReportForm).click(function(e) {
-          if (!activityReportYear.val().length || !activityReportMonth.val().length) {
-            CRM.alert('Please select valid year and month.');
-            return false;
-          }
+          var startDateFilterValue = activityReportStartDateInput.val();
+          var endDateFilterValue = activityReportEndDateInput.val();
 
           CRM.$('#activity-report-preloader').removeClass('hidden');
           CRM.$('#activity-report-filters').addClass('hidden');
 
-          loadDataByYearMonthFilter(activityReportYear.val(), activityReportMonth.val());
+          loadDataByDateFilter(startDateFilterValue, endDateFilterValue);
         });
 
         CRM.$('input[type="button"].load-all-data-button', activityReportForm).click(function(e) {
           CRM.confirm({ message: 'This operation may take some time to load all data for big data sets. Do you really want to load all Activities data?' }).on('crmConfirm:yes', function() {
             loadAllData();
           });
+        });
+
+        activityReportStartDateInput.crmDatepicker({
+          time: false
+        });
+        activityReportEndDateInput.crmDatepicker({
+          time: false
         });
 
         // Initially we check total number of Activities and then start
@@ -179,105 +180,93 @@
           total = parseInt(result.result, 10);
 
           if (total > 5000) {
-            CRM.alert('There is more than 5000 Activities, getting only Activities from last 30 days.', '', 'info');
+            CRM.alert('There are more than 5000 Activities, getting only Activities from last 30 days.', '', 'info');
 
             CRM.$('input[type="button"].load-all-data-button', activityReportForm).removeClass('hidden');
-            var dateFilterValue = new Date();
-            dateFilterValue.setDate(dateFilterValue.getDate() - 30);
+            var startDateFilterValue = new Date();
+            var endDateFilterValue = new Date();
+            startDateFilterValue.setDate(startDateFilterValue.getDate() - 30);
 
-            loadDataByDateFilter(dateFilterValue.toISOString().substring(0, 10));
+            loadDataByDateFilter(startDateFilterValue.toISOString().substring(0, 10), endDateFilterValue.toISOString().substring(0, 10));
           } else {
             loadAllData();
           }
         });
 
         /**
-         * Run data loading by specified date.
+         * Run data loading by specified start and end date values.
          *
-         * @param string dateFilterValue
+         * @param string startDateFilterValue
+         * @param string endDateFilterValue
          */
-        function loadDataByDateFilter(dateFilterValue) {
+        function loadDataByDateFilter(startDateFilterValue, endDateFilterValue) {
           resetData();
 
-          CRM.$("#activity-report-pivot-table").html('');
+          activityReportStartDateInput.val(startDateFilterValue).trigger('change');
+          activityReportEndDateInput.val(endDateFilterValue).trigger('change');
 
-          CRM.api3('Activity', 'getcount', {
+          var startDate = startDateFilterValue;
+          var endDate = endDateFilterValue;
+          var params = {
             "sequential": 1,
             "is_current_revision": 1,
             "is_deleted": 0,
-            "is_test": 0,
-            "activity_date_time": {">=": dateFilterValue}
-          }).done(function(result) {
+            "is_test": 0
+          };
+
+          if (startDate) {
+            startDate +=  " 00:00:00";
+          }
+          if (endDate) {
+            endDate += " 23:59:59";
+          }
+
+          var activityDateFilter = getAPIDateFilter(startDate, endDate);
+
+          if (activityDateFilter) {
+            params.activity_date_time = activityDateFilter;
+          }
+
+          CRM.$("#activity-report-pivot-table").html('');
+
+          CRM.api3('Activity', 'getcount', params).done(function(result) {
             var totalFiltered = parseInt(result.result, 10);
 
             if (!totalFiltered) {
               CRM.$('#activity-report-preloader').addClass('hidden');
               CRM.$('#activity-report-filters').removeClass('hidden');
 
-              CRM.alert('There is no Activities starting from ' + dateFilterValue + ' date.');
+              CRM.alert('There is no Activities created between selected dates.');
             } else {
               CRM.$('span#activity-report-loading-total').text(totalFiltered);
 
-              loadData(0, limit, totalFiltered, 0, 0);
+              loadData(0, limit, totalFiltered, 0, 0, startDate, endDate);
             }
           });
         }
 
         /**
-         * Run data loading by specified year and month.
+         * Return an array containing API date filter conditions basing on specified
+         * dates.
          *
-         * @param string activityYear
-         * @param string activityMonth
+         * @param string $startDate
+         * @param string $endDate
+         * @return array|NULL
          */
-        function loadDataByYearMonthFilter(activityYear, activityMonth) {
-          resetData();
+        function getAPIDateFilter(startDate, endDate) {
+          var apiFilter = null;
 
-          CRM.$("#activity-report-pivot-table").html('');
-
-          var startDate = new Date(activityYear, activityMonth - 1);
-          var startMonthString = startDate.getMonth() + 1;
-
-          if (startMonthString < 10) {
-            startMonthString = '0' + startMonthString;
+          if (startDate && endDate) {
+            apiFilter = {"BETWEEN": [startDate, endDate]};
           }
-          var startDateString = startDate.getFullYear() + '-' + startMonthString;
-
-          var endDate = startDate;
-          endDate.setMonth(endDate.getMonth() + 1);
-          endDate.setDate(endDate.getDate() - 1);
-          var endMonthString = endDate.getMonth() + 1;
-
-          if (endMonthString < 10) {
-            endMonthString = '0' + endMonthString;
+          else if (startDate && !endDate) {
+            apiFilter = {">=": startDate};
+          }
+          else if (!startDate && endDate) {
+            apiFilter = {'<=': endDate};
           }
 
-          var endDateString = endDate.getFullYear() + '-' + endMonthString + '-' + endDate.getDate() + ' 23:59:59';
-
-          CRM.api3('Activity', 'getcount', {
-            "sequential": 1,
-            "is_current_revision": 1,
-            "is_deleted": 0,
-            "is_test": 0,
-            "activity_date_time": {
-              "BETWEEN":[
-                startDateString,
-                endDateString
-              ]
-            }
-          }).done(function(result) {
-            var totalFiltered = parseInt(result.result, 10);
-
-            if (!totalFiltered) {
-              CRM.$('#activity-report-preloader').addClass('hidden');
-              CRM.$('#activity-report-filters').removeClass('hidden');
-
-              CRM.alert('There is no Activities starting in ' + startDateString + ' date.');
-            } else {
-              CRM.$('span#activity-report-loading-total').text(totalFiltered);
-
-              loadData(0, limit, totalFiltered, 0, 0, startDateString);
-            }
-          });
+          return apiFilter;
         }
 
         /**
@@ -286,12 +275,14 @@
         function loadAllData() {
           resetData();
 
+          activityReportStartDateInput.val(null).trigger('change');
+
           CRM.$("#activity-report-pivot-table").html('');
           CRM.$('#activity-report-preloader').removeClass('hidden');
           CRM.$('#activity-report-filters').addClass('hidden');
           CRM.$('span#activity-report-loading-total').text(total);
 
-          loadData(0, limit, total, 0, 0);
+          loadData(0, limit, total, 0, 0, null, null);
         }
 
         /*
