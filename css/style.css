@@ -1,5 +1,5 @@
 /* CSS overriding for PivotTable extension due to CiviCRM base styles */
-#reportPivotTable table.pvtTable tr td.col1, #reportPivotTable table.pvtTable tr td.col2 {
+#activity-report-pivot-table table.pvtTable tr td.col1, #activity-report-pivot-table table.pvtTable tr td.col2 {
     color: #3D3D3D;
     padding: 5px;
     background-color: #FFF;
