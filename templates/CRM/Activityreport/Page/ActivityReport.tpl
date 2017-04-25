@@ -150,12 +150,6 @@
           var startDateFilterValue = activityReportStartDateInput.val();
           var endDateFilterValue = activityReportEndDateInput.val();
 
-          if (!startDateFilterValue || !endDateFilterValue) {
-            CRM.alert('Please specify valid dates.');
-
-            return null;
-          }
-
           CRM.$('#activity-report-preloader').removeClass('hidden');
           CRM.$('#activity-report-filters').addClass('hidden');
 
@@ -211,31 +205,68 @@
           activityReportStartDateInput.val(startDateFilterValue).trigger('change');
           activityReportEndDateInput.val(endDateFilterValue).trigger('change');
 
-          var startDate = startDateFilterValue + " 00:00:00";
-          var endDate = endDateFilterValue + " 23:59:59";
-
-          CRM.$("#activity-report-pivot-table").html('');
-
-          CRM.api3('Activity', 'getcount', {
+          var startDate = startDateFilterValue;
+          var endDate = endDateFilterValue;
+          var params = {
             "sequential": 1,
             "is_current_revision": 1,
             "is_deleted": 0,
-            "is_test": 0,
-            "activity_date_time": {"BETWEEN": [startDate, endDate]}
-          }).done(function(result) {
+            "is_test": 0
+          };
+
+          if (startDate) {
+            startDate +=  " 00:00:00";
+          }
+          if (endDate) {
+            endDate += " 23:59:59";
+          }
+
+          var activityDateFilter = getAPIDateFilter(startDate, endDate);
+
+          if (activityDateFilter) {
+            params.activity_date_time = activityDateFilter;
+          }
+
+          CRM.$("#activity-report-pivot-table").html('');
+
+          CRM.api3('Activity', 'getcount', params).done(function(result) {
             var totalFiltered = parseInt(result.result, 10);
 
             if (!totalFiltered) {
               CRM.$('#activity-report-preloader').addClass('hidden');
               CRM.$('#activity-report-filters').removeClass('hidden');
 
-              CRM.alert('There is no Activities created between ' + startDateFilterValue + ' and ' +  endDateFilterValue + ' dates.');
+              CRM.alert('There is no Activities created between selected dates.');
             } else {
               CRM.$('span#activity-report-loading-total').text(totalFiltered);
 
               loadData(0, limit, totalFiltered, 0, 0, startDate, endDate);
             }
           });
+        }
+
+        /**
+         * Return an array containing API date filter conditions basing on specified
+         * dates. Return NULL if dates are not specified.
+         *
+         * @param string $startDate
+         * @param string $endDate
+         * @return array|NULL
+         */
+        function getAPIDateFilter(startDate, endDate) {
+          var apiFilter = null;
+
+          if (startDate && endDate) {
+            apiFilter = {"BETWEEN": [startDate, endDate]};
+          }
+          else if (startDate && !endDate) {
+            apiFilter = {">=": startDate};
+          }
+          else if (!startDate && endDate) {
+            apiFilter = {'<=': endDate};
+          }
+
+          return apiFilter;
         }
 
         /**

@@ -31,20 +31,11 @@ class CRM_Activityreport_Data {
     self::$emptyRow = self::getEmptyRow();
     self::$multiValues = array();
 
-    if (empty($startDate)) {
-      $startDate = self::getDefaultStartDate();
-    }
-
-    if (empty($endDate)) {
-      $endDate = self::getDefaultEndDate();
-    }
-
     $params = array(
       'sequential' => 1,
       'is_current_revision' => 1,
       'is_deleted' => 0,
       'is_test' => 0,
-      'activity_date_time' => array('BETWEEN' => array($startDate, $endDate)),
       'return' => implode(',', array_keys(self::$fields)),
       'options' => array(
         'sort' => 'activity_date_time DESC',
@@ -52,6 +43,11 @@ class CRM_Activityreport_Data {
         'limit' => $limit,
       ),
     );
+
+    $activityDateFilter = self::getAPIDateFilter($startDate, $endDate);
+    if (!empty($activityDateFilter)) {
+      $params['activity_date_time'] = $activityDateFilter;
+    }
 
     $activities = civicrm_api3('Activity', 'get', $params);
 
@@ -62,31 +58,26 @@ class CRM_Activityreport_Data {
   }
 
   /**
-   * Get datetime of the oldesc Activity or today date if there is no Activity
-   * found (YYYY-MM-DD HH:ii:ss format).
+   * Return an array containing API date filter conditions basing on specified
+   * dates. Return NULL if dates are not specified.
    *
-   * @return string
+   * @param string $startDate
+   * @param string $endDate
+   * @return array|NULL
    */
-  private static function getDefaultStartDate() {
-    $activity = civicrm_api3('Activity', 'get', array(
-      'sequential' => 1,
-      'is_current_revision' => 1,
-      'is_deleted' => 0,
-      'is_test' => 0,
-      'return' => 'activity_date_time',
-      'options' => array('sort' => 'activity_date_time ASC', 'limit' => 1),
-    ));
+  private static function getAPIDateFilter($startDate, $endDate) {
+    $apiFilter = null;
+    if (!empty($startDate) && !empty($endDate)) {
+      $apiFilter = array('BETWEEN' => array($startDate, $endDate));
+    }
+    else if (!empty($startDate) && empty($endDate)) {
+      $apiFilter = array('>=' => $startDate);
+    }
+    else if (empty($startDate) && !empty($endDate)) {
+      $apiFilter = array('<=' => $endDate);
+    }
 
-    return !empty($activity['values'][0]['activity_date_time']) ? $activity['values'][0]['activity_date_time'] : date('Y-m-d') . ' 00:00:00';
-  }
-
-  /**
-   * Get today date with time set to 23:59:59 (YYYY-MM-DD HH:ii:ss format).
-   *
-   * @return string
-   */
-  private static function getDefaultEndDate() {
-    return date('Y-m-d' . ' 23:59:59');
+    return $apiFilter;
   }
 
   /**
