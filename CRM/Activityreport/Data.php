@@ -250,10 +250,10 @@ class CRM_Activityreport_Data {
     unset($fields['relationship_id']);
     unset($fields['source_record_id']);
     if (!empty($fields['activity_type_id'])) {
-        $fields['activity_type_id']['title'] = t('Activity Type');
+        $fields['activity_type_id']['title'] = ts('Activity Type');
     }
     if (!empty($fields['activity_date_time'])) {
-        $fields['activity_date_time']['title'] = t('Activity Date Time');
+        $fields['activity_date_time']['title'] = ts('Activity Date Time');
     }
     $keys = CRM_Activity_DAO_Activity::fieldKeys();
     $result = array();
