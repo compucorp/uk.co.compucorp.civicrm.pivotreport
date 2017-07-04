@@ -19,13 +19,34 @@ function _civicrm_api3_activity_report_get_spec(&$spec) {
  * @throws API_Exception
  */
 function civicrm_api3_activity_report_get($params) {
-  $offset = !empty($params['offset']) ? (int)$params['offset'] : 0;
-  $limit = !empty($params['limit']) ? (int)$params['limit'] : 1000;
+  $startDate = !empty($params['start_date']) ? $params['start_date'] : null;
+  $endDate = !empty($params['end_date']) ? $params['end_date'] : null;
+  $page = !empty($params['page']) ? (int)$params['page'] : 0;
 
-  $multiValuesOffset = !empty($params['multiValuesOffset']) ? (int)$params['multiValuesOffset'] : 0;
+  return civicrm_api3_create_success(CRM_Activityreport_Data::get($startDate, $endDate, $page), $params);
+}
 
-  $startDate = !empty($params['startDate']) ? $params['startDate'] : null;
-  $endDate = !empty($params['endDate']) ? $params['endDate'] : null;
+/**
+ * ActivityReport.getheader API
+ *
+ * @param array $params
+ * @return array API result descriptor
+ * @throws API_Exception
+ */
+function civicrm_api3_activity_report_getheader($params) {
+  return civicrm_api3_create_success(CRM_Activityreport_Data::getHeader(), $params);
+}
 
-  return civicrm_api3_create_success(CRM_Activityreport_Data::get($offset, $limit, $multiValuesOffset, $startDate, $endDate), $params);
+/**
+ * ActivityReport.rebuildcache API
+ *
+ * @param array $params
+ * @return array API result descriptor
+ * @throws API_Exception
+ */
+function civicrm_api3_activity_report_rebuildcache($params) {
+  $startDate = !empty($params['start_date']) ? $params['start_date'] : null;
+  $endDate = !empty($params['end_date']) ? $params['end_date'] : null;
+
+  return civicrm_api3_create_success(CRM_Activityreport_Data::rebuildCache($startDate, $endDate), $params);
 }
