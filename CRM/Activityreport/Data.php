@@ -4,7 +4,9 @@
  * Provide static methods to retrieve and format an Activity data.
  */
 class CRM_Activityreport_Data {
-  const ROWS_TO_RETURN = 1000;
+  const ROWS_CACHE_LIMIT = 1000;
+  const ROWS_RETURN_LIMIT = 10000;
+
   private static $fields = array();
   private static $emptyRow = array();
   private static $multiValues = array();
@@ -12,25 +14,135 @@ class CRM_Activityreport_Data {
   private static $customizedValues = array();
 
   /**
-   * Return an array containing formatted Activity data.
+   * Return an array containing formatted Activity data and information
+   * needed to make a call for more data.
    *
-   * @param int $offset
-   *   Offset for API call
-   * @param int $limit
-   *   Limit for API call
-   * @param int $multiValuesOffset
-   *   Multivalues offset
    * @param string $startDate
    *   "Date from" value to filter Activities by their date
    * @param string $endDate
    *   "Date to" value to filter Activities by their date
+   * @param int $page
+   *   Page offset
    *
    * @return array
    */
-  public static function get($offset = 0, $limit = 0, $multiValuesOffset = 0, $startDate = null, $endDate = null) {
+  public static function get($startDate = null, $endDate = null, $page = 0) {
+    $data = array();
+    $nextDate = NULL;
+    $nextPage = NULL;
+    $break = FALSE;
+
+    $query = 'SELECT path, data FROM civicrm_cache WHERE group_name = "pivotreport"';
+    $params = array();
+
+    if (!empty($startDate)) {
+      $query .= ' AND path >= %1';
+      $params[1] = array('data_' . substr($startDate, 0, 10) . '_' . str_pad($page, 6, '0', STR_PAD_LEFT), 'String');
+    }
+
+    if (!empty($endDate)) {
+      $query .= ' AND path <= %2';
+      $params[2] = array('data_' . substr($endDate, 0, 10) . '_999999', 'String');
+    }
+
+    $query .= ' ORDER BY path ASC';
+
+    $cache = CRM_Core_DAO::executeQuery($query, $params);
+
+    while ($cache->fetch()) {
+      if ($break) {
+        $nextDate = substr($cache->path, 5, 10);
+        $nextPage = (int) substr($cache->path, 16);
+
+        break;
+      }
+
+      $packet = json_decode(unserialize($cache->data));
+
+      $data = array_merge($data, $packet);
+
+      unset($packet);
+
+      if (count($data) >= self::ROWS_RETURN_LIMIT) {
+        $break = TRUE;
+      }
+    }
+
+    return array(
+      array(
+      'nextDate' => $nextDate,
+      'nextPage' => $nextPage,
+      'data' => $data,
+    ));
+  }
+
+  /**
+   * Gets header row from cache.
+   *
+   * @return arryay
+   */
+  public static function getHeader() {
+    return json_decode(CRM_Core_BAO_Cache::getItem('pivotreport', 'header'));
+  }
+
+  /**
+   * Rebuilds pivot report cache including header and data.
+   *
+   * @param type $startDate
+   * @param type $endDate
+   * @return type
+   */
+  public static function rebuildCache($startDate = NULL, $endDate = NULL) {
+    $time = microtime(true);
+
+    self::clearCache();
+
+    $result = self::cacheData($startDate, $endDate);
+
+    self::cacheHeader();
+
+    return array(
+      array(
+        'rows' => $result,
+        'time' => (microtime(true) - $time),
+      )
+    );
+  }
+
+  /**
+   * Clears pivotreport cache.
+   */
+  private static function clearCache() {
+    CRM_Core_BAO_Cache::deleteGroup('pivotreport');
+  }
+
+  /**
+   * Caches a header row.
+   */
+  private static function cacheHeader() {
+    CRM_Core_BAO_Cache::setItem(json_encode(self::buildHeader()), 'pivotreport', 'header');
+  }
+
+  /**
+   * Caches report data.
+   * Returns total rows cached.
+   *
+   * @param string $startDate
+   * @param string $endDate
+   *
+   * @return int
+   */
+  private static function cacheData($startDate = NULL, $endDate = NULL) {
     self::$fields = self::getActivityFields();
     self::$emptyRow = self::getEmptyRow();
     self::$multiValues = array();
+    $offset = 0;
+    $multiValuesOffset = 0;
+    $limit = self::ROWS_CACHE_LIMIT;
+    $total = self::getCount($startDate, $endDate);
+    $date = NULL;
+    $page = 0;
+    $cachedCount = 0;
 
     $params = array(
       'sequential' => 1,
@@ -39,8 +151,7 @@ class CRM_Activityreport_Data {
       'is_test' => 0,
       'return' => implode(',', array_keys(self::$fields)),
       'options' => array(
-        'sort' => 'activity_date_time DESC',
-        'offset' => $offset,
+        'sort' => 'activity_date_time ASC',
         'limit' => $limit,
       ),
     );
@@ -50,12 +161,63 @@ class CRM_Activityreport_Data {
       $params['activity_date_time'] = $activityDateFilter;
     }
 
-    $activities = civicrm_api3('Activity', 'get', $params);
+    while ($offset < $total) {
+      if ($offset) {
+        $offset--;
+      }
 
-    $formattedActivities = self::formatResult($activities['values']);
-    $result = self::splitMultiValues($formattedActivities, $offset, $multiValuesOffset);
+      $params['options']['offset'] = $offset;
 
-    return $result;
+      $activities = civicrm_api3('Activity', 'get', $params);
+
+      $formattedActivities = self::formatResult($activities['values']);
+
+      unset($activities);
+
+      while (!empty($formattedActivities)) {
+        $result = self::splitMultiValues($formattedActivities, $offset, $multiValuesOffset);
+
+        if ($result['info']['date'] !== $date) {
+          $page = 0;
+          $date = $result['info']['date'];
+        }
+
+        $cachedCount += self::cachePacket($result['data'], $date, $page++);
+
+        unset($result['data']);
+
+        $formattedActivities = array_slice($formattedActivities, $result['info']['nextOffset'] - $offset, NULL, TRUE);
+
+        $offset = $result['info']['nextOffset'];
+        $multiValuesOffset =  $result['info']['multiValuesOffset'];
+      }
+    }
+
+    return $cachedCount;
+  }
+
+  /**
+   * Puts a data packet into cache table with specific date and page number.
+   * Returns count of packet items.
+   *
+   * @param array $packet
+   * @param string $date
+   * @param int $page
+   *
+   * @return int
+   */
+  private static function cachePacket(array $packet, $date, $page = NULL) {
+    if (empty($packet)) {
+      return 0;
+    }
+
+    $count = count($packet);
+
+    CRM_Core_BAO_Cache::setItem(json_encode($packet), 'pivotreport', 'data_' . $date . '_' . str_pad($page, 6, '0', STR_PAD_LEFT));
+
+    unset($packet);
+
+    return $count;
   }
 
   /**
@@ -84,7 +246,7 @@ class CRM_Activityreport_Data {
   }
 
   /**
-   * Return an array containing $data rows and each row containing multiple values
+   * Returns an array containing $data rows and each row containing multiple values
    * of at least one field is populated into separate row for each field's
    * multiple value.
    *
@@ -99,52 +261,60 @@ class CRM_Activityreport_Data {
    */
   private static function splitMultiValues(array $data, $totalOffset, $multiValuesOffset) {
     $result = array();
+    $date = NULL;
     $i = 0;
 
     foreach ($data as $key => $row) {
-      $multiValuesRows = array();
+      $activityDate = substr($row['Activity Date Time'], 0, 10);
+
+      if (!$date) {
+        $date = $activityDate;
+      }
+
+      if ($date !== $activityDate) {
+        $totalOffset--;
+        break;
+      }
+
+      $multiValuesRows = null;
       if (!empty(self::$multiValues[$key])) {
         $multiValuesFields = array_combine(self::$multiValues[$key], array_fill(0, count(self::$multiValues[$key]), 0));
 
-        $multiValuesRows = self::populateMultiValuesRow($row, $multiValuesFields, $multiValuesOffset, self::ROWS_TO_RETURN - $i);
+        $multiValuesRows = self::populateMultiValuesRow($row, $multiValuesFields, $multiValuesOffset, self::ROWS_CACHE_LIMIT - $i);
 
         $result = array_merge($result, $multiValuesRows['data']);
         $multiValuesOffset = 0;
       } else {
-        $result[] = $row;
+        $result[] = array_values($row);
       }
       $i = count($result);
 
-      if ($i === self::ROWS_TO_RETURN) {
+      if ($i === self::ROWS_CACHE_LIMIT) {
         break;
       }
+
+      unset(self::$multiValues[$key]);
+
       $totalOffset++;
     }
 
-    $header = self::getHeader();
-    $output = array(array_keys($header));
-    foreach ($result as $row) {
-      $output[] = array_values($row);
-    }
-
     return array(
-      array(
-        'info' => array(
-          'nextOffset' => !empty($multiValuesRows['info']['multiValuesOffset']) ? $totalOffset : $totalOffset + 1,
-          'multiValuesOffset' => !empty($multiValuesRows['info']['multiValuesOffset']) ? $multiValuesRows['info']['multiValuesOffset'] : 0,
-          'multiValuesTotal' => !empty($multiValuesRows['info']['multiValuesTotal']) ? $multiValuesRows['info']['multiValuesTotal'] : 0,
-        ),
-        'data' => $output,
+      'info' => array(
+        'date' => $date,
+        'nextOffset' => !empty($multiValuesRows['info']['multiValuesOffset']) ? $totalOffset : $totalOffset + 1,
+        'multiValuesOffset' => !empty($multiValuesRows['info']['multiValuesOffset']) ? $multiValuesRows['info']['multiValuesOffset'] : 0,
+        'multiValuesTotal' => !empty($multiValuesRows['info']['multiValuesTotal']) ? $multiValuesRows['info']['multiValuesTotal'] : 0,
       ),
+      'data' => $result,
     );
   }
 
   /**
-   * Prepare an array containing data header with fields labels.
+   * Prepares an array containing data header with fields labels.
    *
    * @return array
    */
-  private static function getHeader() {
+  private static function buildHeader() {
     $header = array_merge(self::$emptyRow, array(
       'Activity Date' => null,
       'Activity Start Date Months' => null,
@@ -153,11 +323,11 @@ class CRM_Activityreport_Data {
 
     ksort($header);
 
-    return $header;
+    return array_keys($header);
   }
 
   /**
-   * Return an array containing set of rows which are built basing on given $row
+   * Returns an array containing set of rows which are built basing on given $row
    * and $fields array with indexes of multi values of the $row.
    *
    * @param array $row
@@ -187,7 +357,7 @@ class CRM_Activityreport_Data {
         foreach ($fields as $key => $index) {
           $rowResult[$key] = $row[$key][$index];
         }
-        $data[] = array_merge($row, $rowResult);
+        $data[] = array_values(array_merge($row, $rowResult));
       }
       foreach ($fields as $key => $index) {
         $found = false;
@@ -213,7 +383,7 @@ class CRM_Activityreport_Data {
   }
 
   /**
-   * Get number of multivalues combinations for given Activity row.
+   * Gets number of multivalues combinations for given Activity row.
    *
    * @param array $row
    *   Activity row
@@ -235,7 +405,7 @@ class CRM_Activityreport_Data {
   }
 
   /**
-   * Return a result of recursively parsed and formatted $data.
+   * Returns a result of recursively parsed and formatted $data.
    *
    * @param mixed $data
    *   Data element
@@ -283,7 +453,7 @@ class CRM_Activityreport_Data {
   }
 
   /**
-   * Return $value formatted by available Option Values for the $key Field.
+   * Returns $value formatted by available Option Values for the $key Field.
    * If there is no Option Values for the field, then return $value itself
    * with HTML tags stripped.
    * If $value contains an array of values then the method works recursively
@@ -385,6 +555,11 @@ class CRM_Activityreport_Data {
     return $result;
   }
 
+  /**
+   * Returns an empty row containing Activity field names as keys.
+   *
+   * @return array
+   */
   private static function getEmptyRow() {
     $result = array();
 
@@ -399,7 +574,7 @@ class CRM_Activityreport_Data {
   }
 
   /**
-   * Return an array containing all Fields and Custom Fields of Activity entity,
+   * Returns an array containing all Fields and Custom Fields of Activity entity,
    * keyed by their API keys and extended with available fields Option Values.
    *
    * @return array
@@ -473,7 +648,7 @@ class CRM_Activityreport_Data {
   }
 
   /**
-   * Return available Option Values of specified $field array.
+   * Returns available Option Values of specified $field array.
    * If there is no available Option Values for the field, then return null.
    *
    * @param array $field
@@ -489,5 +664,29 @@ class CRM_Activityreport_Data {
       'field' => $field['name'],
     ));
     return $result['values'];
+  }
+
+  /**
+   * Gets total number of Activities.
+   *
+   * @param string $startDate
+   * @param string $endDate
+   *
+   * @return int
+   */
+  private static function getCount($startDate = null, $endDate = null) {
+    $params = [
+      'is_current_revision' => 1,
+      'is_deleted' => 0,
+      'is_test' => 0,
+    ];
+
+    $activityDateFilter = self::getAPIDateFilter($startDate, $endDate);
+
+    if (!empty($activityDateFilter)) {
+      $params['activity_date_time'] = $activityDateFilter;
+    }
+
+    return civicrm_api3('Activity', 'getcount', $params);
   }
 }
