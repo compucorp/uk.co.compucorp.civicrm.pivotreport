@@ -1,7 +1,7 @@
 <h3>Activity Pivot Table</h3>
 
 <div id="activity-report-preloader">
-  Loading <span id="activity-report-loading-count">0</span> of <span id="activity-report-loading-total">0</span> Activities.
+  Loading<span id="activity-report-loading-count"></span>.
 </div>
 <div id="activity-report-filters" class="hidden">
   <form>
@@ -31,8 +31,8 @@
     })(jQuery);
 
     CRM.$(function () {
+        var header = [];
         var data = [];
-        var limit = 1000;
         var total = 0;
 
         /**
@@ -48,58 +48,30 @@
          * (depending on the total value and the response) then we run
          * the function recursively.
          *
-         * @param int offset
-         *   Offset to start with (initially should be 0)
-         * @param int limit
-         *   Limit of data to load with one call
-         * @param int total
-         *   Helper parameter telling us if we need to keep loading the data
-         * @param int multiValuesOffset
-         *   In case we are in the middle of a multivalues activity,
-         *   we know the combination to start with another call.
-         * @param int multiValuesTotal
-         *   In case we are in the middle of a multivalues activity,
-         *   we know the total number of multivalues combinations for
-         *   this particular Activity
          * @param string startDate
          *   "Date from" value to filter Activities by their date
          * @param string endDate
          *   "Date to" value to filter Activities by their date
+         * @param int page
+         *   Page offset to start with (initially should be 0)
          */
-        function loadData(offset, limit, total, multiValuesOffset, multiValuesTotal, startDate, endDate) {
-          CRM.$('span#activity-report-loading-count').text(offset);
-          var localLimit = limit;
-
-          if (multiValuesOffset > 0 && multiValuesTotal > 0) {
-            localLimit = limit - (multiValuesTotal - multiValuesOffset);
-          }
-          if (multiValuesTotal - multiValuesOffset > limit) {
-            localLimit = 1;
-          }
-          if (offset + localLimit > total) {
-            localLimit = total - offset;
-          }
+        function loadData(startDate, endDate, page) {
+          CRM.$('span#activity-report-loading-count').append('.');
 
           CRM.api3('ActivityReport', 'get', {
             "sequential": 1,
-            "offset": offset,
-            "limit": localLimit,
-            "multiValuesOffset": multiValuesOffset,
-            "startDate": startDate,
-            "endDate": endDate
+            "start_date": startDate,
+            "end_date": endDate,
+            "page": page
           }).done(function(result) {
             data = data.concat(processData(result['values'][0].data));
-            var nextOffset = parseInt(result['values'][0].info.nextOffset, 10);
+            var nextDate = result['values'][0].nextDate;
+            var nextPage = result['values'][0].nextPage;
 
-            if (nextOffset > total) {
+            if (nextDate === '') {
               loadComplete(data);
-
-              CRM.alert(total + ' Activities loaded.', '', 'info');
             } else {
-              var multiValuesOffset = parseInt(result['values'][0]['info'].multiValuesOffset, 10);
-              var multiValuesTotal = parseInt(result['values'][0]['info'].multiValuesTotal, 10);
-
-              loadData(nextOffset, limit, total, multiValuesOffset, multiValuesTotal, startDate, endDate);
+              loadData(nextDate, endDate, nextPage);
             }
           });
         }
@@ -127,9 +99,6 @@
         function processData(data) {
           var result = [];
           var i, j;
-          var header = data[0];
-
-          delete data[0];
 
           for (i in data) {
             var row = {};
@@ -169,28 +138,33 @@
           time: false
         });
 
-        // Initially we check total number of Activities and then start
-        // data fetching.
-        CRM.api3('Activity', 'getcount', {
-          "sequential": 1,
-          "is_current_revision": 1,
-          "is_deleted": 0,
-          "is_test": 0,
+        // Initially we load header and check total number of Activities
+        // and then start data fetching.
+        CRM.api3('ActivityReport', 'getheader', {
         }).done(function(result) {
-          total = parseInt(result.result, 10);
+          header = result.values;
 
-          if (total > 5000) {
-            CRM.alert('There are more than 5000 Activities, getting only Activities from last 30 days.', '', 'info');
+          CRM.api3('Activity', 'getcount', {
+            "sequential": 1,
+            "is_current_revision": 1,
+            "is_deleted": 0,
+            "is_test": 0,
+          }).done(function(result) {
+            total = parseInt(result.result, 10);
 
-            CRM.$('input[type="button"].load-all-data-button', activityReportForm).removeClass('hidden');
-            var startDateFilterValue = new Date();
-            var endDateFilterValue = new Date();
-            startDateFilterValue.setDate(startDateFilterValue.getDate() - 30);
+            if (total > 5000) {
+              CRM.alert('There are more than 5000 Activities, getting only Activities from last 30 days.', '', 'info');
 
-            loadDataByDateFilter(startDateFilterValue.toISOString().substring(0, 10), endDateFilterValue.toISOString().substring(0, 10));
-          } else {
-            loadAllData();
-          }
+              CRM.$('input[type="button"].load-all-data-button', activityReportForm).removeClass('hidden');
+              var startDateFilterValue = new Date();
+              var endDateFilterValue = new Date();
+              startDateFilterValue.setDate(startDateFilterValue.getDate() - 30);
+
+              loadDataByDateFilter(startDateFilterValue.toISOString().substring(0, 10), endDateFilterValue.toISOString().substring(0, 10));
+            } else {
+              loadAllData();
+            }
+          });
         });
 
         /**
@@ -214,13 +188,6 @@
             "is_test": 0
           };
 
-          if (startDate) {
-            startDate +=  " 00:00:00";
-          }
-          if (endDate) {
-            endDate += " 23:59:59";
-          }
-
           var activityDateFilter = getAPIDateFilter(startDate, endDate);
 
           if (activityDateFilter) {
@@ -240,7 +207,7 @@
             } else {
               CRM.$('span#activity-report-loading-total').text(totalFiltered);
 
-              loadData(0, limit, totalFiltered, 0, 0, startDate, endDate);
+              loadData(startDate, endDate, 0);
             }
           });
         }
@@ -249,9 +216,9 @@
          * Return an array containing API date filter conditions basing on specified
          * dates.
          *
-         * @param string $startDate
-         * @param string $endDate
-         * @return array|NULL
+         * @param string startDate
+         * @param string endDate
+         * @return object
          */
         function getAPIDateFilter(startDate, endDate) {
           var apiFilter = null;
@@ -282,7 +249,7 @@
           CRM.$('#activity-report-filters').addClass('hidden');
           CRM.$('span#activity-report-loading-total').text(total);
 
-          loadData(0, limit, total, 0, 0, null, null);
+          loadData(null, null, 0);
         }
 
         /*
