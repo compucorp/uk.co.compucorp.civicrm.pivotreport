@@ -12,69 +12,229 @@
   };
 
   callWithJQuery(function($) {
-    return $.pivotUtilities.export_renderers = {
-      "TSV Export": function(pivotData, opts) {
-        var agg, colAttrs, colKey, colKeys, defaults, i, j, k, l, len, len1, len2, len3, len4, len5, m, n, r, result, row, rowAttr, rowAttrs, rowKey, rowKeys, text;
-        defaults = {
-          localeStrings: {}
-        };
-        opts = $.extend(defaults, opts);
-        rowKeys = pivotData.getRowKeys();
-        if (rowKeys.length === 0) {
-          rowKeys.push([]);
+
+    /**
+     * Returns an array containing a pivot table result.
+     *
+     * @param {object} pivotData
+     * @param {object} opts
+     * @returns {Array}
+     */
+    function getPivotResult(pivotData, opts) {
+      var defaults = {
+        localeStrings: {}
+      };
+      opts = $.extend(defaults, opts);
+
+      var row = getResultHeader(pivotData.rowAttrs, getColKeys(pivotData), pivotData.aggregatorName);
+
+      return getResultArray(pivotData, row, getRowKeys(pivotData), getColKeys(pivotData));
+    }
+
+    /**
+     * Returns a row containing column names.
+     *
+     * @param {Array} rowAttrs
+     * @param {Array} colKeys
+     * @param {string} aggregatorName
+     * @returns {Array}
+     */
+    function getResultHeader(rowAttrs, colKeys, aggregatorName) {
+      var row = [];
+      var rowAttr = null;
+      var colKey = null;
+      var i;
+
+      for (i = 0; i < rowAttrs.length; i++) {
+        rowAttr = rowAttrs[i];
+        row.push(rowAttr);
+      }
+
+      if (colKeys.length === 1 && colKeys[0].length === 0) {
+        row.push(aggregatorName);
+      } else {
+        for (i = 0; i < colKeys.length; i++) {
+          colKey = colKeys[j];
+          row.push(colKey.join("-"));
         }
-        colKeys = pivotData.getColKeys();
-        if (colKeys.length === 0) {
-          colKeys.push([]);
-        }
-        rowAttrs = pivotData.rowAttrs;
-        colAttrs = pivotData.colAttrs;
-        result = [];
-        row = [];
-        for (i = 0, len = rowAttrs.length; i < len; i++) {
-          rowAttr = rowAttrs[i];
-          row.push(rowAttr);
-        }
-        if (colKeys.length === 1 && colKeys[0].length === 0) {
-          row.push(pivotData.aggregatorName);
+      }
+
+      return row;
+    }
+
+    /**
+     * Returns an array containing pivot table result rows.
+     *
+     * @param {object} pivotData
+     * @param {Array} row
+     * @param {Array} rowKeys
+     * @param {Array} colKeys
+     * @returns {Array}
+     */
+    function getResultArray(pivotData, row, rowKeys, colKeys) {
+      var result = [];
+      var rowKeysIndex = null;
+
+      result.push(row);
+
+      for (rowKeysIndex = 0; rowKeysIndex < rowKeys.length; rowKeysIndex++) {
+        result.push(
+          buildPivotColData(
+            pivotData,
+            buildPivotRowData(
+              [],
+              rowKeys[rowKeysIndex]
+            ),
+            rowKeys[rowKeysIndex],
+            colKeys
+          )
+        );
+      }
+
+      return result;
+    }
+
+    /**
+     * Returns an array containing pivot table row keys.
+     *
+     * @param {object} pivotData
+     * @returns {Array}
+     */
+    function getRowKeys(pivotData) {
+      var rowKeys = pivotData.getRowKeys();
+
+      if (rowKeys.length === 0) {
+        rowKeys.push([]);
+      }
+
+      return rowKeys;
+    }
+
+    /**
+     * Returns an array containing pivot table column keys.
+     *
+     * @param {object} pivotData
+     * @returns {Array}
+     */
+    function getColKeys(pivotData) {
+      var colKeys = pivotData.getColKeys();
+
+      if (colKeys.length === 0) {
+        colKeys.push([]);
+      }
+
+      return colKeys;
+    }
+
+    /**
+     * Returns a row merged with specified row key array.
+     *
+     * @param {Array} row
+     * @param {Array} rowKey
+     * @returns {Array}
+     */
+    function buildPivotRowData(row, rowKey) {
+      var i;
+
+      for (i = 0; i < rowKey.length; i++) {
+        row.push(rowKey[i]);
+      }
+
+      return row;
+    }
+
+    /**
+     * Returns a row merged with specified column keys array.
+     *
+     * @param {object} pivotData
+     * @param {Array} row
+     * @param {Array} rowKey
+     * @param {Array} colKeys
+     * @returns {Array}
+     */
+    function buildPivotColData(pivotData, row, rowKey, colKeys) {
+      var colKey = null;
+      var aggregator = null;
+      var i;
+
+      for (i = 0; i < colKeys.length; i++) {
+        colKey = colKeys[i];
+        aggregator = pivotData.getAggregator(rowKey, colKey);
+
+        if (aggregator.value() !== null) {
+          row.push(aggregator.value());
         } else {
-          for (j = 0, len1 = colKeys.length; j < len1; j++) {
-            colKey = colKeys[j];
-            row.push(colKey.join("-"));
-          }
+          row.push("");
         }
-        result.push(row);
-        for (k = 0, len2 = rowKeys.length; k < len2; k++) {
-          rowKey = rowKeys[k];
-          row = [];
-          for (l = 0, len3 = rowKey.length; l < len3; l++) {
-            r = rowKey[l];
-            row.push(r);
-          }
-          for (m = 0, len4 = colKeys.length; m < len4; m++) {
-            colKey = colKeys[m];
-            agg = pivotData.getAggregator(rowKey, colKey);
-            if (agg.value() != null) {
-              row.push(agg.value());
-            } else {
-              row.push("");
-            }
-          }
-          result.push(row);
-        }
-        text = "";
-        for (n = 0, len5 = result.length; n < len5; n++) {
-          r = result[n];
-          text += r.join("\t") + "\n";
-        }
-        return $("<textarea>").text(text).css({
-          width: ($(window).width() / 2) + "px",
-          height: ($(window).height() / 2) + "px"
+      }
+
+      return row;
+    }
+
+    /**
+     * Returns a string containing a set of result rows and columns
+     * joined by specified separator.
+     *
+     * @param {Array} result
+     * @param {string} separator
+     * @returns {String}
+     */
+    function getResultContent(result, separator) {
+      var content = "";
+      var i = result.length;
+      var row = null;
+      var n;
+
+      for (n = 0; n < i; n++) {
+        row = result[n];
+        content += row.join(separator) + "\n";
+      }
+
+      return content;
+    }
+
+    /**
+     * Returns current date in YYYYMMDD_HHII format.
+     *
+     * @returns {String}
+     */
+    function getCurrentTimestamp() {
+      var now = new Date();
+      var month = now.getMonth() + 1;
+      var day = now.getDate();
+      var date = [now.getFullYear(), ('0' + month).substring(month.length), ('0' + day).substring(day.length)];
+      var time = [now.getHours(), now.getMinutes()];
+
+      return date.join('') + '_' + time.join('');
+    }
+
+    /**
+     * Extends pivot renderers list.
+     */
+    return $.pivotUtilities.export_renderers = {
+      /**
+       * Adds "TSV Export" renderer to pivot renderers.
+       */
+      "TSV Export": function(pivotData, opts) {
+        var content = getResultContent(getPivotResult(pivotData, opts), "\t");
+
+        return $('<a id="download" href="data:text/tsv,' + encodeURIComponent(content) + '"> Download as a TSV File </a>').click(function() {
+          $('#download').attr('download', 'pivot_report_' + getCurrentTimestamp() + '.tsv');
+        });
+     },
+
+      /**
+       * Adds "CSV Export" renderer to pivot renderers.
+       */
+    "CSV Export": function(pivotData, opts) {
+        var content = getResultContent(getPivotResult(pivotData, opts), ",");
+
+        return $('<a id="download" href="data:text/csv,' + encodeURIComponent(content) + '"> Download as a CSV File </a>').click(function() {
+          $('#download').attr('download', 'pivot_report_' + getCurrentTimestamp() + '.csv');
         });
       }
     };
   });
-
 }).call(this);
 
 //# sourceMappingURL=export_renderers.js.map
