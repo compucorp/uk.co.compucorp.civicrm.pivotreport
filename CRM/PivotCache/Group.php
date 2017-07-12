@@ -102,24 +102,39 @@ class CRM_PivotCache_Group {
    * @return \CRM_Core_DAO
    */
   private function getDbDataResource($startDate, $endDate, $page) {
-    $query = 'SELECT path, data FROM civicrm_cache WHERE group_name = %0';
-    $params = array(
-      0 => array($this->getName(), 'String'),
-    );
+    $cache = new CRM_Core_DAO_Cache();
+
+    $cache->group_name = $this->getName();
 
     if (!empty($startDate)) {
-      $query .= ' AND path >= %1';
-      $params[1] = array('data_' . substr($startDate, 0, 10) . '_' . str_pad($page, 6, '0', STR_PAD_LEFT), 'String');
+      $whereStartDate = CRM_Core_DAO::createSQLFilter(
+        'path',
+        array(
+          '>=' => 'data_' . substr($startDate, 0, 10) . '_' . str_pad($page, 6, '0', STR_PAD_LEFT),
+        ),
+        'String'
+      );
+
+      $cache->whereAdd($whereStartDate);
     }
 
     if (!empty($endDate)) {
-      $query .= ' AND path <= %2';
-      $params[2] = array('data_' . substr($endDate, 0, 10) . '_999999', 'String');
+      $whereEndDate = CRM_Core_DAO::createSQLFilter(
+        'path',
+        array(
+          '<=' => 'data_' . substr($endDate, 0, 10) . '_999999',
+        ),
+        'String'
+      );
+
+      $cache->whereAdd($whereEndDate);
     }
 
-    $query .= ' ORDER BY path ASC';
+    $cache->orderBy('path ASC');
 
-    return CRM_Core_DAO::executeQuery($query, $params);
+    $cache->find();
+
+    return $cache;
   }
 
   /**
