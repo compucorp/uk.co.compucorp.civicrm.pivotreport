@@ -34,7 +34,9 @@ function civicrm_api3_activity_report_get($params) {
  * @throws API_Exception
  */
 function civicrm_api3_activity_report_getheader($params) {
-  return civicrm_api3_create_success(CRM_Activityreport_Data::getHeader(), $params);
+  $cacheGroup = new CRM_PivotCache_Group('activity');
+
+  return civicrm_api3_create_success($cacheGroup->getHeader(), $params);
 }
 
 /**

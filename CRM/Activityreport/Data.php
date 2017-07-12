@@ -27,79 +27,39 @@ class CRM_Activityreport_Data {
    * @return array
    */
   public static function get($startDate = null, $endDate = null, $page = 0) {
-    $data = array();
-    $nextDate = NULL;
-    $nextPage = NULL;
-    $break = FALSE;
-
-    $query = 'SELECT path, data FROM civicrm_cache WHERE group_name = "pivotreport"';
-    $params = array();
-
-    if (!empty($startDate)) {
-      $query .= ' AND path >= %1';
-      $params[1] = array('data_' . substr($startDate, 0, 10) . '_' . str_pad($page, 6, '0', STR_PAD_LEFT), 'String');
-    }
-
-    if (!empty($endDate)) {
-      $query .= ' AND path <= %2';
-      $params[2] = array('data_' . substr($endDate, 0, 10) . '_999999', 'String');
-    }
-
-    $query .= ' ORDER BY path ASC';
-
-    $cache = CRM_Core_DAO::executeQuery($query, $params);
-
-    while ($cache->fetch()) {
-      if ($break) {
-        $nextDate = substr($cache->path, 5, 10);
-        $nextPage = (int) substr($cache->path, 16);
-
-        break;
-      }
-
-      $packet = json_decode(unserialize($cache->data));
-
-      $data = array_merge($data, $packet);
-
-      unset($packet);
-
-      if (count($data) >= self::ROWS_RETURN_LIMIT) {
-        $break = TRUE;
-      }
-    }
+    $cache = new CRM_PivotCache_Group('activity');
+    $dataSet = $cache->getDataSet($startDate, $endDate, $page, self::ROWS_RETURN_LIMIT);
 
     return array(
       array(
-      'nextDate' => $nextDate,
-      'nextPage' => $nextPage,
-      'data' => $data,
+      'nextDate' => $dataSet->getNextDate(),
+      'nextPage' => $dataSet->getNextPage(),
+      'data' => $dataSet->getData(),
     ));
-  }
-
-  /**
-   * Gets header row from cache.
-   *
-   * @return arryay
-   */
-  public static function getHeader() {
-    return json_decode(CRM_Core_BAO_Cache::getItem('pivotreport', 'header'));
   }
 
   /**
    * Rebuilds pivot report cache including header and data.
    *
-   * @param type $startDate
-   * @param type $endDate
-   * @return type
+   * @param string $startDate
+   * @param string $endDate
+   *
+   * @return array
    */
   public static function rebuildCache($startDate = NULL, $endDate = NULL) {
     $time = microtime(true);
 
-    self::clearCache();
+    $cacheGroup = new CRM_PivotCache_Group('activity');
 
-    $result = self::cacheData($startDate, $endDate);
+    $cacheGroup->clear();
 
-    self::cacheHeader();
+    $result = self::cacheData($cacheGroup, $startDate, $endDate);
+
+    $cacheGroup->cacheHeader(array_merge(self::$emptyRow, array(
+      'Activity Date' => null,
+      'Activity Start Date Months' => null,
+      'Activity Expire Date' => null,
+    )));
 
     return array(
       array(
@@ -110,56 +70,27 @@ class CRM_Activityreport_Data {
   }
 
   /**
-   * Clears pivotreport cache.
-   */
-  private static function clearCache() {
-    CRM_Core_BAO_Cache::deleteGroup('pivotreport');
-  }
-
-  /**
-   * Caches a header row.
-   */
-  private static function cacheHeader() {
-    CRM_Core_BAO_Cache::setItem(json_encode(self::buildHeader()), 'pivotreport', 'header');
-  }
-
-  /**
    * Caches report data.
    * Returns total rows cached.
    *
+   * @param \CRM_PivotCache_Group $cacheGroup
    * @param string $startDate
    * @param string $endDate
    *
    * @return int
    */
-  private static function cacheData($startDate = NULL, $endDate = NULL) {
+  private static function cacheData($cacheGroup, $startDate = NULL, $endDate = NULL) {
     self::$fields = self::getActivityFields();
     self::$emptyRow = self::getEmptyRow();
     self::$multiValues = array();
     $offset = 0;
     $multiValuesOffset = 0;
-    $limit = self::ROWS_CACHE_LIMIT;
     $total = self::getCount($startDate, $endDate);
     $date = NULL;
     $page = 0;
     $cachedCount = 0;
 
-    $params = array(
-      'sequential' => 1,
-      'is_current_revision' => 1,
-      'is_deleted' => 0,
-      'is_test' => 0,
-      'return' => implode(',', array_keys(self::$fields)),
-      'options' => array(
-        'sort' => 'activity_date_time ASC',
-        'limit' => $limit,
-      ),
-    );
-
-    $activityDateFilter = self::getAPIDateFilter($startDate, $endDate);
-    if (!empty($activityDateFilter)) {
-      $params['activity_date_time'] = $activityDateFilter;
-    }
+    $params = self::getEntityApiParams($startDate, $endDate);
 
     while ($offset < $total) {
       if ($offset) {
@@ -182,7 +113,7 @@ class CRM_Activityreport_Data {
           $date = $result['info']['date'];
         }
 
-        $cachedCount += self::cachePacket($result['data'], $date, $page++);
+        $cachedCount += $cacheGroup->cachePacket($result['data'], $date, $page++);
 
         unset($result['data']);
 
@@ -197,27 +128,32 @@ class CRM_Activityreport_Data {
   }
 
   /**
-   * Puts a data packet into cache table with specific date and page number.
-   * Returns count of packet items.
+   * Returns an array containing API parameters for Activity 'get' call.
    *
-   * @param array $packet
-   * @param string $date
-   * @param int $page
+   * @param string $startDate
+   * @param string $endDate
    *
-   * @return int
+   * @return array
    */
-  private static function cachePacket(array $packet, $date, $page = NULL) {
-    if (empty($packet)) {
-      return 0;
+  private static function getEntityApiParams($startDate = NULL, $endDate = NULL) {
+    $params = array(
+      'sequential' => 1,
+      'is_current_revision' => 1,
+      'is_deleted' => 0,
+      'is_test' => 0,
+      'return' => implode(',', array_keys(self::$fields)),
+      'options' => array(
+        'sort' => 'activity_date_time ASC',
+        'limit' => self::ROWS_CACHE_LIMIT,
+      ),
+    );
+
+    $activityDateFilter = self::getAPIDateFilter($startDate, $endDate);
+    if (!empty($activityDateFilter)) {
+      $params['activity_date_time'] = $activityDateFilter;
     }
 
-    $count = count($packet);
-
-    CRM_Core_BAO_Cache::setItem(json_encode($packet), 'pivotreport', 'data_' . $date . '_' . str_pad($page, 6, '0', STR_PAD_LEFT));
-
-    unset($packet);
-
-    return $count;
+    return $params;
   }
 
   /**
@@ -307,23 +243,6 @@ class CRM_Activityreport_Data {
       ),
       'data' => $result,
     );
-  }
-
-  /**
-   * Prepares an array containing data header with fields labels.
-   *
-   * @return array
-   */
-  private static function buildHeader() {
-    $header = array_merge(self::$emptyRow, array(
-      'Activity Date' => null,
-      'Activity Start Date Months' => null,
-      'Activity Expire Date' => null,
-    ));
-
-    ksort($header);
-
-    return array_keys($header);
   }
 
   /**
