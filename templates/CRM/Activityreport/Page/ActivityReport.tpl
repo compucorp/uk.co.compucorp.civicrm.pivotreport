@@ -18,19 +18,7 @@
 
 {literal}
 <script type="text/javascript">
-    // Handle jQuery prop() method if it's not supported.
-    (function($){
-        if (typeof $.fn.prop !== 'function')
-        $.fn.prop = function(name, value){
-            if (typeof value === 'undefined') {
-                return this.attr(name);
-            } else {
-                return this.attr(name, value);
-            }
-        };
-    })(jQuery);
-
-    CRM.$(function () {
+    CRM.$(function ($) {
         var data = [];
         var limit = 1000;
         var total = 0;
@@ -67,7 +55,7 @@
          *   "Date to" value to filter Activities by their date
          */
         function loadData(offset, limit, total, multiValuesOffset, multiValuesTotal, startDate, endDate) {
-          CRM.$('span#activity-report-loading-count').text(offset);
+          $('span#activity-report-loading-count').text(offset);
           var localLimit = limit;
 
           if (multiValuesOffset > 0 && multiValuesTotal > 0) {
@@ -110,8 +98,8 @@
          * @param array data
          */
         function loadComplete(data) {
-          CRM.$('#activity-report-preloader').addClass('hidden');
-          CRM.$('#activity-report-filters').removeClass('hidden');
+          $('#activity-report-preloader').addClass('hidden');
+          $('#activity-report-filters').removeClass('hidden');
 
           initPivotTable(data);
           data = [];
@@ -142,21 +130,21 @@
           return result;
         }
 
-        var activityReportForm = CRM.$('#activity-report-filters form');
-        var activityReportStartDateInput = CRM.$('input[name="activity_start_date"]', activityReportForm);
-        var activityReportEndDateInput = CRM.$('input[name="activity_end_date"]', activityReportForm);
+        var activityReportForm = $('#activity-report-filters form');
+        var activityReportStartDateInput = $('input[name="activity_start_date"]', activityReportForm);
+        var activityReportEndDateInput = $('input[name="activity_end_date"]', activityReportForm);
 
-        CRM.$('input[type="button"].apply-filters-button', activityReportForm).click(function(e) {
+        $('input[type="button"].apply-filters-button', activityReportForm).click(function(e) {
           var startDateFilterValue = activityReportStartDateInput.val();
           var endDateFilterValue = activityReportEndDateInput.val();
 
-          CRM.$('#activity-report-preloader').removeClass('hidden');
-          CRM.$('#activity-report-filters').addClass('hidden');
+          $('#activity-report-preloader').removeClass('hidden');
+          $('#activity-report-filters').addClass('hidden');
 
           loadDataByDateFilter(startDateFilterValue, endDateFilterValue);
         });
 
-        CRM.$('input[type="button"].load-all-data-button', activityReportForm).click(function(e) {
+        $('input[type="button"].load-all-data-button', activityReportForm).click(function(e) {
           CRM.confirm({ message: 'This operation may take some time to load all data for big data sets. Do you really want to load all Activities data?' }).on('crmConfirm:yes', function() {
             loadAllData();
           });
@@ -182,7 +170,7 @@
           if (total > 5000) {
             CRM.alert('There are more than 5000 Activities, getting only Activities from last 30 days.', '', 'info');
 
-            CRM.$('input[type="button"].load-all-data-button', activityReportForm).removeClass('hidden');
+            $('input[type="button"].load-all-data-button', activityReportForm).removeClass('hidden');
             var startDateFilterValue = new Date();
             var endDateFilterValue = new Date();
             startDateFilterValue.setDate(startDateFilterValue.getDate() - 30);
@@ -227,18 +215,18 @@
             params.activity_date_time = activityDateFilter;
           }
 
-          CRM.$("#activity-report-pivot-table").html('');
+          $("#activity-report-pivot-table").html('');
 
           CRM.api3('Activity', 'getcount', params).done(function(result) {
             var totalFiltered = parseInt(result.result, 10);
 
             if (!totalFiltered) {
-              CRM.$('#activity-report-preloader').addClass('hidden');
-              CRM.$('#activity-report-filters').removeClass('hidden');
+              $('#activity-report-preloader').addClass('hidden');
+              $('#activity-report-filters').removeClass('hidden');
 
               CRM.alert('There is no Activities created between selected dates.');
             } else {
-              CRM.$('span#activity-report-loading-total').text(totalFiltered);
+              $('span#activity-report-loading-total').text(totalFiltered);
 
               loadData(0, limit, totalFiltered, 0, 0, startDate, endDate);
             }
@@ -277,10 +265,10 @@
 
           activityReportStartDateInput.val(null).trigger('change');
 
-          CRM.$("#activity-report-pivot-table").html('');
-          CRM.$('#activity-report-preloader').removeClass('hidden');
-          CRM.$('#activity-report-filters').addClass('hidden');
-          CRM.$('span#activity-report-loading-total').text(total);
+          $("#activity-report-pivot-table").html('');
+          $('#activity-report-preloader').removeClass('hidden');
+          $('#activity-report-filters').addClass('hidden');
+          $('span#activity-report-loading-total').text(total);
 
           loadData(0, limit, total, 0, 0, null, null);
         }
@@ -291,12 +279,12 @@
          * @param array data
          */
         function initPivotTable(data) {
-          jQuery("#activity-report-pivot-table").pivotUI(data, {
+          $("#activity-report-pivot-table").pivotUI(data, {
               rendererName: "Table",
-              renderers: CRM.$.extend(
-                  jQuery.pivotUtilities.renderers, 
-                  jQuery.pivotUtilities.c3_renderers,
-                  jQuery.pivotUtilities.export_renderers
+              renderers: $.extend(
+                  $.pivotUtilities.renderers, 
+                  $.pivotUtilities.c3_renderers,
+                  $.pivotUtilities.export_renderers
               ),
               vals: ["Total"],
               rows: [],
@@ -306,13 +294,13 @@
               rendererOptions: {
                   c3: {
                       size: {
-                          width: parseInt(jQuery('#activity-report-pivot-table').width() * 0.78, 10)
+                          width: parseInt($('#activity-report-pivot-table').width() * 0.78, 10)
                       }
                   },
               },
               derivedAttributes: {
-                  "Activity Date": jQuery.pivotUtilities.derivers.dateFormat("Activity Date Time", "%y-%m-%d"),
-                  "Activity Start Date Months": jQuery.pivotUtilities.derivers.dateFormat("Activity Date Time", "%y-%m"),
+                  "Activity Date": $.pivotUtilities.derivers.dateFormat("Activity Date Time", "%y-%m-%d"),
+                  "Activity Start Date Months": $.pivotUtilities.derivers.dateFormat("Activity Date Time", "%y-%m"),
                   "Activity Expire Date": function(row) {
                     if (!row["Expire Date"]) {
                       return "";
