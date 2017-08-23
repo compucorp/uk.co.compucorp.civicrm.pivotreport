@@ -130,6 +130,8 @@ class CRM_PivotCache_Group {
       $cache->whereAdd($whereEndDate);
     }
 
+    $cache->whereAdd("path <> 'header'");
+
     $cache->orderBy('path ASC');
 
     $cache->find();

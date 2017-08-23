@@ -1,10 +1,12 @@
 <?php
 
 /**
- * Provide static methods to retrieve and format an Activity data.
+ * Provides a functionality to prepare entity data for Pivot Table.
  */
-class CRM_Activityreport_Data {
-  const ROWS_CACHE_LIMIT = 1000;
+class CRM_PivotReport_Data {
+  const ROWS_API_LIMIT = 1000;
+  const ROWS_PAGINATED_LIMIT = 10000;
+  const ROWS_MULTIVALUES_LIMIT = 1000;
   const ROWS_RETURN_LIMIT = 10000;
 
   private static $fields = array();
@@ -14,7 +16,7 @@ class CRM_Activityreport_Data {
   private static $customizedValues = array();
 
   /**
-   * Return an array containing formatted Activity data and information
+   * Returns an array containing formatted entity data and information
    * needed to make a call for more data.
    *
    * @param string $startDate
@@ -47,15 +49,19 @@ class CRM_Activityreport_Data {
    * @return array
    */
   public static function rebuildCache($startDate = NULL, $endDate = NULL) {
+    self::$fields = self::getActivityFields();
+    self::$emptyRow = self::getEmptyRow();
+    self::$multiValues = array();
+
     $time = microtime(true);
 
     $cacheGroup = new CRM_PivotCache_Group('activity');
 
     $cacheGroup->clear();
 
-    $result = self::cacheData($cacheGroup, $startDate, $endDate);
+    $count = self::rebuildData($cacheGroup, $startDate, $endDate);
 
-    $cacheGroup->cacheHeader(array_merge(self::$emptyRow, array(
+    self::rebuildHeader($cacheGroup, array_merge(self::$emptyRow, array(
       'Activity Date' => null,
       'Activity Start Date Months' => null,
       'Activity Expire Date' => null,
@@ -63,68 +69,123 @@ class CRM_Activityreport_Data {
 
     return array(
       array(
-        'rows' => $result,
+        'rows' => $count,
         'time' => (microtime(true) - $time),
       )
     );
   }
 
   /**
-   * Caches report data.
-   * Returns total rows cached.
+   * Rebuilds entity data cache using entity paginated results.
    *
    * @param \CRM_PivotCache_Group $cacheGroup
    * @param string $startDate
    * @param string $endDate
+   * @param int $offset
+   * @param int $multiValuesOffset
+   * @param int $page
    *
    * @return int
    */
-  private static function cacheData($cacheGroup, $startDate = NULL, $endDate = NULL) {
-    self::$fields = self::getActivityFields();
-    self::$emptyRow = self::getEmptyRow();
-    self::$multiValues = array();
-    $offset = 0;
-    $multiValuesOffset = 0;
+  public static function rebuildData($cacheGroup, $startDate = NULL, $endDate = NULL, $offset = 0, $multiValuesOffset = 0, $page = 0) {
     $total = self::getCount($startDate, $endDate);
-    $date = NULL;
-    $page = 0;
-    $cachedCount = 0;
-
-    $params = self::getEntityApiParams($startDate, $endDate);
+    $apiParams = self::getEntityApiParams($startDate, $endDate);
+    $index = NULL;
+    $count = 0;
 
     while ($offset < $total) {
       if ($offset) {
         $offset--;
       }
 
-      $params['options']['offset'] = $offset;
+      $pages = self::getPaginatedResults($apiParams, $offset, $multiValuesOffset, $page, $index);
 
-      $activities = civicrm_api3('Activity', 'get', $params);
-
-      $formattedActivities = self::formatResult($activities['values']);
-
-      unset($activities);
-
-      while (!empty($formattedActivities)) {
-        $result = self::splitMultiValues($formattedActivities, $offset, $multiValuesOffset);
-
-        if ($result['info']['date'] !== $date) {
-          $page = 0;
-          $date = $result['info']['date'];
-        }
-
-        $cachedCount += $cacheGroup->cachePacket($result['data'], $date, $page++);
-
-        unset($result['data']);
-
-        $formattedActivities = array_slice($formattedActivities, $result['info']['nextOffset'] - $offset, NULL, TRUE);
-
-        $offset = $result['info']['nextOffset'];
-        $multiValuesOffset =  $result['info']['multiValuesOffset'];
-      }
+      $count += self::cachePages($cacheGroup, $pages);
+      $lastPageIndex = count($pages) - 1;
+      $offset = $pages[$lastPageIndex]->getNextOffset();
+      $multiValuesOffset = $pages[$lastPageIndex]->getNextMultiValuesOffset();
+      $page = $pages[$lastPageIndex]->getPage() + 1;
+      $index = $pages[$lastPageIndex]->getIndex();
     }
 
-    return $cachedCount;
+    return $count;
+  }
+
+  /**
+   * Rebuilds entity header cache.
+   *
+   * @param \CRM_PivotCache_Group $cacheGroup
+   * @param array $header
+   */
+  public static function rebuildHeader($cacheGroup, array $header) {
+    $cacheGroup->cacheHeader($header);
+  }
+
+  /**
+   * Returns an array of entity data pages.
+   *
+   * @param array $apiParams
+   * @param int $offset
+   * @param int $multiValuesOffset
+   * @param int $page
+   * @param string $index
+   *
+   * @return int
+   */
+  private static function getPaginatedResults(array $apiParams, $offset = 0, $multiValuesOffset = 0, $page = 0, $index = NULL) {
+    $result = array();
+    $rowsCount = 0;
+
+    $apiParams['options']['offset'] = $offset;
+
+    $activities = civicrm_api3('Activity', 'get', $apiParams);
+
+    $formattedActivities = self::formatResult($activities['values']);
+
+    unset($activities);
+
+    while (!empty($formattedActivities)) {
+      $split = self::splitMultiValues($formattedActivities, $offset, $multiValuesOffset);
+      $rowsCount += count($split['data']);
+
+      if ($rowsCount > self::ROWS_PAGINATED_LIMIT) {
+        break;
+      }
+
+      if ($split['info']['date'] !== $index) {
+        $page = 0;
+        $index = $split['info']['date'];
+      }
+
+      $result[] = new CRM_PivotReport_DataPage($split['data'], $index, $page++, $split['info']['nextOffset'], $split['info']['multiValuesOffset']);
+
+      unset($split['data']);
+
+      $formattedActivities = array_slice($formattedActivities, $split['info']['nextOffset'] - $offset, NULL, TRUE);
+
+      $offset = $split['info']['nextOffset'];
+      $multiValuesOffset =  $split['info']['multiValuesOffset'];
+    }
+
+    return $result;
+  }
+
+  /**
+   * Puts an array of pages into cache.
+   *
+   * @param \CRM_PivotCache_Group $cacheGroup
+   * @param array $pages
+   *
+   * @return int
+   */
+  private static function cachePages($cacheGroup, array $pages) {
+    $count = 0;
+
+    foreach ($pages as $page) {
+      $count += $cacheGroup->cachePacket($page->getData(), $page->getIndex(), $page->getPage());
+    }
+
+    return $count;
   }
 
   /**
@@ -144,7 +205,7 @@ class CRM_Activityreport_Data {
       'return' => implode(',', array_keys(self::$fields)),
       'options' => array(
         'sort' => 'activity_date_time ASC',
-        'limit' => self::ROWS_CACHE_LIMIT,
+        'limit' => self::ROWS_API_LIMIT,
       ),
     );
 
@@ -157,7 +218,7 @@ class CRM_Activityreport_Data {
   }
 
   /**
-   * Return an array containing API date filter conditions basing on specified
+   * Returns an array containing API date filter conditions basing on specified
    * dates.
    *
    * @param string $startDate
@@ -216,7 +277,7 @@ class CRM_Activityreport_Data {
       if (!empty(self::$multiValues[$key])) {
         $multiValuesFields = array_combine(self::$multiValues[$key], array_fill(0, count(self::$multiValues[$key]), 0));
 
-        $multiValuesRows = self::populateMultiValuesRow($row, $multiValuesFields, $multiValuesOffset, self::ROWS_CACHE_LIMIT - $i);
+        $multiValuesRows = self::populateMultiValuesRow($row, $multiValuesFields, $multiValuesOffset, self::ROWS_MULTIVALUES_LIMIT - $i);
 
         $result = array_merge($result, $multiValuesRows['data']);
         $multiValuesOffset = 0;
@@ -225,7 +286,7 @@ class CRM_Activityreport_Data {
       }
       $i = count($result);
 
-      if ($i === self::ROWS_CACHE_LIMIT) {
+      if ($i === self::ROWS_MULTIVALUES_LIMIT) {
         break;
       }
 
