@@ -3,65 +3,33 @@
 /**
  * Provides a functionality to prepare entity data for Pivot Table.
  */
-class CRM_PivotReport_Data {
-  const ROWS_API_LIMIT = 1000;
-  const ROWS_PAGINATED_LIMIT = 10000;
-  const ROWS_MULTIVALUES_LIMIT = 1000;
-  const ROWS_RETURN_LIMIT = 10000;
+class CRM_PivotReport_Data extends CRM_PivotReport_AbstractData {
 
-  private static $fields = array();
-  private static $emptyRow = array();
-  private static $multiValues = array();
-  private static $formattedValues = array();
-  private static $customizedValues = array();
-
-  /**
-   * Returns an array containing formatted entity data and information
-   * needed to make a call for more data.
-   *
-   * @param string $startDate
-   *   "Date from" value to filter Activities by their date
-   * @param string $endDate
-   *   "Date to" value to filter Activities by their date
-   * @param int $page
-   *   Page offset
-   *
-   * @return array
-   */
-  public static function get($startDate = null, $endDate = null, $page = 0) {
-    $cache = new CRM_PivotCache_Group('activity');
-    $dataSet = $cache->getDataSet($startDate, $endDate, $page, self::ROWS_RETURN_LIMIT);
-
-    return array(
-      array(
-      'nextDate' => $dataSet->getNextDate(),
-      'nextPage' => $dataSet->getNextPage(),
-      'data' => $dataSet->getData(),
-    ));
+  public function __construct($name = NULL) {
+    $this->name = 'Activity';
   }
 
   /**
    * Rebuilds pivot report cache including header and data.
    *
-   * @param string $startDate
-   * @param string $endDate
+   * @param array $params
    *
    * @return array
    */
-  public static function rebuildCache($startDate = NULL, $endDate = NULL) {
-    self::$fields = self::getActivityFields();
-    self::$emptyRow = self::getEmptyRow();
-    self::$multiValues = array();
+  public function rebuildCache(array $params) {
+    $this->fields = $this->getFields();
+    $this->emptyRow = $this->getEmptyRow();
+    $this->multiValues = array();
 
     $time = microtime(true);
 
-    $cacheGroup = new CRM_PivotCache_Group('activity');
+    $cacheGroup = new CRM_PivotCache_Group($this->name);
 
     $cacheGroup->clear();
 
-    $count = self::rebuildData($cacheGroup, $startDate, $endDate);
+    $count = $this->rebuildData($cacheGroup, $this->name, $params);
 
-    self::rebuildHeader($cacheGroup, array_merge(self::$emptyRow, array(
+    $this->rebuildHeader($cacheGroup, array_merge($this->emptyRow, array(
       'Activity Date' => null,
       'Activity Start Date Months' => null,
       'Activity Expire Date' => null,
@@ -76,140 +44,29 @@ class CRM_PivotReport_Data {
   }
 
   /**
-   * Rebuilds entity data cache using entity paginated results.
-   *
-   * @param \CRM_PivotCache_Group $cacheGroup
-   * @param string $startDate
-   * @param string $endDate
-   * @param int $offset
-   * @param int $multiValuesOffset
-   * @param int $page
-   *
-   * @return int
-   */
-  public static function rebuildData($cacheGroup, $startDate = NULL, $endDate = NULL, $offset = 0, $multiValuesOffset = 0, $page = 0) {
-    $total = self::getCount($startDate, $endDate);
-    $apiParams = self::getEntityApiParams($startDate, $endDate);
-    $index = NULL;
-    $count = 0;
-
-    while ($offset < $total) {
-      if ($offset) {
-        $offset--;
-      }
-
-      $pages = self::getPaginatedResults($apiParams, $offset, $multiValuesOffset, $page, $index);
-
-      $count += self::cachePages($cacheGroup, $pages);
-      $lastPageIndex = count($pages) - 1;
-      $offset = $pages[$lastPageIndex]->getNextOffset();
-      $multiValuesOffset = $pages[$lastPageIndex]->getNextMultiValuesOffset();
-      $page = $pages[$lastPageIndex]->getPage() + 1;
-      $index = $pages[$lastPageIndex]->getIndex();
-    }
-
-    return $count;
-  }
-
-  /**
-   * Rebuilds entity header cache.
-   *
-   * @param \CRM_PivotCache_Group $cacheGroup
-   * @param array $header
-   */
-  public static function rebuildHeader($cacheGroup, array $header) {
-    $cacheGroup->cacheHeader($header);
-  }
-
-  /**
-   * Returns an array of entity data pages.
-   *
-   * @param array $apiParams
-   * @param int $offset
-   * @param int $multiValuesOffset
-   * @param int $page
-   * @param string $index
-   *
-   * @return int
-   */
-  private static function getPaginatedResults(array $apiParams, $offset = 0, $multiValuesOffset = 0, $page = 0, $index = NULL) {
-    $result = array();
-    $rowsCount = 0;
-
-    $apiParams['options']['offset'] = $offset;
-
-    $activities = civicrm_api3('Activity', 'get', $apiParams);
-
-    $formattedActivities = self::formatResult($activities['values']);
-
-    unset($activities);
-
-    while (!empty($formattedActivities)) {
-      $split = self::splitMultiValues($formattedActivities, $offset, $multiValuesOffset);
-      $rowsCount += count($split['data']);
-
-      if ($rowsCount > self::ROWS_PAGINATED_LIMIT) {
-        break;
-      }
-
-      if ($split['info']['date'] !== $index) {
-        $page = 0;
-        $index = $split['info']['date'];
-      }
-
-      $result[] = new CRM_PivotReport_DataPage($split['data'], $index, $page++, $split['info']['nextOffset'], $split['info']['multiValuesOffset']);
-
-      unset($split['data']);
-
-      $formattedActivities = array_slice($formattedActivities, $split['info']['nextOffset'] - $offset, NULL, TRUE);
-
-      $offset = $split['info']['nextOffset'];
-      $multiValuesOffset =  $split['info']['multiValuesOffset'];
-    }
-
-    return $result;
-  }
-
-  /**
-   * Puts an array of pages into cache.
-   *
-   * @param \CRM_PivotCache_Group $cacheGroup
-   * @param array $pages
-   *
-   * @return int
-   */
-  private static function cachePages($cacheGroup, array $pages) {
-    $count = 0;
-
-    foreach ($pages as $page) {
-      $count += $cacheGroup->cachePacket($page->getData(), $page->getIndex(), $page->getPage());
-    }
-
-    return $count;
-  }
-
-  /**
    * Returns an array containing API parameters for Activity 'get' call.
    *
-   * @param string $startDate
-   * @param string $endDate
+   * @param array $inputParams
    *
    * @return array
    */
-  private static function getEntityApiParams($startDate = NULL, $endDate = NULL) {
+  protected function getEntityApiParams(array $inputParams) {
     $params = array(
       'sequential' => 1,
       'is_current_revision' => 1,
       'is_deleted' => 0,
       'is_test' => 0,
-      'return' => implode(',', array_keys(self::$fields)),
+      'return' => implode(',', array_keys($this->fields)),
       'options' => array(
         'sort' => 'activity_date_time ASC',
         'limit' => self::ROWS_API_LIMIT,
       ),
     );
 
-    $activityDateFilter = self::getAPIDateFilter($startDate, $endDate);
+    $startDate = !empty($inputParams['start_date']) ? $inputParams['start_date'] : NULL;
+    $endDate = !empty($inputParams['end_date']) ? $inputParams['end_date'] : NULL;
+
+    $activityDateFilter = $this->getAPIDateFilter($startDate, $endDate);
     if (!empty($activityDateFilter)) {
       $params['activity_date_time'] = $activityDateFilter;
     }
@@ -226,7 +83,7 @@ class CRM_PivotReport_Data {
    *
    * @return array|NULL
    */
-  private static function getAPIDateFilter($startDate, $endDate) {
+  private function getAPIDateFilter($startDate, $endDate) {
     $apiFilter = null;
 
     if (!empty($startDate) && !empty($endDate)) {
@@ -256,7 +113,7 @@ class CRM_PivotReport_Data {
    *
    * @return array
    */
-  private static function splitMultiValues(array $data, $totalOffset, $multiValuesOffset) {
+  protected function splitMultiValues(array $data, $totalOffset, $multiValuesOffset) {
     $result = array();
     $date = NULL;
     $i = 0;
@@ -274,10 +131,10 @@ class CRM_PivotReport_Data {
       }
 
       $multiValuesRows = null;
-      if (!empty(self::$multiValues[$key])) {
-        $multiValuesFields = array_combine(self::$multiValues[$key], array_fill(0, count(self::$multiValues[$key]), 0));
+      if (!empty($this->multiValues[$key])) {
+        $multiValuesFields = array_combine($this->multiValues[$key], array_fill(0, count($this->multiValues[$key]), 0));
 
-        $multiValuesRows = self::populateMultiValuesRow($row, $multiValuesFields, $multiValuesOffset, self::ROWS_MULTIVALUES_LIMIT - $i);
+        $multiValuesRows = $this->populateMultiValuesRow($row, $multiValuesFields, $multiValuesOffset, self::ROWS_MULTIVALUES_LIMIT - $i);
 
         $result = array_merge($result, $multiValuesRows['data']);
         $multiValuesOffset = 0;
@@ -290,98 +147,20 @@ class CRM_PivotReport_Data {
         break;
       }
 
-      unset(self::$multiValues[$key]);
+      unset($this->multiValues[$key]);
 
       $totalOffset++;
     }
 
     return array(
       'info' => array(
-        'date' => $date,
+        'index' => $date,
         'nextOffset' => !empty($multiValuesRows['info']['multiValuesOffset']) ? $totalOffset : $totalOffset + 1,
         'multiValuesOffset' => !empty($multiValuesRows['info']['multiValuesOffset']) ? $multiValuesRows['info']['multiValuesOffset'] : 0,
         'multiValuesTotal' => !empty($multiValuesRows['info']['multiValuesTotal']) ? $multiValuesRows['info']['multiValuesTotal'] : 0,
       ),
       'data' => $result,
     );
-  }
-
-  /**
-   * Returns an array containing set of rows which are built basing on given $row
-   * and $fields array with indexes of multi values of the $row.
-   *
-   * @param array $row
-   *   A single Activity row
-   * @param array $fields
-   *   Array containing Activity multi value fields as keys and integer
-   *   indexes as values
-   * @param int $offset
-   *   Combination offset to start from
-   * @param int $limit
-   *   How many records can we generate?
-   *
-   * @return array
-   */
-  private static function populateMultiValuesRow(array $row, array $fields, $offset, $limit) {
-    $data = array();
-    $info = array(
-      'multiValuesTotal' => self::getTotalCombinations($row, $fields),
-      'multiValuesOffset' => 0,
-    );
-    $found = true;
-    $i = 0;
-
-    while ($found) {
-      if ($i >= $offset) {
-        $rowResult = array();
-        foreach ($fields as $key => $index) {
-          $rowResult[$key] = $row[$key][$index];
-        }
-        $data[] = array_values(array_merge($row, $rowResult));
-      }
-      foreach ($fields as $key => $index) {
-        $found = false;
-        if ($index + 1 === count($row[$key])) {
-          $fields[$key] = 0;
-          continue;
-        }
-        $fields[$key]++;
-        $found = true;
-        break;
-      }
-      $i++;
-      if (($i - $offset === $limit) && $found) {
-        $info['multiValuesOffset'] = $i;
-        break;
-      }
-    }
-
-    return array(
-      'info' => $info,
-      'data' => $data,
-    );
-  }
-
-  /**
-   * Gets number of multivalues combinations for given Activity row.
-   *
-   * @param array $row
-   *   Activity row
-   * @param array $fields
-   *   Array containing all Activity fields
-   *
-   * @return int
-   */
-  private static function getTotalCombinations(array $row, array $fields) {
-    $combinations = 1;
-
-    foreach ($fields as $key => $value) {
-      if (!empty($row[$key]) && is_array($row[$key])) {
-        $combinations *= count($row[$key]);
-      }
-    }
-
-    return $combinations;
   }
 
   /**
@@ -396,25 +175,25 @@ class CRM_PivotReport_Data {
    *
    * @return type
    */
-  private static function formatResult($data, $dataKey = null, $level = 0) {
+  protected function formatResult($data, $dataKey = null, $level = 0) {
     $result = array();
 
     if ($level < 2) {
       if ($level === 1) {
-        $result = self::$emptyRow;
+        $result = $this->emptyRow;
       }
       $baseKey = $dataKey;
       foreach ($data as $key => $value) {
-        if (empty(self::$fields[$key]) && $level) {
+        if (empty($this->fields[$key]) && $level) {
           continue;
         }
         $dataKey = $key;
-        if (!empty(self::$fields[$key]['title'])) {
-          $key = self::$fields[$key]['title'];
+        if (!empty($this->fields[$key]['title'])) {
+          $key = $this->fields[$key]['title'];
         }
-        $result[$key] = self::formatResult($value, $dataKey, $level + 1);
+        $result[$key] = $this->formatResult($value, $dataKey, $level + 1);
         if ($level === 1 && is_array($result[$key])) {
-          self::$multiValues[$baseKey][] = $key;
+          $this->multiValues[$baseKey][] = $key;
         }
       }
       if ($level === 1) {
@@ -426,75 +205,9 @@ class CRM_PivotReport_Data {
           ksort($result);
       }
     } else {
-      return self::formatValue($dataKey, $data);
+      return $this->formatValue($dataKey, $data);
     }
 
-    return $result;
-  }
-
-  /**
-   * Returns $value formatted by available Option Values for the $key Field.
-   * If there is no Option Values for the field, then return $value itself
-   * with HTML tags stripped.
-   * If $value contains an array of values then the method works recursively
-   * returning an array of formatted values.
-   *
-   * @param string $key
-   *   Field name
-   * @param string $value
-   *   Field value
-   * @param int $level
-   *   Recursion level
-   *
-   * @return string
-   */
-  private static function formatValue($key, $value, $level = 0) {
-    if (empty($value) || $level > 1) {
-      return '';
-    }
-    $dataType = !empty(self::$fields[$key]['customField']['data_type']) ? self::$fields[$key]['customField']['data_type'] : null;
-    if (is_array($value) && $dataType !== 'File') {
-      $valueArray = array();
-      foreach ($value as $valueKey => $valueItem) {
-        $valueArray[] = self::formatValue($key, $valueKey, $level + 1);
-      }
-      return $valueArray;
-    }
-    if (!empty(self::$formattedValues[$key][$value])) {
-      return self::$formattedValues[$key][$value];
-    }
-    if (!empty(self::$fields[$key]['customField'])) {
-      switch (self::$fields[$key]['customField']['data_type']) {
-        case 'File':
-          $result = CRM_Utils_System::formatWikiURL($value['fileURL'] . ' ' . $value['fileName']);
-          self::$formattedValues[$key][$value] = $result;
-          return $result;
-        break;
-        // For few field types we can use 'formatCustomValues()' core method.
-        case 'Date':
-        case 'Boolean':
-        case 'Link':
-        case 'StateProvince':
-        case 'Country':
-          $data = array('data' => $value);
-          CRM_Utils_System::url();
-          $result = CRM_Core_BAO_CustomGroup::formatCustomValues($data, self::$fields[$key]['customField']);
-          self::$formattedValues[$key][$value] = $result;
-          return $result;
-        break;
-        // Anyway, 'formatCustomValues()' core method doesn't handle some types
-        // such as 'CheckBox' (looks like they aren't implemented there) so
-        // we deal with them automatically by custom handling of 'optionValues' array.
-      }
-    }
-
-    if (!empty(self::$fields[$key]['optionValues'])) {
-      $result = self::$fields[$key]['optionValues'][$value];
-      self::$formattedValues[$key][$value] = $result;
-      return $result;
-    }
-    $result = strip_tags(self::customizeValue($key, $value));
-    self::$formattedValues[$key][$value] = $result;
     return $result;
   }
 
@@ -510,11 +223,13 @@ class CRM_PivotReport_Data {
    *
    * @return string
    */
-  private static function customizeValue($key, $value) {
-    if (!empty(self::$customizedValues[$key][$value])) {
-      return self::$customizedValues[$key][$value];
+  protected function customizeValue($key, $value) {
+    if (!empty($this->customizedValues[$key][$value])) {
+      return $this->customizedValues[$key][$value];
     }
+
     $result = $value;
+
     switch ($key) {
       case 'campaign_id':
         if (!empty($value)) {
@@ -531,24 +246,8 @@ class CRM_PivotReport_Data {
         }
       break;
     }
-    self::$customizedValues[$key][$value] = $result;
-    return $result;
-  }
 
-  /**
-   * Returns an empty row containing Activity field names as keys.
-   *
-   * @return array
-   */
-  private static function getEmptyRow() {
-    $result = array();
-
-    foreach (self::$fields as $key => $value) {
-      if (!empty($value['title'])) {
-        $key = $value['title'];
-      }
-      $result[$key] = '';
-    }
+    $this->customizedValues[$key][$value] = $result;
 
     return $result;
   }
@@ -559,7 +258,7 @@ class CRM_PivotReport_Data {
    *
    * @return array
    */
-  private static function getActivityFields() {
+  protected function getFields() {
     $unsetFields = array(
       'is_current_revision',
       'activity_is_deleted',
@@ -621,7 +320,7 @@ class CRM_PivotReport_Data {
         $key = $value['name'];
       }
       $result[$key] = $value;
-      $result[$key]['optionValues'] = self::getOptionValues($value);
+      $result[$key]['optionValues'] = $this->getOptionValues($value);
     }
 
     return $result;
@@ -636,37 +335,41 @@ class CRM_PivotReport_Data {
    *
    * @return array
    */
-  private static function getOptionValues($field) {
+  private function getOptionValues($field) {
     if (empty($field['pseudoconstant']['optionGroupName'])) {
       return null;
     }
+
     $result = civicrm_api3('Activity', 'getoptions', array(
       'field' => $field['name'],
     ));
+
     return $result['values'];
   }
 
   /**
    * Gets total number of Activities.
    *
-   * @param string $startDate
-   * @param string $endDate
+   * @param array $params
    *
    * @return int
    */
-  private static function getCount($startDate = null, $endDate = null) {
-    $params = [
+  protected function getCount(array $params) {
+    $apiParams = [
       'is_current_revision' => 1,
       'is_deleted' => 0,
       'is_test' => 0,
     ];
 
-    $activityDateFilter = self::getAPIDateFilter($startDate, $endDate);
+    $startDate = !empty($params['start_date']) ? $params['start_date'] : NULL;
+    $endDate = !empty($params['end_date']) ? $params['end_date'] : NULL;
+
+    $activityDateFilter = $this->getAPIDateFilter($startDate, $endDate);
 
     if (!empty($activityDateFilter)) {
-      $params['activity_date_time'] = $activityDateFilter;
+      $apiParams['activity_date_time'] = $activityDateFilter;
     }
 
-    return civicrm_api3('Activity', 'getcount', $params);
+    return civicrm_api3('Activity', 'getcount', $apiParams);
   }
 }

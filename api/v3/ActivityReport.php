@@ -23,7 +23,18 @@ function civicrm_api3_activity_report_get($params) {
   $endDate = !empty($params['end_date']) ? $params['end_date'] : null;
   $page = !empty($params['page']) ? (int)$params['page'] : 0;
 
-  return civicrm_api3_create_success(CRM_PivotReport_Data::get($startDate, $endDate, $page), $params);
+  $dataInstance = new CRM_PivotReport_Data();
+
+  return civicrm_api3_create_success(
+    $dataInstance->get(
+      array(
+        'start_date' => $startDate,
+        'end_date' => $endDate,
+      ),
+      $page
+    ),
+    $params
+  );
 }
 
 /**
@@ -50,5 +61,15 @@ function civicrm_api3_activity_report_rebuildcache($params) {
   $startDate = !empty($params['start_date']) ? $params['start_date'] : null;
   $endDate = !empty($params['end_date']) ? $params['end_date'] : null;
 
-  return civicrm_api3_create_success(CRM_PivotReport_Data::rebuildCache($startDate, $endDate), $params);
+  $dataInstance = new CRM_PivotReport_Data();
+
+  return civicrm_api3_create_success(
+    $dataInstance->rebuildCache(
+      array(
+        'start_date' => $startDate,
+        'end_date' => $endDate,
+      )
+    ),
+    $params
+  );
 }
