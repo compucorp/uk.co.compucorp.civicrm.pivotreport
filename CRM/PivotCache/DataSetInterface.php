@@ -5,13 +5,14 @@ interface CRM_PivotCache_DataSetInterface {
   /**
    * Gets CRM_PivotCache_DataSet object of cached data for specified criteria.
    *
+   * @param \CRM_PivotCache_AbstractGroup $cacheGroup
    * @param int $page
    * @param int $limit
    * @param array $params
    *
    * @return \CRM_PivotCache_DataSet
    */
-  public function get($page, $limit, array $params);
+  public function get($cacheGroup, $page, $limit, array $params);
 
   /**
    * Gets next index needed for further data request.

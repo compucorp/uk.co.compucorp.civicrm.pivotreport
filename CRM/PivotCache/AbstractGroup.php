@@ -10,9 +10,9 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
    *
    * @var string 
    */
-  private $name = NULL;
+  protected $name = NULL;
 
-  public function __construct($name) {
+  public function __construct($name = NULL) {
     $this->name = 'pivotreport.' . $name;
   }
 

@@ -30,14 +30,15 @@ abstract class CRM_PivotReport_AbstractData implements CRM_PivotReport_DataInter
    * Returns an array containing formatted entity data and information
    * needed to make a call for more data.
    *
+   * @param \CRM_PivotCache_AbstractGroup $cacheGroup
    * @param array $params
    * @param int $page
    *
    * @return array
    */
-  public function get(array $params, $page = 0) {
+  public function get($cacheGroup, array $params, $page = 0) {
     $dataSetInstance = new CRM_PivotCache_DataSet($this->name);
-    $dataSet = $dataSetInstance->get($page, self::ROWS_RETURN_LIMIT, $params);
+    $dataSet = $dataSetInstance->get($cacheGroup, $page, self::ROWS_RETURN_LIMIT, $params);
 
     return array(
       array(
@@ -50,18 +51,17 @@ abstract class CRM_PivotReport_AbstractData implements CRM_PivotReport_DataInter
   /**
    * Rebuilds pivot report cache including header and data.
    *
+   * @param \CRM_PivotCache_AbstractGroup $cacheGroup
    * @param array $params
    *
    * @return array
    */
-  public function rebuildCache(array $params) {
+  public function rebuildCache($cacheGroup, array $params) {
     $this->fields = $this->getFields();
     $this->emptyRow = $this->getEmptyRow();
     $this->multiValues = array();
 
     $time = microtime(true);
-
-    $cacheGroup = new CRM_PivotCache_Group($this->name);
 
     $cacheGroup->clear();
 
@@ -80,7 +80,7 @@ abstract class CRM_PivotReport_AbstractData implements CRM_PivotReport_DataInter
   /**
    * Rebuilds entity data cache using entity paginated results.
    *
-   * @param \CRM_PivotCache_Group $cacheGroup
+   * @param \CRM_PivotCache_AbstractGroup $cacheGroup
    * @param string $entityName
    * @param array $params
    * @param int $offset
@@ -117,7 +117,7 @@ abstract class CRM_PivotReport_AbstractData implements CRM_PivotReport_DataInter
   /**
    * Rebuilds entity header cache.
    *
-   * @param \CRM_PivotCache_Group $cacheGroup
+   * @param \CRM_PivotCache_AbstractGroup $cacheGroup
    * @param array $header
    */
   public function rebuildHeader($cacheGroup, array $header) {
@@ -177,7 +177,7 @@ abstract class CRM_PivotReport_AbstractData implements CRM_PivotReport_DataInter
   /**
    * Puts an array of pages into cache.
    *
-   * @param \CRM_PivotCache_Group $cacheGroup
+   * @param \CRM_PivotCache_AbstractGroup $cacheGroup
    * @param array $pages
    *
    * @return int

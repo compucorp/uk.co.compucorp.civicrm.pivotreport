@@ -3,7 +3,7 @@
 /**
  * Provides a functionality to prepare entity data for Pivot Table.
  */
-class CRM_PivotReport_Data extends CRM_PivotReport_AbstractData {
+class CRM_PivotReport_DataActivity extends CRM_PivotReport_AbstractData {
 
   public function __construct($name = NULL) {
     $this->name = 'Activity';
@@ -12,18 +12,17 @@ class CRM_PivotReport_Data extends CRM_PivotReport_AbstractData {
   /**
    * Rebuilds pivot report cache including header and data.
    *
+   * @param \CRM_PivotCache_AbstractGroup $cacheGroup
    * @param array $params
    *
    * @return array
    */
-  public function rebuildCache(array $params) {
+  public function rebuildCache($cacheGroup, array $params) {
     $this->fields = $this->getFields();
     $this->emptyRow = $this->getEmptyRow();
     $this->multiValues = array();
 
     $time = microtime(true);
-
-    $cacheGroup = new CRM_PivotCache_Group($this->name);
 
     $cacheGroup->clear();
 

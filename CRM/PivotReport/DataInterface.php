@@ -6,26 +6,28 @@ interface CRM_PivotReport_DataInterface {
    * Returns an array containing formatted entity data and information
    * needed to make a call for more data.
    *
+   * @param \CRM_PivotCache_AbstractGroup $cacheGroup
    * @param array $params
    * @param int $page
    *
    * @return array
    */
-  public function get(array $params, $page = 0);
+  public function get($cacheGroup, array $params, $page = 0);
 
   /**
    * Rebuilds pivot report cache including header and data.
    *
+   * @param \CRM_PivotCache_AbstractGroup $cacheGroup
    * @param array $params
    *
    * @return array
    */
-  public function rebuildCache(array $params);
+  public function rebuildCache($cacheGroup, array $params);
 
   /**
    * Rebuilds entity data cache using entity paginated results.
    *
-   * @param \CRM_PivotCache_Group $cacheGroup
+   * @param \CRM_PivotCache_AbstractGroup $cacheGroup
    * @param string $entityName
    * @param array $params
    * @param int $offset
@@ -39,7 +41,7 @@ interface CRM_PivotReport_DataInterface {
   /**
    * Rebuilds entity header cache.
    *
-   * @param \CRM_PivotCache_Group $cacheGroup
+   * @param \CRM_PivotCache_AbstractGroup $cacheGroup
    * @param array $header
    */
   public function rebuildHeader($cacheGroup, array $header);

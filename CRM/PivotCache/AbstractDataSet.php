@@ -39,15 +39,15 @@ abstract class CRM_PivotCache_AbstractDataSet implements CRM_PivotCache_DataSetI
   /**
    * Gets CRM_PivotCache_DataSet object of cached data for specified criteria.
    *
+   * @param \CRM_PivotCache_AbstractGroup $cacheGroup
    * @param int $page
    * @param int $limit
    * @param array $params
    *
    * @return \CRM_PivotCache_DataSet
    */
-  public function get($page, $limit, array $params) {
+  public function get($cacheGroup, $page, $limit, array $params) {
     $break = FALSE;
-    $cacheGroup = new CRM_PivotCache_Group($this->name);
 
     $cache = $cacheGroup->query($page, $params);
 

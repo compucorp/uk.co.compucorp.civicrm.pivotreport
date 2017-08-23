@@ -23,10 +23,12 @@ function civicrm_api3_activity_report_get($params) {
   $endDate = !empty($params['end_date']) ? $params['end_date'] : null;
   $page = !empty($params['page']) ? (int)$params['page'] : 0;
 
-  $dataInstance = new CRM_PivotReport_Data();
+  $dataInstance = new CRM_PivotReport_DataActivity();
+  $cacheGroupInstance = new CRM_PivotCache_GroupActivity();
 
   return civicrm_api3_create_success(
     $dataInstance->get(
+      $cacheGroupInstance,
       array(
         'start_date' => $startDate,
         'end_date' => $endDate,
@@ -45,9 +47,9 @@ function civicrm_api3_activity_report_get($params) {
  * @throws API_Exception
  */
 function civicrm_api3_activity_report_getheader($params) {
-  $cacheGroup = new CRM_PivotCache_Group('activity');
+  $cacheGroupInstance = new CRM_PivotCache_GroupActivity();
 
-  return civicrm_api3_create_success($cacheGroup->getHeader(), $params);
+  return civicrm_api3_create_success($cacheGroupInstance->getHeader(), $params);
 }
 
 /**
@@ -61,10 +63,12 @@ function civicrm_api3_activity_report_rebuildcache($params) {
   $startDate = !empty($params['start_date']) ? $params['start_date'] : null;
   $endDate = !empty($params['end_date']) ? $params['end_date'] : null;
 
-  $dataInstance = new CRM_PivotReport_Data();
+  $dataInstance = new CRM_PivotReport_DataActivity();
+  $cacheGroupInstance = new CRM_PivotCache_GroupActivity();
 
   return civicrm_api3_create_success(
     $dataInstance->rebuildCache(
+      $cacheGroupInstance,
       array(
         'start_date' => $startDate,
         'end_date' => $endDate,

@@ -3,7 +3,11 @@
 /**
  * Manages 'pivotreport' cache group.
  */
-class CRM_PivotCache_Group extends CRM_PivotCache_AbstractGroup {
+class CRM_PivotCache_GroupActivity extends CRM_PivotCache_AbstractGroup {
+
+  public function __construct($name = NULL) {
+    $this->name = 'pivotreport.Activity';
+  }
 
   /**
    * Gets DAO resource of cached data for specified criteria.
