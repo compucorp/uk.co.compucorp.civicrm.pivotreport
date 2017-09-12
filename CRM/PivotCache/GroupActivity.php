@@ -1,21 +1,16 @@
 <?php
 
 /**
- * Manages 'pivotreport' cache group.
+ * @inheritdoc
  */
 class CRM_PivotCache_GroupActivity extends CRM_PivotCache_AbstractGroup {
 
   public function __construct($name = NULL) {
-    $this->name = 'pivotreport.Activity';
+    parent::__construct('Activity');
   }
 
   /**
-   * Gets DAO resource of cached data for specified criteria.
-   *
-   * @param int $page
-   * @param array $params
-   *
-   * @return \CRM_Core_DAO
+   * @inheritdoc
    */
   public function query($page, array $params) {
     $cache = new CRM_Core_DAO_Cache();
@@ -26,7 +21,7 @@ class CRM_PivotCache_GroupActivity extends CRM_PivotCache_AbstractGroup {
       $whereStartDate = CRM_Core_DAO::createSQLFilter(
         'path',
         array(
-          '>=' => 'data_' . substr($params['start_date'], 0, 10) . '_' . str_pad($page, 6, '0', STR_PAD_LEFT),
+          '>=' => $this->getPath(substr($params['start_date'], 0, 10), $page),
         ),
         'String'
       );
@@ -38,7 +33,7 @@ class CRM_PivotCache_GroupActivity extends CRM_PivotCache_AbstractGroup {
       $whereEndDate = CRM_Core_DAO::createSQLFilter(
         'path',
         array(
-          '<=' => 'data_' . substr($params['end_date'], 0, 10) . '_999999',
+          '<=' => $this->getPath(substr($params['end_date'], 0, 10), 999999),
         ),
         'String'
       );

@@ -1,5 +1,12 @@
 <?php
 
+use CRM_PivotCache_AbstractGroup as AbstractGroup;
+
+/**
+ * Provides an interface for managing Pivot Report DataSet.
+ * DataSet means single CiviCRM cache row (which may contain a set of Entity
+ * rows grouped by cache key - 'index' and 'page' values).
+ */
 interface CRM_PivotCache_DataSetInterface {
 
   /**
@@ -12,7 +19,7 @@ interface CRM_PivotCache_DataSetInterface {
    *
    * @return \CRM_PivotCache_DataSet
    */
-  public function get($cacheGroup, $page, $limit, array $params);
+  public function get(AbstractGroup $cacheGroup, $page, $limit, array $params);
 
   /**
    * Gets next index needed for further data request.

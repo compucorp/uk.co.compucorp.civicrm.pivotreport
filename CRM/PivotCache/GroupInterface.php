@@ -1,7 +1,10 @@
 <?php
 
+use CRM_PivotReport_DataPage as DataPage;
+
 /**
- * Manages 'pivotreport' cache group.
+ * Provides an interface for managing 'pivotreport' cache group.
+ * The Cache Group reflects CiviCRM cache data limited to 'pivotreport' group.
  */
 interface CRM_PivotCache_GroupInterface {
 
@@ -34,16 +37,14 @@ interface CRM_PivotCache_GroupInterface {
   public function getPacket($data);
 
   /**
-   * Puts a data packet into cache table with specific index and page number.
+   * Puts a data page into cache table.
    * Returns count of packet items.
    *
-   * @param array $packet
-   * @param string $index
-   * @param int $page
+   * @param \CRM_PivotReport_DataPage $page
    *
    * @return int
    */
-  public function cachePacket(array $packet, $index, $page = NULL);
+  public function cachePage(DataPage $page);
 
   /**
    * Gets DAO resource of cached data for specified criteria.

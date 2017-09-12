@@ -1,7 +1,9 @@
 <?php
 
+use CRM_PivotCache_AbstractGroup as AbstractGroup;
+
 /**
- * Manages pivot report data set.
+ * @inheritdoc
  */
 abstract class CRM_PivotCache_AbstractDataSet implements CRM_PivotCache_DataSetInterface {
   /**
@@ -30,23 +32,16 @@ abstract class CRM_PivotCache_AbstractDataSet implements CRM_PivotCache_DataSetI
    *
    * @var array 
    */
-  private $data = [];
+  private $data = array();
 
   public function __construct($name) {
     $this->name = $name;
   }
 
   /**
-   * Gets CRM_PivotCache_DataSet object of cached data for specified criteria.
-   *
-   * @param \CRM_PivotCache_AbstractGroup $cacheGroup
-   * @param int $page
-   * @param int $limit
-   * @param array $params
-   *
-   * @return \CRM_PivotCache_DataSet
+   * @inheritdoc
    */
-  public function get($cacheGroup, $page, $limit, array $params) {
+  public function get(AbstractGroup $cacheGroup, $page, $limit, array $params) {
     $break = FALSE;
 
     $cache = $cacheGroup->query($page, $params);
@@ -70,18 +65,14 @@ abstract class CRM_PivotCache_AbstractDataSet implements CRM_PivotCache_DataSetI
   }
 
   /**
-   * Gets next index needed for further data request.
-   *
-   * @return string
+   * @inheritdoc
    */
   public function getNextIndex() {
     return $this->nextIndex;
   }
 
   /**
-   * Sets next index by given path.
-   *
-   * @param string $path
+   * @inheritdoc
    */
   public function setNextIndexByPath($path) {
     list(, $index) = explode('_', $path);
@@ -90,18 +81,14 @@ abstract class CRM_PivotCache_AbstractDataSet implements CRM_PivotCache_DataSetI
   }
 
   /**
-   * Gets next page value, needed for further data request.
-   *
-   * @return int
+   * @inheritdoc
    */
   public function getNextPage() {
     return $this->nextPage;
   }
 
   /**
-   * Sets next page value by given path.
-   *
-   * @param string $path
+   * @inheritdoc
    */
   public function setNextPageByPath($path) {
     list(, , $page) = explode('_', $path);
@@ -110,27 +97,21 @@ abstract class CRM_PivotCache_AbstractDataSet implements CRM_PivotCache_DataSetI
   }
 
   /**
-   * Gets data array of current data set.
-   *
-   * @return array
+   * @inheritdoc
    */
   public function getData() {
     return $this->data;
   }
 
   /**
-   * Adds given data to current data set's data array.
-   *
-   * @param array $data
+   * @inheritdoc
    */
   public function addData($data) {
     $this->data = array_merge($this->data, $data);
   }
 
   /**
-   * Gets data count of current data set's data array.
-   *
-   * @return int
+   * @inheritdoc
    */
   public function getCount() {
     return count($this->data);

@@ -1,7 +1,9 @@
 <?php
 
+use CRM_PivotCache_AbstractGroup as AbstractGroup;
+
 /**
- * Provides a functionality to prepare entity data for Pivot Table.
+ * Provides a functionality to prepare Activity entity data for Pivot Table.
  */
 class CRM_PivotReport_DataActivity extends CRM_PivotReport_AbstractData {
 
@@ -10,15 +12,9 @@ class CRM_PivotReport_DataActivity extends CRM_PivotReport_AbstractData {
   }
 
   /**
-   * Rebuilds pivot report cache including header and data.
-   *
-   * @param \CRM_PivotCache_AbstractGroup $cacheGroup
-   * @param array $params
-   *
-   * @return array
+   * @inheritdoc
    */
-  public function rebuildCache($cacheGroup, array $params) {
-    $this->fields = $this->getFields();
+  public function rebuildCache(AbstractGroup $cacheGroup, array $params) {
     $this->emptyRow = $this->getEmptyRow();
     $this->multiValues = array();
 
@@ -26,8 +22,14 @@ class CRM_PivotReport_DataActivity extends CRM_PivotReport_AbstractData {
 
     $cacheGroup->clear();
 
-    $count = $this->rebuildData($cacheGroup, $this->name, $params);
+    $count = $this->rebuildData($cacheGroup, $params);
 
+    /**
+     * Here we add three custom 'columns' which are not a part of Activity
+     * entity but are computed on the frontend app basing on particular
+     * Activity data. So we don't generate the values on backend
+     * but only add the three fields to the Pivot header fields.
+     */
     $this->rebuildHeader($cacheGroup, array_merge($this->emptyRow, array(
       'Activity Date' => null,
       'Activity Start Date Months' => null,
@@ -43,11 +45,7 @@ class CRM_PivotReport_DataActivity extends CRM_PivotReport_AbstractData {
   }
 
   /**
-   * Returns an array containing API parameters for Activity 'get' call.
-   *
-   * @param array $inputParams
-   *
-   * @return array
+   * @inheritdoc
    */
   protected function getEntityApiParams(array $inputParams) {
     $params = array(
@@ -55,7 +53,7 @@ class CRM_PivotReport_DataActivity extends CRM_PivotReport_AbstractData {
       'is_current_revision' => 1,
       'is_deleted' => 0,
       'is_test' => 0,
-      'return' => implode(',', array_keys($this->fields)),
+      'return' => implode(',', array_keys($this->getFields())),
       'options' => array(
         'sort' => 'activity_date_time ASC',
         'limit' => self::ROWS_API_LIMIT,
@@ -99,18 +97,7 @@ class CRM_PivotReport_DataActivity extends CRM_PivotReport_AbstractData {
   }
 
   /**
-   * Returns an array containing $data rows and each row containing multiple values
-   * of at least one field is populated into separate row for each field's
-   * multiple value.
-   *
-   * @param array $data
-   *   Array containing a set of Activities
-   * @param int $totalOffset
-   *   Activity absolute offset we start with
-   * @param int $multiValuesOffset
-   *   Multi Values offset
-   *
-   * @return array
+   * @inheritdoc
    */
   protected function splitMultiValues(array $data, $totalOffset, $multiValuesOffset) {
     $result = array();
@@ -163,19 +150,11 @@ class CRM_PivotReport_DataActivity extends CRM_PivotReport_AbstractData {
   }
 
   /**
-   * Returns a result of recursively parsed and formatted $data.
-   *
-   * @param mixed $data
-   *   Data element
-   * @param string $dataKey
-   *   Key of current $data item
-   * @param int $level
-   *   How deep we are relative to the root of our data
-   *
-   * @return type
+   * @inheritdoc
    */
   protected function formatResult($data, $dataKey = null, $level = 0) {
     $result = array();
+    $fields = $this->getFields();
 
     if ($level < 2) {
       if ($level === 1) {
@@ -183,12 +162,12 @@ class CRM_PivotReport_DataActivity extends CRM_PivotReport_AbstractData {
       }
       $baseKey = $dataKey;
       foreach ($data as $key => $value) {
-        if (empty($this->fields[$key]) && $level) {
+        if (empty($fields[$key]) && $level) {
           continue;
         }
         $dataKey = $key;
-        if (!empty($this->fields[$key]['title'])) {
-          $key = $this->fields[$key]['title'];
+        if (!empty($fields[$key]['title'])) {
+          $key = $fields[$key]['title'];
         }
         $result[$key] = $this->formatResult($value, $dataKey, $level + 1);
         if ($level === 1 && is_array($result[$key])) {
@@ -211,16 +190,7 @@ class CRM_PivotReport_DataActivity extends CRM_PivotReport_AbstractData {
   }
 
   /**
-   * Additional function for customizing Activity value by its key
-   * (if it's needed). For example: we want to return Campaign's title
-   * instead of ID.
-   *
-   * @param string $key
-   *   Field key
-   * @param string $value
-   *   Field value
-   *
-   * @return string
+   * @inheritdoc
    */
   protected function customizeValue($key, $value) {
     if (!empty($this->customizedValues[$key][$value])) {
@@ -234,7 +204,7 @@ class CRM_PivotReport_DataActivity extends CRM_PivotReport_AbstractData {
         if (!empty($value)) {
           $campaign = civicrm_api3('Campaign', 'getsingle', array(
             'sequential' => 1,
-            'return' => "title",
+            'return' => 'title',
             'id' => $value,
           ));
           if ($campaign['is_error']) {
@@ -252,77 +222,78 @@ class CRM_PivotReport_DataActivity extends CRM_PivotReport_AbstractData {
   }
 
   /**
-   * Returns an array containing all Fields and Custom Fields of Activity entity,
-   * keyed by their API keys and extended with available fields Option Values.
-   *
-   * @return array
+   * @inheritdoc
    */
   protected function getFields() {
-    $unsetFields = array(
-      'is_current_revision',
-      'activity_is_deleted',
-      'weight',
-      'source_contact_id',
-      'phone_id',
-      'relationship_id',
-      'source_record_id',
-      'activity_is_test',
-      'is_test',
-      'parent_id',
-      'original_id',
-      'activity_details',
-    );
-    // Get standard Fields of Activity entity.
-    $fields = CRM_Activity_DAO_Activity::fields();
-
-    foreach ($unsetFields as $unsetField) {
-      unset($fields[$unsetField]);
-    }
-
-    if (!empty($fields['activity_type_id'])) {
-        $fields['activity_type_id']['title'] = ts('Activity Type');
-    }
-    if (!empty($fields['activity_date_time'])) {
-        $fields['activity_date_time']['title'] = ts('Activity Date Time');
-    }
-
-    $keys = CRM_Activity_DAO_Activity::fieldKeys();
-    $result = array();
-
-    // Now get Custom Fields of Activity entity.
-    $customFieldsResult = CRM_Core_DAO::executeQuery(
-      'SELECT g.id AS group_id, f.id AS id, f.label AS label, f.data_type AS data_type, ' .
-      'f.html_type AS html_type, f.date_format AS date_format, og.name AS option_group_name ' .
-      'FROM `civicrm_custom_group` g ' .
-      'LEFT JOIN `civicrm_custom_field` f ON f.custom_group_id = g.id ' .
-      'LEFT JOIN `civicrm_option_group` og ON og.id = f.option_group_id ' .
-      'WHERE g.extends = \'Activity\' AND g.is_active = 1 AND f.is_active = 1 AND f.html_type NOT IN (\'TextArea\', \'RichTextEditor\') AND (f.data_type <> \'String\' OR (f.data_type = \'String\' AND f.html_type <> \'Text\')) '
-    );
-
-    while ($customFieldsResult->fetch()) {
-      $customField = new CRM_Core_BAO_CustomField();
-      $customField->id = $customFieldsResult->id;
-      $customField->find(true);
-
-      $fields['custom_' . $customFieldsResult->id] = array(
-        'name' => 'custom_' . $customFieldsResult->id,
-        'title' => $customFieldsResult->label,
-        'pseudoconstant' => array(
-          'optionGroupName' => $customFieldsResult->option_group_name,
-        ),
-        'customField' => (array)$customField,
+    if (empty($this->fields)) {
+      $unsetFields = array(
+        'is_current_revision',
+        'activity_is_deleted',
+        'weight',
+        'source_contact_id',
+        'phone_id',
+        'relationship_id',
+        'source_record_id',
+        'activity_is_test',
+        'is_test',
+        'parent_id',
+        'original_id',
+        'activity_details',
       );
-    }
+      // Get standard Fields of Activity entity.
+      $fields = CRM_Activity_DAO_Activity::fields();
 
-    foreach ($fields as $key => $value) {
-      if (!empty($keys[$value['name']])) {
-        $key = $value['name'];
+      foreach ($unsetFields as $unsetField) {
+        unset($fields[$unsetField]);
       }
-      $result[$key] = $value;
-      $result[$key]['optionValues'] = $this->getOptionValues($value);
+
+      if (!empty($fields['activity_type_id'])) {
+          $fields['activity_type_id']['title'] = ts('Activity Type');
+      }
+      if (!empty($fields['activity_date_time'])) {
+          $fields['activity_date_time']['title'] = ts('Activity Date Time');
+      }
+
+      $keys = CRM_Activity_DAO_Activity::fieldKeys();
+      $result = array();
+
+      // Now get Custom Fields of Activity entity.
+      $customFieldsResult = CRM_Core_DAO::executeQuery(
+        'SELECT g.id AS group_id, f.id AS id, f.label AS label, f.data_type AS data_type, ' .
+        'f.html_type AS html_type, f.date_format AS date_format, og.name AS option_group_name ' .
+        'FROM `civicrm_custom_group` g ' .
+        'LEFT JOIN `civicrm_custom_field` f ON f.custom_group_id = g.id ' .
+        'LEFT JOIN `civicrm_option_group` og ON og.id = f.option_group_id ' .
+        'WHERE g.extends = \'Activity\' AND g.is_active = 1 AND f.is_active = 1 AND f.html_type NOT IN (\'TextArea\', \'RichTextEditor\') AND (f.data_type <> \'String\' OR (f.data_type = \'String\' AND f.html_type <> \'Text\')) '
+      );
+
+      while ($customFieldsResult->fetch()) {
+        $customField = new CRM_Core_BAO_CustomField();
+        $customField->id = $customFieldsResult->id;
+        $customField->find(true);
+
+        $fields['custom_' . $customFieldsResult->id] = array(
+          'name' => 'custom_' . $customFieldsResult->id,
+          'title' => $customFieldsResult->label,
+          'pseudoconstant' => array(
+            'optionGroupName' => $customFieldsResult->option_group_name,
+          ),
+          'customField' => (array)$customField,
+        );
+      }
+
+      foreach ($fields as $key => $value) {
+        if (!empty($keys[$value['name']])) {
+          $key = $value['name'];
+        }
+        $result[$key] = $value;
+        $result[$key]['optionValues'] = $this->getOptionValues($value);
+      }
+
+      $this->fields = $result;
     }
 
-    return $result;
+    return $this->fields;
   }
 
   /**
@@ -347,18 +318,14 @@ class CRM_PivotReport_DataActivity extends CRM_PivotReport_AbstractData {
   }
 
   /**
-   * Gets total number of Activities.
-   *
-   * @param array $params
-   *
-   * @return int
+   * @inheritdoc
    */
   protected function getCount(array $params) {
-    $apiParams = [
+    $apiParams = array(
       'is_current_revision' => 1,
       'is_deleted' => 0,
       'is_test' => 0,
-    ];
+    );
 
     $startDate = !empty($params['start_date']) ? $params['start_date'] : NULL;
     $endDate = !empty($params['end_date']) ? $params['end_date'] : NULL;

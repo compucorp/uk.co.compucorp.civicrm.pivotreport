@@ -1,5 +1,12 @@
 <?php
 
+use CRM_PivotCache_AbstractGroup as AbstractGroup;
+
+/**
+ * Contains API entry point to get the data and to rebuild existing cached DataSets.
+ * Also contains all logic to parse Entity data into output format used for
+ * cache the data.
+ */
 interface CRM_PivotReport_DataInterface {
 
   /**
@@ -12,7 +19,7 @@ interface CRM_PivotReport_DataInterface {
    *
    * @return array
    */
-  public function get($cacheGroup, array $params, $page = 0);
+  public function get(AbstractGroup $cacheGroup, array $params, $page = 0);
 
   /**
    * Rebuilds pivot report cache including header and data.
@@ -22,13 +29,12 @@ interface CRM_PivotReport_DataInterface {
    *
    * @return array
    */
-  public function rebuildCache($cacheGroup, array $params);
+  public function rebuildCache(AbstractGroup $cacheGroup, array $params);
 
   /**
    * Rebuilds entity data cache using entity paginated results.
    *
    * @param \CRM_PivotCache_AbstractGroup $cacheGroup
-   * @param string $entityName
    * @param array $params
    * @param int $offset
    * @param int $multiValuesOffset
@@ -36,7 +42,7 @@ interface CRM_PivotReport_DataInterface {
    *
    * @return int
    */
-  public function rebuildData($cacheGroup, $entityName, array $params, $offset = 0, $multiValuesOffset = 0, $page = 0);
+  public function rebuildData(AbstractGroup $cacheGroup, array $params, $offset = 0, $multiValuesOffset = 0, $page = 0);
 
   /**
    * Rebuilds entity header cache.
@@ -44,5 +50,5 @@ interface CRM_PivotReport_DataInterface {
    * @param \CRM_PivotCache_AbstractGroup $cacheGroup
    * @param array $header
    */
-  public function rebuildHeader($cacheGroup, array $header);
+  public function rebuildHeader(AbstractGroup $cacheGroup, array $header);
 }

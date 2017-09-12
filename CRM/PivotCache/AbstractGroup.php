@@ -1,7 +1,9 @@
 <?php
 
+use CRM_PivotReport_DataPage as DataPage;
+
 /**
- * Manages 'pivotreport' cache group.
+ * @inheritdoc
  */
 abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInterface {
 
@@ -26,25 +28,21 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
   }
 
   /**
-   * Deletes cache group.
+   * @inheritdoc
    */
   public function clear() {
     CRM_Core_BAO_Cache::deleteGroup($this->getName());
   }
 
   /**
-   * Gets header row from cache.
-   *
-   * @return arryay
+   * @inheritdoc
    */
   public function getHeader() {
     return json_decode(CRM_Core_BAO_Cache::getItem($this->getName(), 'header'));
   }
 
   /**
-   * Caches a header row.
-   *
-   * @param array $rows
+   * @inheritdoc
    */
   public function cacheHeader(array $rows) {
     CRM_Core_BAO_Cache::setItem(json_encode($this->sortHeader($rows)), $this->getName(), 'header');
@@ -62,36 +60,19 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
   }
 
   /**
-   * Gets an array of serialized data packet.
-   *
-   * @param string $data
-   *
-   * @return array
+   * @inheritdoc
    */
   public function getPacket($data) {
     return json_decode(unserialize($data));
   }
 
   /**
-   * Puts a data packet into cache table with specific index and page number.
-   * Returns count of packet items.
-   *
-   * @param array $packet
-   * @param string $index
-   * @param int $page
-   *
-   * @return int
+   * @inheritdoc
    */
-  public function cachePacket(array $packet, $index, $page = NULL) {
-    if (empty($packet)) {
-      return 0;
-    }
+  public function cachePage(DataPage $page) {
+    $count = count($page->getData());
 
-    $count = count($packet);
-
-    CRM_Core_BAO_Cache::setItem(json_encode($packet), $this->getName(), $this->getPath($index, $page));
-
-    unset($packet);
+    CRM_Core_BAO_Cache::setItem(json_encode($page->getData()), $this->getName(), $this->getPath($page->getIndex(), $page->getPage()));
 
     return $count;
   }
@@ -104,7 +85,7 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
    *
    * @return string
    */
-  private function getPath($index, $page = NULL) {
+  protected function getPath($index, $page = NULL) {
     return 'data_' . $index . '_' . str_pad($page, 6, '0', STR_PAD_LEFT);
   }
 }
