@@ -1,7 +1,5 @@
 <?php
 
-use CRM_PivotCache_AbstractGroup as AbstractGroup;
-
 /**
  * Provides a functionality to prepare Activity entity data for Pivot Table.
  */
