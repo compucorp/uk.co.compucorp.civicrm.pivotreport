@@ -23,35 +23,6 @@ class CRM_PivotReport_DataActivity extends CRM_PivotReport_AbstractData {
   /**
    * @inheritdoc
    */
-  public function rebuildCache(AbstractGroup $cacheGroup, array $params) {
-    $this->emptyRow = $this->getEmptyRow();
-    $this->multiValues = array();
-
-    $time = microtime(true);
-
-    $cacheGroup->clear();
-
-    $count = $this->rebuildData($cacheGroup, $params);
-
-    /**
-     * Here we add three custom 'columns' which are not a part of Activity
-     * entity but are computed on the frontend app basing on particular
-     * Activity data. So we don't generate the values on backend
-     * but only add the three fields to the Pivot header fields.
-     */
-    $this->rebuildHeader($cacheGroup, array_merge($this->emptyRow, $this->additionalHeaderFields));
-
-    return array(
-      array(
-        'rows' => $count,
-        'time' => (microtime(true) - $time),
-      )
-    );
-  }
-
-  /**
-   * @inheritdoc
-   */
   protected function getEntityApiParams(array $inputParams) {
     $params = array(
       'sequential' => 1,

@@ -110,9 +110,9 @@ abstract class CRM_PivotReport_AbstractData implements CRM_PivotReport_DataInter
 
     $cacheGroup->clear();
 
-    $count = $this->rebuildData($cacheGroup, $this->name, $params);
+    $count = $this->rebuildData($cacheGroup, $params);
 
-    $this->rebuildHeader($cacheGroup, $this->emptyRow);
+    $this->rebuildHeader($cacheGroup, array_merge($this->emptyRow, $this->additionalHeaderFields));
 
     return array(
       array(
