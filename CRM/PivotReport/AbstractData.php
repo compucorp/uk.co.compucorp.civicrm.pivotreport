@@ -44,6 +44,15 @@ abstract class CRM_PivotReport_AbstractData implements CRM_PivotReport_DataInter
   protected $emptyRow = array();
 
   /**
+   * Additional fields we want to attach to each Pivot row.
+   * Useful when we want to populate them on front-end app with Pivot Table
+   * library's derived attributes.
+   *
+   * @var array
+   */
+  protected $additionalHeaderFields = array();
+
+  /**
    * An array containing Multi Values for particular Entity row.
    *
    * @var array
@@ -412,6 +421,14 @@ abstract class CRM_PivotReport_AbstractData implements CRM_PivotReport_DataInter
         if ($level === 1 && is_array($result[$key])) {
           $this->multiValues[$baseKey][] = $key;
         }
+      }
+
+      if ($level === 1) {
+        if (!empty($this->additionalHeaderFields)) {
+          $result = array_merge($result, $this->additionalHeaderFields);
+        }
+
+        ksort($result);
       }
     } else {
       return $this->formatValue($dataKey, $data);

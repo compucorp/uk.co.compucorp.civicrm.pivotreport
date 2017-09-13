@@ -7,6 +7,15 @@ use CRM_PivotCache_AbstractGroup as AbstractGroup;
  */
 class CRM_PivotReport_DataActivity extends CRM_PivotReport_AbstractData {
 
+  /**
+   * @inheritdoc
+   */
+  protected $additionalHeaderFields = array(
+    'Activity Date' => null,
+    'Activity Start Date Months' => null,
+    'Activity Expire Date' => null,
+  );
+
   public function __construct($name = NULL) {
     $this->name = 'Activity';
   }
@@ -30,11 +39,7 @@ class CRM_PivotReport_DataActivity extends CRM_PivotReport_AbstractData {
      * Activity data. So we don't generate the values on backend
      * but only add the three fields to the Pivot header fields.
      */
-    $this->rebuildHeader($cacheGroup, array_merge($this->emptyRow, array(
-      'Activity Date' => null,
-      'Activity Start Date Months' => null,
-      'Activity Expire Date' => null,
-    )));
+    $this->rebuildHeader($cacheGroup, array_merge($this->emptyRow, $this->additionalHeaderFields));
 
     return array(
       array(
@@ -94,46 +99,6 @@ class CRM_PivotReport_DataActivity extends CRM_PivotReport_AbstractData {
     }
 
     return $apiFilter;
-  }
-
-  /**
-   * @inheritdoc
-   */
-  protected function formatResult($data, $dataKey = null, $level = 0) {
-    $result = array();
-    $fields = $this->getFields();
-
-    if ($level < 2) {
-      if ($level === 1) {
-        $result = $this->emptyRow;
-      }
-      $baseKey = $dataKey;
-      foreach ($data as $key => $value) {
-        if (empty($fields[$key]) && $level) {
-          continue;
-        }
-        $dataKey = $key;
-        if (!empty($fields[$key]['title'])) {
-          $key = $fields[$key]['title'];
-        }
-        $result[$key] = $this->formatResult($value, $dataKey, $level + 1);
-        if ($level === 1 && is_array($result[$key])) {
-          $this->multiValues[$baseKey][] = $key;
-        }
-      }
-      if ($level === 1) {
-          $result = array_merge($result, array(
-            'Activity Date' => null,
-            'Activity Start Date Months' => null,
-            'Activity Expire Date' => null,
-          ));
-          ksort($result);
-      }
-    } else {
-      return $this->formatValue($dataKey, $data);
-    }
-
-    return $result;
   }
 
   /**
