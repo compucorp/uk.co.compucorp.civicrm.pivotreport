@@ -45,3 +45,8 @@ th.pvtAxisLabel, th.pvtRowLabel, th.pvtColLabel {
 select.pvtAggregator {
     width: 100%;
 }
+
+.pvtHorizList li {
+    display: inline-block;
+}
+
