@@ -136,7 +136,7 @@ abstract class CRM_PivotReport_AbstractData implements CRM_PivotReport_DataInter
         $offset--;
       }
 
-      $pages = $this->getPaginatedResults($this->name, $apiParams, $offset, $multiValuesOffset, $page, $index);
+      $pages = $this->getPaginatedResults($apiParams, $offset, $multiValuesOffset, $page, $index);
 
       $count += $this->cachePages($cacheGroup, $pages);
 
@@ -160,7 +160,6 @@ abstract class CRM_PivotReport_AbstractData implements CRM_PivotReport_DataInter
   /**
    * Returns an array of entity data pages.
    *
-   * @param string $entityName
    * @param array $apiParams
    * @param int $offset
    * @param int $multiValuesOffset
@@ -169,13 +168,13 @@ abstract class CRM_PivotReport_AbstractData implements CRM_PivotReport_DataInter
    *
    * @return int
    */
-  protected function getPaginatedResults($entityName, array $apiParams, $offset = 0, $multiValuesOffset = 0, $page = 0, $index = NULL) {
+  protected function getPaginatedResults(array $apiParams, $offset = 0, $multiValuesOffset = 0, $page = 0, $index = NULL) {
     $result = array();
     $rowsCount = 0;
 
     $apiParams['options']['offset'] = $offset;
 
-    $entities = civicrm_api3($entityName, 'get', $apiParams);
+    $entities = civicrm_api3($this->name, 'get', $apiParams);
 
     $formattedEntities = $this->formatResult($entities['values']);
 
