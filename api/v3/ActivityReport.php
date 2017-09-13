@@ -19,13 +19,61 @@ function _civicrm_api3_activity_report_get_spec(&$spec) {
  * @throws API_Exception
  */
 function civicrm_api3_activity_report_get($params) {
-  $offset = !empty($params['offset']) ? (int)$params['offset'] : 0;
-  $limit = !empty($params['limit']) ? (int)$params['limit'] : 1000;
+  $startDate = !empty($params['start_date']) ? $params['start_date'] : null;
+  $endDate = !empty($params['end_date']) ? $params['end_date'] : null;
+  $page = !empty($params['page']) ? (int)$params['page'] : 0;
 
-  $multiValuesOffset = !empty($params['multiValuesOffset']) ? (int)$params['multiValuesOffset'] : 0;
+  $dataInstance = new CRM_PivotReport_DataActivity();
+  $cacheGroupInstance = new CRM_PivotCache_GroupActivity();
 
-  $startDate = !empty($params['startDate']) ? $params['startDate'] : null;
-  $endDate = !empty($params['endDate']) ? $params['endDate'] : null;
+  return civicrm_api3_create_success(
+    $dataInstance->get(
+      $cacheGroupInstance,
+      array(
+        'start_date' => $startDate,
+        'end_date' => $endDate,
+      ),
+      $page
+    ),
+    $params
+  );
+}
 
-  return civicrm_api3_create_success(CRM_Activityreport_Data::get($offset, $limit, $multiValuesOffset, $startDate, $endDate), $params);
+/**
+ * ActivityReport.getheader API
+ *
+ * @param array $params
+ * @return array API result descriptor
+ * @throws API_Exception
+ */
+function civicrm_api3_activity_report_getheader($params) {
+  $cacheGroupInstance = new CRM_PivotCache_GroupActivity();
+
+  return civicrm_api3_create_success($cacheGroupInstance->getHeader(), $params);
+}
+
+/**
+ * ActivityReport.rebuildcache API
+ *
+ * @param array $params
+ * @return array API result descriptor
+ * @throws API_Exception
+ */
+function civicrm_api3_activity_report_rebuildcache($params) {
+  $startDate = !empty($params['start_date']) ? $params['start_date'] : null;
+  $endDate = !empty($params['end_date']) ? $params['end_date'] : null;
+
+  $dataInstance = new CRM_PivotReport_DataActivity();
+  $cacheGroupInstance = new CRM_PivotCache_GroupActivity();
+
+  return civicrm_api3_create_success(
+    $dataInstance->rebuildCache(
+      $cacheGroupInstance,
+      array(
+        'start_date' => $startDate,
+        'end_date' => $endDate,
+      )
+    ),
+    $params
+  );
 }
