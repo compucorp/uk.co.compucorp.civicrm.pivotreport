@@ -523,15 +523,35 @@ abstract class CRM_PivotReport_AbstractData implements CRM_PivotReport_DataInter
    * @return string
    */
   protected function customizeValue($key, $value) {
-    if (!empty($this->customizedValues[$key][$value])) {
-      return $this->customizedValues[$key][$value];
+    $customValue = $this->getCustomValue($key, $value);
+
+    if (!$customValue) {
+      $this->setCustomValue($key, $value);
     }
 
-    $result = $value;
+    return $this->getCustomValue($key, $value);
+  }
 
-    $this->customizedValues[$key][$value] = $result;
+  /**
+   * Returns customized value for specified key and value.
+   *
+   * @param string $key
+   * @param string $value
+   *
+   * @return mixed|NULL
+   */
+  protected function getCustomValue($key, $value) {
+    return !empty($this->customizedValues[$key][$value]) ? $this->customizedValues[$key][$value] : NULL;
+  }
 
-    return $result;
+  /**
+   * Sets customized value by specified key and value.
+   *
+   * @param string $key
+   * @param string $value
+   */
+  protected function setCustomValue($key, $value) {
+    $this->customizedValues[$key][$value] = $value;
   }
 
   /**

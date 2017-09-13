@@ -75,11 +75,7 @@ class CRM_PivotReport_DataActivity extends CRM_PivotReport_AbstractData {
   /**
    * @inheritdoc
    */
-  protected function customizeValue($key, $value) {
-    if (!empty($this->customizedValues[$key][$value])) {
-      return $this->customizedValues[$key][$value];
-    }
-
+  protected function setCustomValue($key, $value) {
     $result = $value;
 
     switch ($key) {
@@ -100,8 +96,6 @@ class CRM_PivotReport_DataActivity extends CRM_PivotReport_AbstractData {
     }
 
     $this->customizedValues[$key][$value] = $result;
-
-    return $result;
   }
 
   /**
