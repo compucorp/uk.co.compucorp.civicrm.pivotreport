@@ -99,59 +99,6 @@ class CRM_PivotReport_DataActivity extends CRM_PivotReport_AbstractData {
   /**
    * @inheritdoc
    */
-  protected function splitMultiValues(array $data, $totalOffset, $multiValuesOffset) {
-    $result = array();
-    $date = NULL;
-    $i = 0;
-
-    foreach ($data as $key => $row) {
-      $activityDate = substr($row['Activity Date Time'], 0, 10);
-
-      if (!$date) {
-        $date = $activityDate;
-      }
-
-      if ($date !== $activityDate) {
-        $totalOffset--;
-        break;
-      }
-
-      $multiValuesRows = null;
-      if (!empty($this->multiValues[$key])) {
-        $multiValuesFields = array_combine($this->multiValues[$key], array_fill(0, count($this->multiValues[$key]), 0));
-
-        $multiValuesRows = $this->populateMultiValuesRow($row, $multiValuesFields, $multiValuesOffset, self::ROWS_MULTIVALUES_LIMIT - $i);
-
-        $result = array_merge($result, $multiValuesRows['data']);
-        $multiValuesOffset = 0;
-      } else {
-        $result[] = array_values($row);
-      }
-      $i = count($result);
-
-      if ($i === self::ROWS_MULTIVALUES_LIMIT) {
-        break;
-      }
-
-      unset($this->multiValues[$key]);
-
-      $totalOffset++;
-    }
-
-    return array(
-      'info' => array(
-        'index' => $date,
-        'nextOffset' => !empty($multiValuesRows['info']['multiValuesOffset']) ? $totalOffset : $totalOffset + 1,
-        'multiValuesOffset' => !empty($multiValuesRows['info']['multiValuesOffset']) ? $multiValuesRows['info']['multiValuesOffset'] : 0,
-        'multiValuesTotal' => !empty($multiValuesRows['info']['multiValuesTotal']) ? $multiValuesRows['info']['multiValuesTotal'] : 0,
-      ),
-      'data' => $result,
-    );
-  }
-
-  /**
-   * @inheritdoc
-   */
   protected function formatResult($data, $dataKey = null, $level = 0) {
     $result = array();
     $fields = $this->getFields();
@@ -219,6 +166,13 @@ class CRM_PivotReport_DataActivity extends CRM_PivotReport_AbstractData {
     $this->customizedValues[$key][$value] = $result;
 
     return $result;
+  }
+
+  /**
+   * @inheritdoc
+   */
+  protected function getEntityIndex(array $row) {
+    return substr($row['Activity Date Time'], 0, 10);
   }
 
   /**

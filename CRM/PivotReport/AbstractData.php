@@ -257,7 +257,7 @@ abstract class CRM_PivotReport_AbstractData implements CRM_PivotReport_DataInter
     $i = 0;
 
     foreach ($data as $key => $row) {
-      $entityIndexValue = $row['ID'];
+      $entityIndexValue = $this->getEntityIndex($row);
 
       if (!$index) {
         $index = $entityIndexValue;
@@ -535,6 +535,34 @@ abstract class CRM_PivotReport_AbstractData implements CRM_PivotReport_DataInter
 
     return $result;
   }
+
+  /**
+   * Returns a string containing Entity index basing on Entity row.
+   *
+   * The Entity Index is used as a part of cache key. It may be an Entity ID, date,
+   * some kind of category or any other value which we want to use as cache key.
+   *
+   * Example of cache key:
+   *
+   * data_2017-08-30_000001
+   *
+   * Particular parts of cache key are separated by '_' character so the
+   * Entity Index can't contain it.
+   *
+   * 'data' is a constant string as a prefix for cache key of Pivot data.
+   * '2017-08-30' is the Entity Index (so it's date value).
+   * '000001' is page value which is irrelevant in terms of this method.
+   * It basically means that the row contains page '1' of '2017-08-30' index.
+   *
+   * Picking the correct value of Entity Index can be determined by a field that
+   * we want to use as primary filter value when searching on pivotreport cache
+   * group.
+   *
+   * @param array $row
+   *
+   * @return string
+   */
+  abstract protected function getEntityIndex(array $row);
 
   /**
    * Returns an array containing all Fields and Custom Fields of entity,
