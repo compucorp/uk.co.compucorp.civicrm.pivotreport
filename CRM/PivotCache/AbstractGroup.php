@@ -45,7 +45,8 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
    * @inheritdoc
    */
   public function cacheHeader(array $rows) {
-    CRM_Core_BAO_Cache::setItem(json_encode($this->sortHeader($rows)), $this->getName(), 'header');
+    $jsonHeader = json_encode($this->sortHeader($rows));
+    CRM_Core_BAO_Cache::setItem($jsonHeader, $this->getName(), 'header');
   }
 
   /**
@@ -72,7 +73,8 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
   public function cachePage(DataPage $page) {
     $count = count($page->getData());
 
-    CRM_Core_BAO_Cache::setItem(json_encode($page->getData()), $this->getName(), $this->getPath($page->getIndex(), $page->getPage()));
+    $jsonData = json_encode($page->getData());
+    CRM_Core_BAO_Cache::setItem($jsonData, $this->getName(), $this->getPath($page->getIndex(), $page->getPage()));
 
     return $count;
   }
