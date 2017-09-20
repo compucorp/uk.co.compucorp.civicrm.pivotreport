@@ -1,5 +1,5 @@
 <h3>Activity Pivot Table</h3>
-{include file="CRM/Activityreport/Page/ReportSelector.tpl"}
+
 <div id="activity-report-preloader">
   Loading<span id="activity-report-loading-count"></span>.
 </div>
