@@ -1,5 +1,7 @@
 <h3>Activity Pivot Table</h3>
+
 {include file="CRM/Activityreport/Page/ReportSelector.tpl"}
+
 <div id="activity-report-preloader">
   Loading<span id="activity-report-loading-count"></span>.
 </div>
@@ -11,6 +13,7 @@
     <input type="text" name="activity_end_date" value="">
     <input class="apply-filters-button" type="button" value="Apply filters">
     <input class="load-all-data-button hidden" type="button" value="Load all data">
+    <input class="build-cache-button hidden" type="button" value="{if !$cacheBuilt}Build Cache{else}Rebuild Cache{/if}">
   </form>
 </div>
 <div id="activity-report-pivot-table">
@@ -119,6 +122,13 @@
           });
         });
 
+        $('input[type="button"].build-cache-button', activityReportForm).click(function(e) {
+          CRM.confirm({message: 'This operation may take some time to build the cache. Do you really want to build the cache for Activities\' data?' })
+          .on('crmConfirm:yes', function() {
+            CRM.api3('ActivityReport', 'rebuildcache', {}).done(initialDataLoad);
+          });
+        });
+
         activityReportStartDateInput.crmDatepicker({
           time: false
         });
@@ -128,32 +138,36 @@
 
         // Initially we load header and check total number of Activities
         // and then start data fetching.
-        CRM.api3('ActivityReport', 'getheader', {
-        }).done(function(result) {
-          header = result.values;
-
-          CRM.api3('Activity', 'getcount', {
-            "sequential": 1,
-            "is_current_revision": 1,
-            "is_deleted": 0,
-            "is_test": 0,
+        function initialDataLoad() {
+          CRM.api3('ActivityReport', 'getheader', {
           }).done(function(result) {
-            total = parseInt(result.result, 10);
+            header = result.values;
 
-            if (total > 5000) {
-              CRM.alert('There are more than 5000 Activities, getting only Activities from last 30 days.', '', 'info');
+            CRM.api3('Activity', 'getcount', {
+              "sequential": 1,
+              "is_current_revision": 1,
+              "is_deleted": 0,
+              "is_test": 0,
+            }).done(function(result) {
+              total = parseInt(result.result, 10);
 
-              $('input[type="button"].load-all-data-button', activityReportForm).removeClass('hidden');
-              var startDateFilterValue = new Date();
-              var endDateFilterValue = new Date();
-              startDateFilterValue.setDate(startDateFilterValue.getDate() - 30);
+              if (total > 5000) {
+                CRM.alert('There are more than 5000 Activities, getting only Activities from last 30 days.', '', 'info');
 
-              loadDataByDateFilter(startDateFilterValue.toISOString().substring(0, 10), endDateFilterValue.toISOString().substring(0, 10));
-            } else {
-              loadAllData();
-            }
+                $('input[type="button"].load-all-data-button', activityReportForm).removeClass('hidden');
+                var startDateFilterValue = new Date();
+                var endDateFilterValue = new Date();
+                startDateFilterValue.setDate(startDateFilterValue.getDate() - 30);
+
+                loadDataByDateFilter(startDateFilterValue.toISOString().substring(0, 10), endDateFilterValue.toISOString().substring(0, 10));
+              } else {
+                loadAllData();
+              }
+            });
           });
-        });
+        }
+
+        initialDataLoad();
 
         /**
          * Run data loading by specified start and end date values.
