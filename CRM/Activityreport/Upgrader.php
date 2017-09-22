@@ -12,6 +12,7 @@ class CRM_Activityreport_Upgrader extends CRM_Activityreport_Upgrader_Base {
    */
   public function install() {
     $this->upgrade_0001();
+    $this->upgrade_0002();
 
     return TRUE;
   }
@@ -52,6 +53,30 @@ class CRM_Activityreport_Upgrader extends CRM_Activityreport_Upgrader_Base {
     $navigation->copyValues($params);
     $navigation->save();
     CRM_Core_BAO_Navigation::resetNavigation();
+
+    return TRUE;
+  }
+
+  /**
+   * Creates scheduled job to build pivot report cache, checking if it exists
+   * first.
+   */
+  public function upgrade_0002() {
+    $existsResult = civicrm_api3('Job', 'getcount', array(
+      'sequential' => 1,
+      'api_entity' => 'ActivityReport',
+      'api_action' => 'rebuildcache',
+    ));
+
+    if (intval($existsResult['result']) == 0) {
+      civicrm_api3('Job', 'create', array(
+        'run_frequency' => 'Daily',
+        'name' => 'Pivot Report Cache Build',
+        'description' => 'Job to rebuild the cache that is used to build pivot tble reports.',
+        'api_entity' => 'ActivityReport',
+        'api_action' => 'rebuildcache',
+      ));
+    }
 
     return TRUE;
   }
