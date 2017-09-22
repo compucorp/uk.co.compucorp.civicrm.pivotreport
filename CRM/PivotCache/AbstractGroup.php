@@ -19,6 +19,22 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
   }
 
   /**
+   * Returns instance of data class for given entity.
+   *
+   * @param string $entity
+   *   Name of entity
+   *
+   * @return \CRM_PivotReport_AbstractData
+   */
+  public static function getInstance($entity) {
+
+    $className = 'CRM_PivotCache_Group' . $entity;
+    $dataInstance = new $className();
+
+    return $dataInstance;
+  }
+
+  /**
    * Gets cache group name.
    *
    * @return string
@@ -103,6 +119,7 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
 
     $cache->group_name = $this->getName();
     $cache->whereAdd("path = 'header'");
+    $cache->whereAdd("group_name = '{$this->getName()}'");
     $cache->orderBy('path ASC');
     $cache->find();
 

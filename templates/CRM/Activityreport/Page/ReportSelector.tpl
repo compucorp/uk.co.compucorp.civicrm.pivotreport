@@ -27,9 +27,9 @@
 
 {if !$cacheBuilt}
   <div class="messages error">
-    This report works using a cache built with activities' data, but the cache
-    has not been built yet. If you want to load the activity information into
-    the report, click on the 'Build Cache' button to start working.
+    This report works using a cache built with data in CiviCRM, but the cache
+    has not been built yet. If you want to load the information into the report,
+    click on the 'Build Cache' button to start working.
   </div>
 {/if}
 
@@ -39,4 +39,5 @@
     {html_options options=$options_array selected=$CRMDataType}
   </select>
   <input id="reportSelectorBtn" type="button" value="Go"/>
+  <input class="build-cache-button hidden" type="button" value="{if !$cacheBuilt}Build Cache{else}Rebuild Cache{/if}">
 </form>

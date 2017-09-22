@@ -13,7 +13,6 @@
     <input type="text" name="activity_end_date" value="">
     <input class="apply-filters-button" type="button" value="Apply filters">
     <input class="load-all-data-button hidden" type="button" value="Load all data">
-    <input class="build-cache-button hidden" type="button" value="{if !$cacheBuilt}Build Cache{else}Rebuild Cache{/if}">
   </form>
 </div>
 <div id="activity-report-pivot-table">
@@ -122,10 +121,10 @@
           });
         });
 
-        $('input[type="button"].build-cache-button', activityReportForm).click(function(e) {
+        $('input[type="button"].build-cache-button').click(function(e) {
           CRM.confirm({message: 'This operation may take some time to build the cache. Do you really want to build the cache for Activities\' data?' })
           .on('crmConfirm:yes', function() {
-            CRM.api3('ActivityReport', 'rebuildcache', {}).done(initialDataLoad);
+            CRM.api3('ActivityReport', 'rebuildcache', {entity: 'Activity'}).done(initialDataLoad);
           });
         });
 
@@ -166,7 +165,6 @@
             });
           });
         }
-
         initialDataLoad();
 
         /**
