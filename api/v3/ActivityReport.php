@@ -92,38 +92,26 @@ function civicrm_api3_activity_report_rebuildcache($params) {
   $startDate = !empty($params['start_date']) ? $params['start_date'] : null;
   $endDate = !empty($params['end_date']) ? $params['end_date'] : null;
 
-  $dataInstance = new CRM_PivotReport_DataActivity();
-  $cacheGroupInstance = new CRM_PivotCache_GroupActivity();
-  $activities = $dataInstance->rebuildCache(
-    $cacheGroupInstance,
-    array(
-      'start_date' => $startDate,
-      'end_date' => $endDate,
-    )
-  );
+  if (isset($params['entity'])) {
+    $entities = array($params['entity']);
+  } else {
+    $entities = array('Activity', 'Contribution', 'Membership');
+  }
 
-  $dataInstance = new CRM_PivotReport_DataContribution();
-  $cacheGroupInstance = new CRM_PivotCache_GroupContribution();
-  $contributions = $dataInstance->rebuildCache(
-    $cacheGroupInstance,
-    array(
-    )
-  );
-
-  $dataInstance = new CRM_PivotReport_DataMembership();
-  $cacheGroupInstance = new CRM_PivotCache_GroupMembership();
-  $memberships = $dataInstance->rebuildCache(
-    $cacheGroupInstance,
-    array(
-    )
-  );
+  foreach ($entities as $currentEntity) {
+    $dataInstance = CRM_PivotReport_AbstractData::getInstance($currentEntity);
+    $cacheGroupInstance = CRM_PivotCache_AbstractGroup::getInstance($currentEntity);
+    $result[$currentEntity] = $dataInstance->rebuildCache(
+      $cacheGroupInstance,
+      array(
+        'start_date' => $startDate,
+        'end_date' => $endDate,
+      )
+    );
+  }
 
   return civicrm_api3_create_success(
-    array(
-      'activities' => $activities,
-      'contributions' => $contributions,
-      'memberships' => $memberships
-    ),
+    $result,
     $params
   );
 }

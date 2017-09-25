@@ -13,8 +13,20 @@ class CRM_Activityreport_Page_MembershipReport extends CRM_Core_Page {
     );
     $this->assign('options_array', $options_array);
     $this->assign('CRMDataType', $options_array);
+    $this->assign('cacheBuilt', $this->isCacheBuilt());
 
     parent::run();
+  }
+
+  /**
+   * Checks if cache for the entity is built.
+   *
+   * @return bool
+   *   True if the cache is already built, false otherwise
+   */
+  private function isCacheBuilt() {
+    $cacheGroup = new CRM_PivotCache_GroupMembership();
+    return $cacheGroup->isCacheBuilt();
   }
 
 }
