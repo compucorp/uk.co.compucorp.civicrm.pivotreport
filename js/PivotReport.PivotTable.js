@@ -36,6 +36,7 @@ CRM.PivotReport.PivotTable = (function($) {
     this.pivotReportKeyValueTo = null;
 
     this.initFilterForm();
+    this.initUI();
     this.initPivotDataLoading();
   };
 
@@ -68,6 +69,22 @@ CRM.PivotReport.PivotTable = (function($) {
 
     this.config.initFilterForm(this.pivotReportKeyValueFrom, this.pivotReportKeyValueTo);
   };
+
+  /**
+   * Handles UI events.
+   */
+  PivotTable.prototype.initUI = function() {
+    var that = this;
+
+    $('input[type="button"].build-cache-button').click(function(e) {
+      CRM.confirm({message: 'This operation may take some time to build the cache. Do you really want to build the cache for ' + that.config.entityName + ' data?' })
+      .on('crmConfirm:yes', function() {
+        CRM.api3('ActivityReport', 'rebuildcache', {entity: that.config.entityName}).done(function(result) {
+          that.initPivotDataLoading();
+        });
+      });
+    });
+  }
 
   /**
    * Loads header, checks total number of items and then starts data fetching.

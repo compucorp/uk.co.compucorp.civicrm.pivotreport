@@ -85,6 +85,22 @@ abstract class CRM_PivotReport_AbstractData implements CRM_PivotReport_DataInter
   }
 
   /**
+   * Returns instance of data class for given entity.
+   *
+   * @param string $entity
+   *   Name of entity
+   *
+   * @return \CRM_PivotReport_AbstractData
+   */
+  public static function getInstance($entity) {
+
+    $className = 'CRM_PivotReport_Data' . $entity;
+    $dataInstance = new $className();
+
+    return $dataInstance;
+  }
+
+  /**
    * @inheritdoc
    */
   public function get(AbstractGroup $cacheGroup, array $params, $page = 0) {

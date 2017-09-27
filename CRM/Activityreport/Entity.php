@@ -63,6 +63,7 @@ class CRM_Activityreport_Entity {
    */
   public function getDataInstance() {
     $className = 'CRM_PivotReport_Data' . $this->entityName;
+
     if (!class_exists($className)) {
       throw new Exception("Class '{$className}' does not exist. It should exist and extend CRM_PivotReport_AbstractData class.");
     }

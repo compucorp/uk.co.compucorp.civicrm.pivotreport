@@ -62,9 +62,14 @@ function civicrm_api3_activity_report_getheader($params) {
  */
 function civicrm_api3_activity_report_rebuildcache($params) {
   $result = array();
-  $supportedEntities = CRM_Activityreport_Entity::getSupportedEntities();
 
-  foreach ($supportedEntities as $entity) {
+  if (!empty($params['entity'])) {
+    $entities = array($params['entity']);
+  } else {
+    $entities = CRM_Activityreport_Entity::getSupportedEntities();
+  }
+
+  foreach ($entities as $entity) {
     $entityInstance = new CRM_Activityreport_Entity($entity);
     $result[$entity] = $entityInstance->getDataInstance()->rebuildCache(
       $entityInstance->getGroupInstance(),

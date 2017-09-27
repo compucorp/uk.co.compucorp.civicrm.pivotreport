@@ -15,6 +15,7 @@ class CRM_Activityreport_Page_PivotReport extends CRM_Core_Page {
     $this->assign('reportTitle', ts($entity . ' Report'));
     $this->assign('options_array', array_combine($supportedEntities, $supportedEntities));
     $this->assign('CRMDataType', $entity);
+    $this->assign('cacheBuilt', $entityInstance->getGroupInstance()->isCacheBuilt());
 
     parent::run();
   }
