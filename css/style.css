@@ -50,3 +50,6 @@ select.pvtAggregator {
     display: inline-block;
 }
 
+#pivot-report-preloader.hidden {
+  display: none;
+}
