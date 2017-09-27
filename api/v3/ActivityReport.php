@@ -19,8 +19,8 @@ function _civicrm_api3_activity_report_get_spec(&$spec) {
  * @throws API_Exception
  */
 function civicrm_api3_activity_report_get($params) {
-  $startDate = !empty($params['start_date']) ? $params['start_date'] : null;
-  $endDate = !empty($params['end_date']) ? $params['end_date'] : null;
+  $keyValueFrom = !empty($params['keyvalue_from']) ? $params['keyvalue_from'] : null;
+  $keyValueTo = !empty($params['keyvalue_to']) ? $params['keyvalue_to'] : null;
   $page = !empty($params['page']) ? (int)$params['page'] : 0;
   $entity = !empty($params['entity']) ? $params['entity'] : 'Activity';
 
@@ -45,8 +45,8 @@ function civicrm_api3_activity_report_get($params) {
     $dataInstance->get(
       $cacheGroupInstance,
       array(
-        'start_date' => $startDate,
-        'end_date' => $endDate,
+        'keyvalue_from' => $keyValueFrom,
+        'keyvalue_to' => $keyValueTo,
       ),
       $page
     ),
