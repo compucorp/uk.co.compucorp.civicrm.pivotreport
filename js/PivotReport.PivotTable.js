@@ -27,7 +27,6 @@ CRM.PivotReport.PivotTable = (function($) {
     };
 
     this.config = $.extend(true, {}, defaults, config);
-    console.info('final config:');console.info(this.config);
 
     this.header = [];
     this.data = [];
@@ -121,8 +120,9 @@ CRM.PivotReport.PivotTable = (function($) {
 
     var params = loadParams;
     params.sequential = 1;
+    params.entity = this.config.entityName;
 
-    CRM.api3(this.config.entityName + 'Report', 'get', params).done(function(result) {
+    CRM.api3('ActivityReport', 'get', params).done(function(result) {
       that.data = that.data.concat(that.processData(result['values'][0].data));
       var nextKeyValue = result['values'][0].nextKeyValue;
       var nextPage = result['values'][0].nextPage;

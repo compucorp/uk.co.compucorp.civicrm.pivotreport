@@ -1,8 +1,3 @@
-<h3>{$reportTitle}</h3>
-{include file="CRM/Activityreport/Page/ReportSelector.tpl"}
-<div id="pivot-report-preloader">
-  Loading<span id="pivot-report-loading-count"></span>.
-</div>
 <div id="pivot-report-filters" class="hidden">
   <form>
     <label for="keyvalue_from">Activity start date</label>
@@ -12,8 +7,6 @@
     <input class="apply-filters-button" type="button" value="Apply filters">
     <input class="load-all-data-button hidden" type="button" value="Load all data">
   </form>
-</div>
-<div id="pivot-report-table">
 </div>
 
 {literal}
@@ -38,7 +31,7 @@
             'sequential': 1,
             'is_current_revision': 1,
             'is_deleted': 0,
-            'is_test': 0,
+            'is_test': 0
           };
 
           var apiFilter = null;
