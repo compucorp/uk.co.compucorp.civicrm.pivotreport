@@ -19,31 +19,16 @@ function _civicrm_api3_activity_report_get_spec(&$spec) {
  * @throws API_Exception
  */
 function civicrm_api3_activity_report_get($params) {
+  $entity = !empty($params['entity']) ? $params['entity'] : 'Activity';
+  $entityInstance = new CRM_Activityreport_Entity($entity);
+
   $keyValueFrom = !empty($params['keyvalue_from']) ? $params['keyvalue_from'] : null;
   $keyValueTo = !empty($params['keyvalue_to']) ? $params['keyvalue_to'] : null;
   $page = !empty($params['page']) ? (int)$params['page'] : 0;
-  $entity = !empty($params['entity']) ? $params['entity'] : 'Activity';
-
-  switch ($entity) {
-    case 'Activity':
-      $dataInstance = new CRM_PivotReport_DataActivity();
-      $cacheGroupInstance = new CRM_PivotCache_GroupActivity();
-      break;
-
-    case 'Contribution':
-      $dataInstance = new CRM_PivotReport_DataContribution();
-      $cacheGroupInstance = new CRM_PivotCache_GroupContribution();
-      break;
-
-    case 'Membership':
-      $dataInstance = new CRM_PivotReport_DataMembership();
-      $cacheGroupInstance = new CRM_PivotCache_GroupMembership();
-      break;
-  }
 
   return civicrm_api3_create_success(
-    $dataInstance->get(
-      $cacheGroupInstance,
+    $entityInstance->getDataInstance()->get(
+      $entityInstance->getGroupInstance(),
       array(
         'keyvalue_from' => $keyValueFrom,
         'keyvalue_to' => $keyValueTo,
@@ -63,22 +48,9 @@ function civicrm_api3_activity_report_get($params) {
  */
 function civicrm_api3_activity_report_getheader($params) {
   $entity = !empty($params['entity']) ? $params['entity'] : 'Activity';
+  $entityInstance = new CRM_Activityreport_Entity($entity);
 
-  switch ($entity) {
-    case 'Activity':
-      $cacheGroupInstance = new CRM_PivotCache_GroupActivity();
-      break;
-
-    case 'Contribution':
-      $cacheGroupInstance = new CRM_PivotCache_GroupContribution();
-      break;
-
-    case 'Membership':
-      $cacheGroupInstance = new CRM_PivotCache_GroupMembership();
-      break;
-  }
-
-  return civicrm_api3_create_success($cacheGroupInstance->getHeader(), $params);
+  return civicrm_api3_create_success($entityInstance->getGroupInstance()->getHeader(), $params);
 }
 
 /**
@@ -89,41 +61,19 @@ function civicrm_api3_activity_report_getheader($params) {
  * @throws API_Exception
  */
 function civicrm_api3_activity_report_rebuildcache($params) {
-  $startDate = !empty($params['start_date']) ? $params['start_date'] : null;
-  $endDate = !empty($params['end_date']) ? $params['end_date'] : null;
+  $result = array();
+  $supportedEntities = CRM_Activityreport_Entity::getSupportedEntities();
 
-  $dataInstance = new CRM_PivotReport_DataActivity();
-  $cacheGroupInstance = new CRM_PivotCache_GroupActivity();
-  $activities = $dataInstance->rebuildCache(
-    $cacheGroupInstance,
-    array(
-      'start_date' => $startDate,
-      'end_date' => $endDate,
-    )
-  );
-
-  $dataInstance = new CRM_PivotReport_DataContribution();
-  $cacheGroupInstance = new CRM_PivotCache_GroupContribution();
-  $contributions = $dataInstance->rebuildCache(
-    $cacheGroupInstance,
-    array(
-    )
-  );
-
-  $dataInstance = new CRM_PivotReport_DataMembership();
-  $cacheGroupInstance = new CRM_PivotCache_GroupMembership();
-  $memberships = $dataInstance->rebuildCache(
-    $cacheGroupInstance,
-    array(
-    )
-  );
+  foreach ($supportedEntities as $entity) {
+    $entityInstance = new CRM_Activityreport_Entity($entity);
+    $result[$entity] = $entityInstance->getDataInstance()->rebuildCache(
+      $entityInstance->getGroupInstance(),
+      array()
+    );
+  }
 
   return civicrm_api3_create_success(
-    array(
-      'activities' => $activities,
-      'contributions' => $contributions,
-      'memberships' => $memberships
-    ),
+    $result,
     $params
   );
 }
