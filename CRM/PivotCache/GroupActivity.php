@@ -17,11 +17,11 @@ class CRM_PivotCache_GroupActivity extends CRM_PivotCache_AbstractGroup {
 
     $cache->group_name = $this->getName();
 
-    if (!empty($params['start_date'])) {
+    if (!empty($params['keyvalue_from'])) {
       $whereStartDate = CRM_Core_DAO::createSQLFilter(
         'path',
         array(
-          '>=' => $this->getPath(substr($params['start_date'], 0, 10), $page),
+          '>=' => $this->getPath(substr($params['keyvalue_from'], 0, 10), $page),
         ),
         'String'
       );
@@ -29,11 +29,11 @@ class CRM_PivotCache_GroupActivity extends CRM_PivotCache_AbstractGroup {
       $cache->whereAdd($whereStartDate);
     }
 
-    if (!empty($params['end_date'])) {
+    if (!empty($params['keyvalue_to'])) {
       $whereEndDate = CRM_Core_DAO::createSQLFilter(
         'path',
         array(
-          '<=' => $this->getPath(substr($params['end_date'], 0, 10), 999999),
+          '<=' => $this->getPath(substr($params['keyvalue_to'], 0, 10), 999999),
         ),
         'String'
       );

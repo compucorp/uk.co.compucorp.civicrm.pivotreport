@@ -2,20 +2,20 @@
 <menu>
   <item>
     <path>civicrm/activity-report</path>
-    <page_callback>CRM_Activityreport_Page_ActivityReport</page_callback>
-    <title>ActivityReport</title>
+    <page_callback>CRM_Activityreport_Page_PivotReport</page_callback>
+    <page_arguments>entity=Activity</page_arguments>
     <access_arguments>access CiviCRM pivot table reports</access_arguments>
   </item>
   <item>
     <path>civicrm/contribution-report</path>
-    <page_callback>CRM_Activityreport_Page_ContributionReport</page_callback>
-    <title>ActivityReport</title>
+    <page_callback>CRM_Activityreport_Page_PivotReport</page_callback>
+    <page_arguments>entity=Contribution</page_arguments>
     <access_arguments>access CiviCRM pivot table reports</access_arguments>
   </item>
   <item>
     <path>civicrm/membership-report</path>
-    <page_callback>CRM_Activityreport_Page_MembershipReport</page_callback>
-    <title>ActivityReport</title>
+    <page_callback>CRM_Activityreport_Page_PivotReport</page_callback>
+    <page_arguments>entity=Membership</page_arguments>
     <access_arguments>access CiviCRM pivot table reports</access_arguments>
   </item>
 </menu>

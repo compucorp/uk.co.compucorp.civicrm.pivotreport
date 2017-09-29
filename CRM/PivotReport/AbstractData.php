@@ -109,7 +109,7 @@ abstract class CRM_PivotReport_AbstractData implements CRM_PivotReport_DataInter
 
     return array(
       array(
-      'nextDate' => $dataSet->getNextIndex(),
+      'nextKeyValue' => $dataSet->getNextIndex(),
       'nextPage' => $dataSet->getNextPage(),
       'data' => $dataSet->getData(),
     ));
