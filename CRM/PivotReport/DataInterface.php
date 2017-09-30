@@ -51,4 +51,11 @@ interface CRM_PivotReport_DataInterface {
    * @param array $header
    */
   public function rebuildHeader(AbstractGroup $cacheGroup, array $header);
+
+  /**
+   * Returns list of fields of Date data type for the entity.
+   *
+   * @return array
+   */
+  public function getDateFields();
 }

@@ -34,11 +34,97 @@ CRM.PivotReport.PivotTable = (function($) {
     this.pivotReportForm = null;
     this.pivotReportKeyValueFrom = null;
     this.pivotReportKeyValueTo = null;
+    this.dateFields = null;
 
     this.initFilterForm();
     this.initUI();
     this.initPivotDataLoading();
   };
+
+  /**
+   * Initializes date filters for each field of Date data type.
+   */
+  PivotTable.prototype.initDateFilters = function () {
+    var that = this;
+
+    if (!Array.isArray(this.dateFields)) {
+
+      CRM.api3('ActivityReport', 'getdatefields', {entity: this.config.entityName}).done(function(result) {
+        that.dateFields = result.values;
+        that.initDateFilters();
+      });
+
+      return;
+    }
+
+    $('div.pvtFilterBox').each(function () {
+      var container = $(this);
+
+      $(this).children().each(function () {
+
+        if ($(this).prop("tagName") == 'H4') {
+          var fieldName = $(this).text().replace(/[ ()0-9]/g, '');
+
+          if ($.inArray($(this).text().replace(/[()0-9]/g, ''), that.dateFields)) {
+            $(this).after('' +
+              '<div class="inner_date_filters">' +
+              ' <form>' +
+              '   <input type="text" id="fld_' + fieldName + '_start" name="fld_' + fieldName + '_start" class="inner_date" value=""> - ' +
+              '   <input type="text" id="fld_' + fieldName + '_end" name="fld_' + fieldName + '_end" class="inner_date" value="">' +
+              ' </form>' +
+              '</div>'
+            );
+
+            $('.pvtFilter', container).each(function () {
+              $(this).addClass(fieldName);
+            });
+          }
+        }
+      });
+    });
+
+    $('.inner_date').each(function () {
+
+      $(this).change(function () {
+        var fieldInfo = $(this).attr('name').split('_');
+
+        var startDateValue = $('#fld_' + fieldInfo[1] + '_start').val();
+        var startDate = new Date(startDateValue);
+
+        var endDateValue = $('#fld_' + fieldInfo[1] + '_end').val();
+        var endDate = new Date(endDateValue);
+
+        $('input.' + fieldInfo[1]).each(function () {
+          var checkDate = new Date($('span.value', $(this).parent()).text());
+
+          if (startDateValue != '' && endDateValue != '') {
+            if (checkDate.getTime() > startDate.getTime() && checkDate.getTime() < endDate.getTime()) {
+              $(this).prop('checked', true);
+            } else {
+              $(this).prop('checked', false);
+            }
+          } else if (startDateValue != '') {
+            if (checkDate.getTime() > startDate.getTime()) {
+              $(this).prop('checked', true);
+            } else {
+              $(this).prop('checked', false);
+            }
+          } else if (endDateValue != '') {
+            if (checkDate.getTime() < endDate.getTime()) {
+              $(this).prop('checked', true);
+            } else {
+              $(this).prop('checked', false);
+            }
+          }
+        });
+      });
+
+      $(this).crmDatepicker({
+        time: false
+      });
+    });
+
+  }
 
   /**
    * Initializes Pivot Report filter form.
@@ -288,6 +374,8 @@ CRM.PivotReport.PivotTable = (function($) {
         derivedAttributes: that.config.derivedAttributes,
         hiddenAttributes: that.config.hiddenAttributes,
     }, false);
+
+    this.initDateFilters();
   };
 
   return PivotTable;
