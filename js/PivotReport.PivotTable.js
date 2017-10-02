@@ -102,7 +102,7 @@ CRM.PivotReport.PivotTable = (function($) {
           var checked = false;
 
           if (startDateValue != '' && endDateValue != '') {
-            if (timeCheck >= startTime && timeCheck < endTime) {
+            if (timeCheck >= startTime && timeCheck <= endTime) {
               checked = true;
             }
           } else if (startDateValue != '') {
@@ -110,7 +110,7 @@ CRM.PivotReport.PivotTable = (function($) {
               checked = true;
             }
           } else if (endDateValue != '') {
-            if (timeCheck < endTime) {
+            if (timeCheck <= endTime) {
               checked = true;
             }
           }
