@@ -65,7 +65,7 @@ CRM.PivotReport.PivotTable = (function($) {
         if ($(this).prop("tagName") == 'H4') {
           var fieldName = $(this).text().replace(/[ ()0-9]/g, '');
 
-          if ($.inArray($(this).text().replace(/[()0-9]/g, ''), that.dateFields)) {
+          if ($.inArray($(this).text().replace(/[()0-9]/g, ''), that.dateFields) >= 0) {
             $(this).after('' +
               '<div class="inner_date_filters">' +
               ' <form>' +
@@ -90,32 +90,37 @@ CRM.PivotReport.PivotTable = (function($) {
 
         var startDateValue = $('#fld_' + fieldInfo[1] + '_start').val();
         var startDate = new Date(startDateValue);
+        var startTime = startDate.getTime();
 
         var endDateValue = $('#fld_' + fieldInfo[1] + '_end').val();
         var endDate = new Date(endDateValue);
+        var endTime = endDate.getTime();
 
         $('input.' + fieldInfo[1]).each(function () {
           var checkDate = new Date($('span.value', $(this).parent()).text());
+          var timeCheck = checkDate.getTime();
+          var checked = false;
 
           if (startDateValue != '' && endDateValue != '') {
-            if (checkDate.getTime() > startDate.getTime() && checkDate.getTime() < endDate.getTime()) {
-              $(this).prop('checked', true);
-            } else {
-              $(this).prop('checked', false);
+            if (timeCheck >= startTime && timeCheck < endTime) {
+              checked = true;
             }
           } else if (startDateValue != '') {
-            if (checkDate.getTime() > startDate.getTime()) {
-              $(this).prop('checked', true);
-            } else {
-              $(this).prop('checked', false);
+            if (timeCheck >= startTime) {
+              checked = true;
             }
           } else if (endDateValue != '') {
-            if (checkDate.getTime() < endDate.getTime()) {
-              $(this).prop('checked', true);
-            } else {
-              $(this).prop('checked', false);
+            if (timeCheck < endTime) {
+              checked = true;
             }
           }
+
+          if (checked == true && !$(this).is(':checked')) {
+            $(this).click();
+          } else if (checked == false && $(this).is(':checked')) {
+            $(this).click();
+          }
+
         });
       });
 

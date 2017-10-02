@@ -616,6 +616,22 @@ abstract class CRM_PivotReport_AbstractData implements CRM_PivotReport_DataInter
   }
 
   /**
+   * @inheritdoc
+   */
+  public function getDateFields() {
+    $result = array();
+    $fields = $this->getFields();
+
+    foreach ($fields as $field => $fieldData) {
+      if ($fieldData['type'] & CRM_Utils_Type::T_DATE) {
+        $result[] = $fieldData['title'];
+      }
+    }
+
+    return $result;
+  }
+
+  /**
    * Returns a string containing Entity index basing on Entity row.
    *
    * The Entity Index is used as a part of cache key. It may be an Entity ID, date,

@@ -225,14 +225,10 @@ class CRM_PivotReport_DataActivity extends CRM_PivotReport_AbstractData {
    * @inheritdoc
    */
   public function getDateFields() {
-    $result = array();
-    $fields = $this->getFields();
+    $result = parent::getDateFields();
 
-    foreach ($fields as $field => $fieldData) {
-      if ($fieldData['type'] & CRM_Utils_Type::T_DATE) {
-        $result[] = $fieldData['title'];
-      }
-    }
+    $result[] = ts('Activity Date');
+    $result[] = ts('Activity Expire Date');
 
     return $result;
   }
