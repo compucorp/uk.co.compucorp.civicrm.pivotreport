@@ -55,9 +55,13 @@ select.pvtAggregator {
 }
 
 .pvtFilterBox input[type=text].inner_date {
-    width: 7em;
+  width: 7em;
 }
 
 .pvtFilterBox div.inner_date_filters {
-    text-align: center;
+  text-align: center;
+}
+
+select.relativeFilter {
+  width: 14em;
 }

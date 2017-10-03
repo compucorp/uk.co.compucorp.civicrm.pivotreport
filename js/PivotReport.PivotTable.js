@@ -35,6 +35,8 @@ CRM.PivotReport.PivotTable = (function($) {
     this.pivotReportKeyValueFrom = null;
     this.pivotReportKeyValueTo = null;
     this.dateFields = null;
+    this.relativeFilters = null;
+    this.crmConfig = null;
 
     this.initFilterForm();
     this.initUI();
@@ -47,38 +49,53 @@ CRM.PivotReport.PivotTable = (function($) {
   PivotTable.prototype.initDateFilters = function () {
     var that = this;
 
-    if (!Array.isArray(this.dateFields)) {
-
-      CRM.api3('ActivityReport', 'getdatefields', {entity: this.config.entityName}).done(function(result) {
-        that.dateFields = result.values;
-        that.initDateFilters();
-      });
-
-      return;
-    }
-
     $('div.pvtFilterBox').each(function () {
       var container = $(this);
+      var fieldName = '';
 
       $(this).children().each(function () {
 
         if ($(this).prop("tagName") == 'H4') {
-          var fieldName = $(this).text().replace(/[ ()0-9]/g, '');
+          fieldName = $(this).text().replace(/[ ()0-9]/g, '');
 
           if ($.inArray($(this).text().replace(/[()0-9]/g, ''), that.dateFields) >= 0) {
             $(this).after('' +
               '<div class="inner_date_filters">' +
               ' <form>' +
-              '   <input type="text" id="fld_' + fieldName + '_start" name="fld_' + fieldName + '_start" class="inner_date" value=""> - ' +
-              '   <input type="text" id="fld_' + fieldName + '_end" name="fld_' + fieldName + '_end" class="inner_date" value="">' +
+              '   <input type="text" id="fld_' + fieldName + '_start" name="fld_' + fieldName + '_start" class="inner_date fld_' + fieldName + '_start" value=""> - ' +
+              '   <input type="text" id="fld_' + fieldName + '_end" name="fld_' + fieldName + '_end" class="inner_date fld_' + fieldName + '_end" value="">' +
               ' </form>' +
               '</div>'
             );
 
-            $('.pvtFilter', container).each(function () {
-              $(this).addClass(fieldName);
+            var selectContainer = $('<p>');
+            var relativeSelect = $('<select>');
+            relativeSelect.attr('name', 'sel_' + fieldName);
+            relativeSelect.addClass('relativeFilter');
+            relativeSelect.change(function () {
+              that.changeFilterDates($(this));
             });
+
+            relativeSelect.append($("<option>").attr('value', '').text('- Any -'));
+            $(that.relativeFilters).each(function () {
+              relativeSelect.append($("<option>").attr('value', this.value).text(this.label));
+            });
+
+            selectContainer.append(relativeSelect);
+            $(this).after(selectContainer);
+
+            $('.pvtFilter', container).addClass(fieldName);
           }
+        }
+      });
+
+      $(':button', container).each(function () {
+        if ($(this).text() == 'Select All') {
+          $(this).addClass(fieldName + '_batchSelector');
+          $(this).off('click');
+          $(this).on('click', function () {
+            $('#fld_' + fieldName + '_start').change();
+          });
         }
       });
     });
@@ -113,6 +130,8 @@ CRM.PivotReport.PivotTable = (function($) {
             if (timeCheck <= endTime) {
               checked = true;
             }
+          } else {
+            checked = true;
           }
 
           if (checked == true && !$(this).is(':checked')) {
@@ -129,6 +148,390 @@ CRM.PivotReport.PivotTable = (function($) {
       });
     });
 
+  }
+
+  PivotTable.prototype.changeFilterDates = function (select) {
+    var relativeDateInfo = select.val().split('.');
+    var unit = relativeDateInfo[1];
+    var relativeTerm = relativeDateInfo[0];
+    var dates = {};
+
+    switch (unit) {
+      case 'year':
+        dates = this.calculateRelativeYearDates(relativeTerm);
+        break;
+
+      case 'fiscal_year':
+        dates = this.calculateRelativeFiscalYearDates(relativeTerm);
+        break;
+      case 'quarter':
+        dates = this.calculateRelativeQuarterDates(relativeTerm);
+        break;
+      case 'month':
+        dates = this.calculateRelativeMonthDates(relativeTerm);
+        break;
+      case 'week':
+        dates = this.calculateRelativeWeekDates(relativeTerm);
+        break;
+      case 'day':
+        dates = this.calculateRelativeDayDates(relativeTerm);
+        break;
+    }
+
+    var fieldInfo = select.attr('name').split('_');
+    var fieldName = fieldInfo[1];
+
+    $('#fld_' + fieldName + '_start').val(CRM.utils.formatDate(dates.startDate, CRM.config.dateInputFormat)).change();
+    $('input.inner_date.fld_' + fieldName + '_start.hasDatepicker').val(CRM.utils.formatDate(dates.startDate, CRM.config.dateInputFormat));
+
+    $('#fld_' + fieldName + '_end').val(CRM.utils.formatDate(dates.endDate, CRM.config.dateInputFormat)).change();
+    $('input.inner_date.fld_' + fieldName + '_end.hasDatepicker').val(CRM.utils.formatDate(dates.endDate, CRM.config.dateInputFormat));
+  }
+
+  /**
+   * Calculates start and end dates for given day-relative interval.
+   *
+   * @param relativeTerm
+   *   Relative interval to calculate start and end dates.
+   *
+   * @returns {{startDate: Date, endDate: Date}}
+   *   Object with calculated start and end dates.
+   */
+  PivotTable.prototype.calculateRelativeDayDates = function (relativeTerm) {
+    var today = new Date();
+    var startDate = new moment({
+      year: today.getFullYear(),
+      month: today.getMonth(),
+      day: today.getDate()
+    });
+
+    var endDate = new moment({
+      year: today.getFullYear(),
+      month: today.getMonth(),
+      day: today.getDate()
+    });
+
+    switch (relativeTerm) {
+
+      case 'this':
+        startDate.startOf('day');
+        endDate.endOf('day');
+        break;
+
+      case 'previous':
+        startDate.subtract(1, 'day');
+        endDate.subtract(1, 'day');
+
+        startDate.startOf('day');
+        endDate.endOf('day');
+        break;
+
+      case 'starting':
+        startDate.add(1, 'day');
+        endDate.add(1, 'day');
+
+        startDate.startOf('day');
+        endDate.endOf('day');
+        break;
+    }
+
+    return {
+      'startDate': startDate.toDate(),
+      'endDate': endDate.toDate()
+    };
+  }
+
+
+  /**
+   * Calculates start and end dates for given week-relative interval.
+   *
+   * @param relativeTerm
+   *   Relative interval to calculate start and end dates.
+   *
+   * @returns {{startDate: Date, endDate: Date}}
+   *   Object with calculated start and end dates.
+   */
+  PivotTable.prototype.calculateRelativeWeekDates = function (relativeTerm) {
+    var today = new Date();
+    var startDate = new moment({
+      year: today.getFullYear(),
+      month: today.getMonth(),
+      day: today.getDate()
+    });
+
+    var endDate = new moment({
+      year: today.getFullYear(),
+      month: today.getMonth(),
+      day: today.getDate()
+    });
+
+    switch (relativeTerm) {
+
+      case 'this':
+        startDate.startOf('week');
+        endDate.endOf('week');
+        break;
+
+      case 'previous':
+        startDate.subtract(1, 'week');
+        endDate.subtract(1, 'week');
+
+        startDate.startOf('week');
+        endDate.endOf('week');
+        break;
+
+      case 'ending':
+        startDate.subtract(7, 'days');
+        break;
+
+      case 'next':
+        startDate.add(1, 'week');
+        endDate.add(1, 'week');
+
+        startDate.startOf('week');
+        endDate.endOf('week');
+        break;
+    }
+
+    return {
+      'startDate': startDate.toDate(),
+      'endDate': endDate.toDate()
+    };
+  }
+
+  /**
+   * Calculates start and end dates for given month-relative interval.
+   *
+   * @param relativeTerm
+   *   Relative interval to calculate start and end dates.
+   *
+   * @returns {{startDate: Date, endDate: Date}}
+   *   Object with calculated start and end dates.
+   */
+  PivotTable.prototype.calculateRelativeMonthDates = function (relativeTerm) {
+    var today = new Date();
+    var startDate = new moment({
+      year: today.getFullYear(),
+      month: today.getMonth(),
+      day: today.getDate()
+    });
+
+    var endDate = new moment({
+      year: today.getFullYear(),
+      month: today.getMonth(),
+      day: today.getDate()
+    });
+
+    switch (relativeTerm) {
+
+      case 'this':
+        startDate.startOf('month');
+        endDate.endOf('month');
+        break;
+
+      case 'previous':
+        startDate.subtract(1, 'month');
+        endDate.month(startDate.month());
+
+        startDate.startOf('month');
+        endDate.endOf('month');
+        break;
+
+      case 'ending':
+        startDate.subtract(30, 'days');
+        break;
+
+      case 'ending_2':
+        startDate.subtract(60, 'days');
+        break;
+
+      case 'next':
+        startDate.add(1, 'month');
+        endDate.month(startDate.month());
+
+        startDate.startOf('month');
+        endDate.endOf('month');
+        break;
+    }
+
+    return {
+      'startDate': startDate.toDate(),
+      'endDate': endDate.toDate()
+    };
+  }
+
+  /**
+   * Calculates start and end dates for given year-relative interval.
+   *
+   * @param relativeTerm
+   *   Relative interval to calculate start and end dates.
+   *
+   * @returns {{startDate: Date, endDate: Date}}
+   *   Object with calculated start and end dates.
+   */
+  PivotTable.prototype.calculateRelativeYearDates = function (relativeTerm) {
+    var today = new Date();
+    var startDate = new moment({
+      year: today.getFullYear(),
+      month: today.getMonth(),
+      day: today.getDate()
+    });
+
+    var endDate = new moment({
+      year: today.getFullYear(),
+      month: today.getMonth(),
+      day: today.getDate()
+    });
+
+    switch (relativeTerm) {
+
+      case 'this':
+        startDate.startOf('year');
+        endDate.endOf('year');
+        break;
+
+      case 'previous':
+        startDate.subtract(1, 'years');
+        startDate.startOf('year');
+
+        endDate.subtract(1, 'years');
+        endDate.endOf('year');
+        break;
+
+      case 'ending':
+        startDate.subtract(1, 'years');
+        break;
+
+      case 'ending_2':
+        startDate.subtract(2, 'years');
+        break;
+
+      case 'ending_3':
+        startDate.subtract(3, 'years');
+        break;
+
+      case 'next':
+        startDate.add(1, 'years');
+        startDate.startOf('year');
+
+        endDate.add(1, 'years');
+        endDate.endOf('year');
+        break;
+    }
+
+    return {
+      'startDate': startDate.toDate(),
+      'endDate': endDate.toDate()
+    };
+  }
+
+  /**
+   * Calculates start and end dates of quarter-relative interval.
+   *
+   * @param relativeTerm
+   *   Relative interval used to calculate start and end dates.
+   *
+   * @returns {{startDate: Date, endDate: Date}}
+   *   Object with calculated start and end dates.
+   */
+  PivotTable.prototype.calculateRelativeQuarterDates = function (relativeTerm) {
+    var today = new Date();
+    var startDate = new moment({
+      year: today.getFullYear(),
+      month: today.getMonth(),
+      day: today.getDate()
+    });
+
+    var endDate = new moment({
+      year: today.getFullYear(),
+      month: today.getMonth(),
+      day: today.getDate()
+    });
+
+    switch (relativeTerm) {
+
+      case 'this':
+        startDate.startOf('quarter');
+        endDate.endOf('quarter');
+        break;
+
+      case 'previous':
+        startDate.subtract(1, 'quarters');
+        startDate.startOf('quarter');
+
+        endDate.subtract(1, 'quarters');
+        endDate.endOf('quarter');
+        break;
+
+      case 'ending':
+        startDate.subtract(90, 'days');
+        break;
+
+      case 'next':
+        startDate.add(1, 'quarters');
+        startDate.startOf('quarter');
+
+        endDate.add(1, 'quarters');
+        endDate.endOf('quarter');
+        break;
+    }
+
+    return {
+      'startDate': startDate.toDate(),
+      'endDate': endDate.toDate()
+    };
+  }
+
+  /**
+   * Calculates start and end dates for given fiscal year-relative interval.
+   *
+   * @param relativeTerm
+   *   Relative interval to calculate start and end dates.
+   *
+   * @returns {{startDate: Date, endDate: Date}}
+   *   Object with calculated start and end dates.
+   */
+  PivotTable.prototype.calculateRelativeFiscalYearDates = function (relativeTerm) {
+
+    var today = new Date();
+    var startDate = new moment({
+      year: today.getFullYear(),
+      month: today.getMonth(),
+      day: today.getDate()
+    });
+
+    var endDate = new moment({
+      year: today.getFullYear(),
+      month: today.getMonth(),
+      day: today.getDate()
+    });
+
+    var fiscalBeginningDay = parseInt(this.crmConfig.fiscalYearStart.d);
+    var fiscalBeginningMonth = parseInt(this.crmConfig.fiscalYearStart.M) - 1;
+
+    if (relativeTerm == 'previous') {
+      startDate.subtract(1, 'years');
+    } else if (relativeTerm == 'next') {
+      startDate.add(1, 'years');
+    }
+
+    if (startDate.month() < fiscalBeginningMonth) {
+      startDate.subtract(1, 'years');
+    }
+
+    startDate.month(fiscalBeginningMonth);
+    startDate.date(fiscalBeginningDay);
+
+    endDate.year(startDate.year());
+    endDate.month(fiscalBeginningMonth);
+    endDate.date(fiscalBeginningDay);
+    endDate.add(1, 'years');
+    endDate.subtract(1, 'ms');
+
+    return {
+      'startDate': startDate.toDate(),
+      'endDate': endDate.toDate()
+    };
   }
 
   /**
@@ -182,26 +585,37 @@ CRM.PivotReport.PivotTable = (function($) {
    */
   PivotTable.prototype.initPivotDataLoading = function() {
     var that = this;
+    var apiCalls = {
+      'getConfig': ['Setting', 'get', {
+        'sequential': 1,
+        'return': ['weekBegins', 'fiscalYearStart']
+      }],
+      'getHeader': ['ActivityReport', 'getheader', {'entity': this.config.entityName}],
+      'getCount': [this.config.entityName, 'getcount', that.config.getCountParams()],
+      'dateFields': ['ActivityReport', 'getdatefields', {entity: this.config.entityName}],
+      'relativeFilters': ['OptionValue', 'get', {
+        'sequential': 1,
+        'option_group_id': 'relative_date_filters'
+      }],
+    };
 
-    CRM.api3('ActivityReport', 'getheader', {
-      'entity': that.config.entityName
-    }).done(function(result) {
-      that.header = result.values;
+    CRM.api3(apiCalls).done(function (result) {
+      that.dateFields = result.dateFields.values;
+      that.relativeFilters = result.relativeFilters.values
+      that.header = result.getHeader.values;
+      that.total = parseInt(result.getCount.result, 10);
+      that.crmConfig = result.getConfig.values[0];
 
-      CRM.api3(that.config.entityName, 'getcount', that.config.getCountParams()).done(function(result) {
-        that.total = parseInt(result.result, 10);
+      if (that.config.initialLoad.limit && that.total > that.config.initialLoad.limit) {
+        CRM.alert(that.config.initialLoad.message, '', 'info');
 
-        if (that.config.initialLoad.limit && that.total > that.config.initialLoad.limit) {
-          CRM.alert(that.config.initialLoad.message, '', 'info');
+        $('input[type="button"].load-all-data-button', this.pivotReportForm).removeClass('hidden');
+        var filter = that.config.initialLoad.getFilter();
 
-          $('input[type="button"].load-all-data-button', this.pivotReportForm).removeClass('hidden');
-          var filter = that.config.initialLoad.getFilter();
-
-          that.loadDataByFilter(filter.getFrom(), filter.getTo());
-        } else {
-          that.loadAllData();
-        }
-      });
+        that.loadDataByFilter(filter.getFrom(), filter.getTo());
+      } else {
+        that.loadAllData();
+      }
     });
   };
 
