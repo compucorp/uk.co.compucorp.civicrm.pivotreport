@@ -154,3 +154,14 @@ function activityreport_civicrm_permission(&$permissions) {
     'access CiviCRM pivot table reports' => $prefix . ts('access CiviCRM pivot table reports'),
   );
 }
+
+/**
+ * Implements hook_civicrm_entityTypes().
+ */
+function activityreport_civicrm_entityTypes(&$entityTypes) {
+  $entityTypes[] = [
+    'name'  => 'ActivityReportConfig',
+    'class' => 'CRM_Activityreport_DAO_ActivityReportConfig',
+    'table' => 'civicrm_pivotreport_config',
+  ];
+}
