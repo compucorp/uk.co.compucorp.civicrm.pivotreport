@@ -6,17 +6,10 @@
 class CRM_PivotReport_DataMembership extends CRM_PivotReport_AbstractData {
 
   /**
-   * @inheritdoc
+   * CRM_PivotReport_DataMembership constructor.
    */
-  protected $additionalHeaderFields = array(
-    'Date-wise New Members' => '',
-    'Day-wise New Members' => '',
-    'Month-wise New Members' => '',
-    'Year-wise New Members' => '',
-  );
-
   public function __construct() {
-    $this->name = 'Membership';
+    parent::__construct('Membership');
   }
 
   /**
@@ -38,18 +31,6 @@ class CRM_PivotReport_DataMembership extends CRM_PivotReport_AbstractData {
     );
 
     return $params;
-  }
-
-  /**
-   * @inheritdoc
-   */
-  protected function setCustomValue($key, $value) {
-    $result = $value;
-
-    switch ($key) {
-    }
-
-    $this->customizedValues[$key][$value] = $result;
   }
 
   /**

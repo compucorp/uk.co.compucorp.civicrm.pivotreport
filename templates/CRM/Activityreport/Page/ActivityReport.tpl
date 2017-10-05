@@ -62,7 +62,6 @@
         },
         'derivedAttributes': {
           'Activity Date': $.pivotUtilities.derivers.dateFormat('Activity Date Time', '%y-%m-%d'),
-          'Activity Start Date Months': $.pivotUtilities.derivers.dateFormat('Activity Date Time', '%y-%m'),
           'Activity Expire Date': function(row) {
             if (!row['Expire Date']) {
               return '';

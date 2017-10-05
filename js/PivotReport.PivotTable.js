@@ -607,6 +607,10 @@ CRM.PivotReport.PivotTable = (function($) {
       that.total = parseInt(result.getCount.result, 10);
       that.crmConfig = result.getConfig.values[0];
 
+      $.each(that.dateFields, function (i, value) {
+        that.config.derivedAttributes[value + ' (' + ts('per month') + ')'] = $.pivotUtilities.derivers.dateFormat(value, '%y-%m')
+      });
+
       if (that.config.initialLoad.limit && that.total > that.config.initialLoad.limit) {
         CRM.alert(that.config.initialLoad.message, '', 'info');
 
