@@ -1,5 +1,6 @@
 <h3>{$reportTitle}</h3>
 {include file="CRM/Activityreport/Page/ReportSelector.tpl"}
+{include file="CRM/Activityreport/Page/ReportConfig.tpl"}
 <div id="pivot-report-preloader">
   Loading<span id="pivot-report-loading-count"></span>.
 </div>
