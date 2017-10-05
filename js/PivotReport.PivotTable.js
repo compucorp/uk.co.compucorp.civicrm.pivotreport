@@ -95,6 +95,7 @@ CRM.PivotReport.PivotTable = (function($) {
           $(this).off('click');
           $(this).on('click', function () {
             $('#fld_' + fieldName + '_start').change();
+            $('input.inner_date.fld_' + fieldName + '_start.hasDatepicker').val($('#fld_' + fieldName + '_start').val());
           });
         }
       });
