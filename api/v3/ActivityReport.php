@@ -82,3 +82,13 @@ function civicrm_api3_activity_report_rebuildcache($params) {
     $params
   );
 }
+
+function civicrm_api3_activity_report_getdatefields($params) {
+  $entity = !empty($params['entity']) ? $params['entity'] : 'Activity';
+  $entityInstance = new CRM_Activityreport_Entity($entity);
+
+  return civicrm_api3_create_success(
+    $entityInstance->getDataInstance()->getDateFields(),
+    $params
+  );
+}

@@ -27,6 +27,12 @@ $packages = array (
     ),
     'version' => 'latest'
   ),
+  'moment.js' => array(
+    'files' => array(
+      'moment.min.js',
+    ),
+    'version' => 'latest'
+  ),
 );
 
 $package_dir = "packages";
