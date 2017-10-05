@@ -54,6 +54,18 @@ select.pvtAggregator {
   display: none;
 }
 
+.pvtFilterBox input[type=text].inner_date {
+  width: 7em;
+}
+
+.pvtFilterBox div.inner_date_filters {
+  text-align: center;
+}
+
+select.relativeFilter {
+  width: 14em;
+}
+
 /* Pivot Table configuration block */
 
 #pivot-report-config {

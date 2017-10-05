@@ -220,4 +220,17 @@ class CRM_PivotReport_DataActivity extends CRM_PivotReport_AbstractData {
 
     return civicrm_api3('Activity', 'getcount', $apiParams);
   }
+
+  /**
+   * @inheritdoc
+   */
+  public function getDateFields() {
+    $result = parent::getDateFields();
+
+    $result[] = ts('Activity Date');
+    $result[] = ts('Activity Expire Date');
+
+    return $result;
+  }
+
 }

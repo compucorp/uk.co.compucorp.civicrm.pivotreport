@@ -133,6 +133,7 @@ function activityreport_civicrm_pageRun($page) {
       ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'packages/pivottable/pivot.min.js', 1, 'html-header')
       ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'packages/pivottable/c3_renderers.min.js', 2, 'html-header')
       ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'packages/pivottable-cc/export_renderers.js', 2, 'html-header')
+      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'packages/moment.js/moment.min.js', 2, 'html-header')
       ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/PivotReport.Filter.js', 3, 'html-header')
       ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/PivotReport.Config.js', 4, 'html-header')
       ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/PivotReport.PivotTable.js', 5, 'html-header');
