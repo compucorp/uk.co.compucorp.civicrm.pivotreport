@@ -6,17 +6,10 @@
 class CRM_PivotReport_DataContribution extends CRM_PivotReport_AbstractData {
 
   /**
-   * @inheritdoc
+   * CRM_PivotReport_DataContribution constructor.
    */
-  protected $additionalHeaderFields = array(
-    'Date-wise Reciepts' => '',
-    'Day-wise Reciepts' => '',
-    'Month-wise Reciepts' => '',
-    'Year-wise Reciepts' => '',
-  );
-
   public function __construct() {
-    $this->name = 'Contribution';
+    parent::__construct('Contribution');
   }
 
   /**

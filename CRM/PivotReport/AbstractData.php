@@ -80,8 +80,19 @@ abstract class CRM_PivotReport_AbstractData implements CRM_PivotReport_DataInter
    */
   protected $name = NULL;
 
-  public function __construct($name = NULL) {
+  /**
+   * CRM_PivotReport_AbstractData constructor.
+   *
+   * @param string $name
+   */
+  public function __construct($name) {
     $this->name = $name;
+
+    $dateFields = $this->getDateFields();
+
+    foreach ($dateFields as $field) {
+      $this->additionalHeaderFields[$field . ' (' . ts('per month') . ')'] = '';
+    }
   }
 
   /**
