@@ -82,6 +82,17 @@ class CRM_Activityreport_Upgrader extends CRM_Activityreport_Upgrader_Base {
   }
 
   /**
+   * Installs Pivot Report config db table (if does not exist).
+   *
+   * @return TRUE
+   */
+  public function upgrade_0003() {
+    $this->executeSqlFile('sql/civicrm_pivotreport_config_install.sql');
+
+    return TRUE;
+  }
+
+  /**
    * Logic which is executing when enabling extension.
    * 
    * @return boolean

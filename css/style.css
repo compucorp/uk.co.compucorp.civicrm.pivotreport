@@ -65,3 +65,19 @@ select.pvtAggregator {
 select.relativeFilter {
   width: 14em;
 }
+
+/* Pivot Table configuration block */
+
+#pivot-report-config {
+  padding: 10px 0px;
+  margin-top: 12px;
+}
+
+#pivot-report-config .form-item {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+#pivot-report-config .hidden {
+  display: none;
+}

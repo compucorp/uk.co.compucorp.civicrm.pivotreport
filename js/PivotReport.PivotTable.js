@@ -28,6 +28,7 @@ CRM.PivotReport.PivotTable = (function($) {
 
     this.config = $.extend(true, {}, defaults, config);
 
+    this.pivotTableContainer = $('#pivot-report-table');
     this.header = [];
     this.data = [];
     this.total = 0;
@@ -37,6 +38,7 @@ CRM.PivotReport.PivotTable = (function($) {
     this.dateFields = null;
     this.relativeFilters = null;
     this.crmConfig = null;
+    this.PivotConfig = new CRM.PivotReport.Config(this);
 
     this.initFilterForm();
     this.initUI();
@@ -158,6 +160,13 @@ CRM.PivotReport.PivotTable = (function($) {
   };
 
   /**
+   * Gets entity name.
+   */
+  PivotTable.prototype.getEntityName = function() {
+    return this.config.entityName;
+  }
+
+  /**
    * Initializes Pivot Report filter form.
    */
   PivotTable.prototype.initFilterForm = function() {
@@ -224,7 +233,7 @@ CRM.PivotReport.PivotTable = (function($) {
 
     CRM.api3(apiCalls).done(function (result) {
       that.dateFields = result.dateFields.values;
-      that.relativeFilters = result.relativeFilters.values
+      that.relativeFilters = result.relativeFilters.values;
       that.header = result.getHeader.values;
       that.total = parseInt(result.getCount.result, 10);
       that.crmConfig = result.getConfig.values[0];
@@ -301,7 +310,16 @@ CRM.PivotReport.PivotTable = (function($) {
     }
 
     this.initPivotTable(data);
-    this.data = [];
+  };
+
+  /**
+   * Applies specified config for current Pivot Table data.
+   *
+   * @param {array} data
+   */
+  PivotTable.prototype.applyConfig = function(config) {
+    this.pivotTableContainer.pivotUI(this.data, config , true);
+    this.initDateFilters();
   };
 
   /**
@@ -344,7 +362,7 @@ CRM.PivotReport.PivotTable = (function($) {
       this.pivotReportKeyValueTo.val(filterValueTo).trigger('change');
     }
 
-    $("#pivot-report-table").html('');
+    this.pivotTableContainer.html('');
 
     CRM.api3(this.config.entityName, 'getcount', this.config.getCountParams(filterValueFrom, filterValueTo)).done(function(result) {
       var totalFiltered = parseInt(result.result, 10);
@@ -380,7 +398,7 @@ CRM.PivotReport.PivotTable = (function($) {
       $('#pivot-report-filters').addClass('hidden');
     }
 
-    $("#pivot-report-table").html('');
+    this.pivotTableContainer.html('');
     $('#pivot-report-preloader').removeClass('hidden');
 
     this.loadData({
@@ -390,6 +408,25 @@ CRM.PivotReport.PivotTable = (function($) {
     });
   };
 
+  /**
+   * Handle Pivot Table refreshing.
+   *
+   * @param {JSON} config
+   */
+  PivotTable.prototype.pivotTableOnRefresh = function(config) {
+    var configCopy = JSON.parse(JSON.stringify(config));
+
+    //delete some values which are functions
+    delete configCopy["aggregators"];
+    delete configCopy["renderers"];
+
+    //delete some bulky default values
+    delete configCopy["rendererOptions"];
+    delete configCopy["localeStrings"];
+
+    this.PivotConfig.setPivotConfig(configCopy);
+  }
+
   /*
    * Inits Pivot Table with given data.
    *
@@ -398,7 +435,7 @@ CRM.PivotReport.PivotTable = (function($) {
   PivotTable.prototype.initPivotTable = function(data) {
     var that = this;
 
-    $("#pivot-report-table").pivotUI(data, {
+    this.pivotTableContainer.pivotUI(data, {
         rendererName: "Table",
         renderers: $.extend(
             $.pivotUtilities.renderers, 
@@ -413,12 +450,15 @@ CRM.PivotReport.PivotTable = (function($) {
         rendererOptions: {
             c3: {
                 size: {
-                    width: parseInt($('#pivot-report-table').width() * 0.78, 10)
+                    width: parseInt(that.pivotTableContainer.width() * 0.78, 10)
                 }
             },
         },
         derivedAttributes: that.config.derivedAttributes,
         hiddenAttributes: that.config.hiddenAttributes,
+        onRefresh: function (config) {
+          return that.pivotTableOnRefresh(config);
+        }
     }, false);
 
     this.initDateFilters();

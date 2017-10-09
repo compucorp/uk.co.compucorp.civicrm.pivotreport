@@ -134,12 +134,15 @@ function activityreport_civicrm_pageRun($page) {
       ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'packages/pivottable/c3_renderers.min.js', 2, 'html-header')
       ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'packages/pivottable-cc/export_renderers.js', 2, 'html-header')
       ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'packages/moment.js/moment.min.js', 2, 'html-header')
-      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/PivotReport.Filter.js', 3, 'html-header')
-      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/PivotReport.Dates.js', 3, 'html-header')
-      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/PivotReport.PivotTable.js', 4, 'html-header');
+      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'packages/bootstrap-sweetalert/sweetalert.min.js', 3, 'html-header')
+      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/PivotReport.Filter.js', 4, 'html-header')
+      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/PivotReport.Dates.js', 5, 'html-header')
+      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/PivotReport.Config.js', 6, 'html-header')
+      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/PivotReport.PivotTable.js', 7, 'html-header');
     CRM_Core_Resources::singleton()
       ->addStyleFile('uk.co.compucorp.civicrm.activityreport', 'packages/c3/c3.min.css', 1)
       ->addStyleFile('uk.co.compucorp.civicrm.activityreport', 'packages/pivottable/pivot.min.css', 2)
+      ->addStyleFile('uk.co.compucorp.civicrm.activityreport', 'packages/bootstrap-sweetalert/sweetalert.min.css', 3)
       ->addStyleFile('uk.co.compucorp.civicrm.activityreport', 'css/style.css', 3);
   }
 }
@@ -155,4 +158,15 @@ function activityreport_civicrm_permission(&$permissions) {
   $permissions += array(
     'access CiviCRM pivot table reports' => $prefix . ts('access CiviCRM pivot table reports'),
   );
+}
+
+/**
+ * Implements hook_civicrm_entityTypes().
+ */
+function activityreport_civicrm_entityTypes(&$entityTypes) {
+  $entityTypes[] = [
+    'name'  => 'ActivityReportConfig',
+    'class' => 'CRM_Activityreport_DAO_ActivityReportConfig',
+    'table' => 'civicrm_pivotreport_config',
+  ];
 }
