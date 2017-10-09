@@ -104,8 +104,12 @@ CRM.PivotReport.Config = (function($) {
     var that = this;
     var configId = this.getReportConfigurationId();
     if (!configId) {
+      $('#pivot-report-config .report-config-save-btn').hide();
       return false;
     }
+
+    $('#pivot-report-config .report-config-save-btn').show();
+
     CRM.api3('ActivityReportConfig', 'getsingle', {
       'id': configId
     }).done(function(result) {
