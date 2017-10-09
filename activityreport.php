@@ -136,8 +136,9 @@ function activityreport_civicrm_pageRun($page) {
       ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'packages/moment.js/moment.min.js', 2, 'html-header')
       ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'packages/bootstrap-sweetalert/sweetalert.min.js', 3, 'html-header')
       ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/PivotReport.Filter.js', 4, 'html-header')
-      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/PivotReport.Config.js', 5, 'html-header')
-      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/PivotReport.PivotTable.js', 6, 'html-header');
+      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/PivotReport.Dates.js', 5, 'html-header')
+      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/PivotReport.Config.js', 6, 'html-header')
+      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/PivotReport.PivotTable.js', 7, 'html-header');
     CRM_Core_Resources::singleton()
       ->addStyleFile('uk.co.compucorp.civicrm.activityreport', 'packages/c3/c3.min.css', 1)
       ->addStyleFile('uk.co.compucorp.civicrm.activityreport', 'packages/pivottable/pivot.min.css', 2)

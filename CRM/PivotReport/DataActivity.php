@@ -6,16 +6,13 @@
 class CRM_PivotReport_DataActivity extends CRM_PivotReport_AbstractData {
 
   /**
-   * @inheritdoc
+   * CRM_PivotReport_DataActivity constructor.
    */
-  protected $additionalHeaderFields = array(
-    'Activity Date' => null,
-    'Activity Start Date Months' => null,
-    'Activity Expire Date' => null,
-  );
+  public function __construct() {
+    parent::__construct('Activity');
 
-  public function __construct($name = NULL) {
-    $this->name = 'Activity';
+    $this->additionalHeaderFields['Activity Date'] = null;
+    $this->additionalHeaderFields['Activity Expire Date'] = null;
   }
 
   /**
