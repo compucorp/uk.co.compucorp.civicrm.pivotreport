@@ -147,15 +147,27 @@ CRM.PivotReport.Config = (function($) {
    * Saves new Report configuration basing on currently set configuration.
    */
   Config.prototype.configSaveNew = function() {
-    var newLabelInput = $('input[name="report-config-new-label"]');
-    if (!newLabelInput.val().trim()) {
-      CRM.alert('Configuration name cannot be empty.', 'Error saving new Pivot configuration.', 'error');
-      return;
-    }
+    var that = this;
 
-    this.configSaveProcess(0, newLabelInput.val().trim());
+    swal({
+      title: 'New Report configuration',
+      text: 'Configuration name:',
+      type: 'input',
+      showCancelButton: true,
+      closeOnConfirm: true,
+      inputPlaceholder: 'New configuration label'
+    }, function (inputValue) {
+      if (inputValue === false) {
+        return false;
+      }
 
-    newLabelInput.val('');
+      if (inputValue === '') {
+        swal.showInputError('Configuration name cannot be empty.');
+        return false;
+      }
+
+      that.configSaveProcess(0, inputValue);
+    });
   }
 
   /**
