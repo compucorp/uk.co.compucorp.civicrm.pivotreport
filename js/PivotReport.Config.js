@@ -54,18 +54,20 @@ CRM.PivotReport.Config = (function($) {
       }
 
       if (!configId) {
-        $('.report-config-select', this.container).append('<option value="' + result.id + '">' + result.values[result.id].label + '</option>');
+        $('.report-config-select', that.container).append('<option value="' + result.id + '">' + result.values[result.id].label + '</option>');
         var emptyOption = $('.report-config-select option[value=""]', this.container).text();
-        $('.report-config-select option[value=""]', this.container).remove();
+        $('.report-config-select option[value=""]', that.container).remove();
 
         // Sort options by their labels alphabetically.
-        $('.report-config-select', this.container).append($(".report-config-select option").remove().sort(function(a, b) {
+        $('.report-config-select', that.container).append($(".report-config-select option").remove().sort(function(a, b) {
           var at = $(a).text().toLocaleLowerCase(), bt = $(b).text().toLocaleLowerCase();
           return (at > bt) ? 1 : ((at < bt) ? -1 : 0);
         }));
 
-        $('.report-config-select', this.container).prepend('<option value="">' + emptyOption + '</option>');
-        $('.report-config-select', this.container).val(result.id);
+        $('.report-config-select', that.container).prepend('<option value="">' + emptyOption + '</option>');
+        $('.report-config-select', that.container).val(result.id);
+
+        $('.report-config-save-btn', that.container).show();
       }
 
       CRM.alert('Report configuration has been saved', 'Success', 'success');
@@ -104,11 +106,11 @@ CRM.PivotReport.Config = (function($) {
     var that = this;
     var configId = this.getReportConfigurationId();
     if (!configId) {
-      $('#pivot-report-config .report-config-save-btn').hide();
+      $('.report-config-save-btn', this.container).hide();
       return false;
     }
 
-    $('#pivot-report-config .report-config-save-btn').show();
+    $('.report-config-save-btn', this.container).show();
 
     CRM.api3('ActivityReportConfig', 'getsingle', {
       'id': configId
