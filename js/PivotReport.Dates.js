@@ -53,6 +53,15 @@ CRM.PivotReport.Dates = (function($) {
     return inRange;
   };
 
+  /**
+   * Calculates start and end dates for given relative date range and unit.
+   *
+   * @param string relativeTerm
+   * @param string unit
+   *
+   * @returns {{startDate: Date, endDate: Date}}
+   *   Object with calculated start and end dates.
+   */
   Dates.prototype.getRelativeStartAndEndDates = function (relativeTerm, unit) {
     var dates = {};
 
