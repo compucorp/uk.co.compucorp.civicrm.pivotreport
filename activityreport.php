@@ -135,6 +135,7 @@ function activityreport_civicrm_pageRun($page) {
       ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'packages/pivottable-cc/export_renderers.js', 2, 'html-header')
       ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'packages/moment.js/moment.min.js', 2, 'html-header')
       ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/PivotReport.Filter.js', 3, 'html-header')
+      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/PivotReport.Dates.js', 3, 'html-header')
       ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/PivotReport.PivotTable.js', 4, 'html-header');
     CRM_Core_Resources::singleton()
       ->addStyleFile('uk.co.compucorp.civicrm.activityreport', 'packages/c3/c3.min.css', 1)
