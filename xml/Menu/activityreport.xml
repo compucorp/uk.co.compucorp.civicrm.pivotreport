@@ -18,4 +18,10 @@
     <page_arguments>entity=Membership</page_arguments>
     <access_arguments>access CiviCRM pivot table reports</access_arguments>
   </item>
+  <item>
+    <path>civicrm/prospect-report</path>
+    <page_callback>CRM_Activityreport_Page_PivotReport</page_callback>
+    <page_arguments>entity=Prospect</page_arguments>
+    <access_arguments>access CiviCRM pivot table reports</access_arguments>
+  </item>
 </menu>

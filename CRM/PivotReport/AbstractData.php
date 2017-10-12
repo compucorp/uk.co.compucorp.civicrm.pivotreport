@@ -81,12 +81,28 @@ abstract class CRM_PivotReport_AbstractData implements CRM_PivotReport_DataInter
   protected $name = NULL;
 
   /**
+   * Name of API Entity.
+   *
+   * @var string
+   */
+  protected $apiEntityName = NULL;
+
+  /**
    * CRM_PivotReport_AbstractData constructor.
    *
+   * Some entities may have different API name than data group name. In this case
+   * we can specify $apiEntityName value to define Entity name used with API
+   * calls.
+   *
+   * If Entity name is the same as data group name then $apiEntityName
+   * parameter can be empty.
+   *
    * @param string $name
+   * @param string $apiEntityName
    */
-  public function __construct($name) {
+  public function __construct($name, $apiEntityName = NULL) {
     $this->name = $name;
+    $this->apiEntityName = $apiEntityName ? $apiEntityName : $name;
 
     $dateFields = $this->getDateFields();
 
@@ -164,7 +180,6 @@ abstract class CRM_PivotReport_AbstractData implements CRM_PivotReport_DataInter
       }
 
       $pages = $this->getPaginatedResults($apiParams, $offset, $multiValuesOffset, $page, $index);
-
       $count += $this->cachePages($cacheGroup, $pages);
 
       $lastPageIndex = count($pages) - 1;
@@ -201,7 +216,7 @@ abstract class CRM_PivotReport_AbstractData implements CRM_PivotReport_DataInter
 
     $apiParams['options']['offset'] = $offset;
 
-    $entities = civicrm_api3($this->name, 'get', $apiParams);
+    $entities = civicrm_api3($this->apiEntityName, 'get', $apiParams);
 
     $formattedEntities = $this->formatResult($entities['values']);
 
@@ -530,7 +545,7 @@ abstract class CRM_PivotReport_AbstractData implements CRM_PivotReport_DataInter
           $this->formattedValues[$key][$value] = $result;
           return $result;
         break;
-        // For few field types we can use 'formatCustomValues()' core method.
+        // For few field types we can use 'displayValue()' core method.
         case 'Date':
         case 'Boolean':
         case 'Link':
@@ -538,7 +553,7 @@ abstract class CRM_PivotReport_AbstractData implements CRM_PivotReport_DataInter
         case 'Country':
           $data = array('data' => $value);
           CRM_Utils_System::url();
-          $result = CRM_Core_BAO_CustomGroup::formatCustomValues($data, $fields[$key]['customField']);
+          $result = CRM_Core_BAO_CustomField::displayValue($data, $fields[$key]['customField']);
           $this->formattedValues[$key][$value] = $result;
           return $result;
         break;
@@ -615,9 +630,12 @@ abstract class CRM_PivotReport_AbstractData implements CRM_PivotReport_DataInter
 
     foreach ($fields as $key => $value) {
       if (!CRM_Utils_Array::value('api_call', $value, false)) {
-        if (!empty($value['title'])) {
+        if (!is_array($value)) {
+          $key = $value;
+        } elseif (!empty($value['title'])) {
           $key = $value['title'];
         }
+
         $result[$key] = '';
       }
     }
