@@ -2,23 +2,7 @@
 <script type="text/javascript">
   CRM.$(function ($) {
     CRM.$('#reportSelectorBtn').on( "click", function() {
-
-      var url = '';
-
-      switch (CRM.$('#CRMData').val()) {
-        case 'Activity':
-          url = CRM.url('civicrm/activity-report', {});
-          break;
-
-        case 'Contribution':
-          url = CRM.url('civicrm/contribution-report', {});
-          break;
-
-        case 'Membership':
-          url = CRM.url('civicrm/membership-report', {});
-          break;
-      }
-
+      var url = CRM.url('civicrm/' + CRM.$('#CRMData').val().toLocaleLowerCase() + '-report', {});
       window.location.href = url;
     });
   });
