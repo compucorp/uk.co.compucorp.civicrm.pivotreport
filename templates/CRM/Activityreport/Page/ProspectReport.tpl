@@ -2,7 +2,7 @@
 <script type="text/javascript">
     CRM.$(function ($) {
       new CRM.PivotReport.PivotTable({
-        'entityName': 'Contribution',
+        'entityName': 'Prospect',
       });
     });
 </script>
