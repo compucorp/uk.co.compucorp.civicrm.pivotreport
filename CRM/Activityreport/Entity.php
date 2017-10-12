@@ -3,15 +3,23 @@
 class CRM_Activityreport_Entity {
 
   /**
+   * Entities which may be supported by the extension.
+   *
+   * @var array
+   */
+  private static $entities = array(
+    'Activity' => TRUE,
+    'Contribution' => TRUE,
+    'Membership' => TRUE,
+    'Prospect' => 'uk.co.compucorp.civicrm.prospect',
+  );
+
+  /**
    * Entities supported by the extension.
    *
    * @var array
    */
-  private static $supportedEntities = array(
-    'Activity',
-    'Contribution',
-    'Membership',
-  );
+  private static $supportedEntities = array();
 
   /**
    * Entity name.
@@ -42,7 +50,7 @@ class CRM_Activityreport_Entity {
    * @return bool
    */
   private function isSupported() {
-    return in_array($this->entityName, self::$supportedEntities);
+    return in_array($this->entityName, self::getSupportedEntities());
   }
 
   /**
@@ -51,6 +59,25 @@ class CRM_Activityreport_Entity {
    * @return array
    */
   public static function getSupportedEntities() {
+    if (empty(self::$supportedEntities)) {
+      foreach (self::$entities as $key => $value) {
+        if ($value === TRUE) {
+          self::$supportedEntities[] = $key;
+        } else {
+          $isEnabled = CRM_Core_DAO::getFieldValue(
+            'CRM_Core_DAO_Extension',
+            $value,
+            'is_active',
+            'full_name'
+          );
+
+          if ($isEnabled) {
+            self::$supportedEntities[] = $key;
+          }
+        }
+      }
+    }
+
     return self::$supportedEntities;
   }
 
