@@ -125,13 +125,13 @@ class CRM_PivotReport_DataProspect extends CRM_PivotReport_AbstractData {
     foreach ($contacts as $contact) {
       if (!empty($contact['manager']) && (int) $contact['manager'] === 1) {
         return array(
-          'Case Manager Display Name' => $contact['display_name'],
+          ts('Case Manager Display Name') => $contact['display_name'],
         );
       }
     }
 
     return array(
-      'Case Manager Display Name' => '',
+      ts('Case Manager Display Name') => '',
     );
   }
 
@@ -245,17 +245,17 @@ class CRM_PivotReport_DataProspect extends CRM_PivotReport_AbstractData {
       }
 
       // Additional fields connected with Prospect data.
-      $fields['client']['id'] = 'Case Client ID';
-      $fields['client']['display_name'] = 'Case Client Display Name';
-      $fields['client']['contact_type'] = 'Case Client Type';
-      $fields['client']['contact_sub_type'] = 'Case Client Subtype';
+      $fields['client']['id'] = ts('Case Client ID');
+      $fields['client']['display_name'] = ts('Case Client Display Name');
+      $fields['client']['contact_type'] = ts('Case Client Type');
+      $fields['client']['contact_sub_type'] = ts('Case Client Subtype');
 
-      $fields['manager']['display_name'] = 'Case Manager Display Name';
+      $fields['manager']['display_name'] = ts('Case Manager Display Name');
 
-      $fields['pledge']['pledge_start_date'] = array('title' => 'Pledge Start Date', 'type' => CRM_Utils_Type::T_DATE);
-      $fields['pledge']['pledge_end_date'] = array('title' => 'Pledge End Date', 'type' => CRM_Utils_Type::T_DATE);
-      $fields['pledge']['pledge_total_paid'] = 'Pledge Total Paid';
-      $fields['pledge']['pledge_balance'] = 'Pledge Balance';
+      $fields['pledge']['pledge_start_date'] = array('title' => ts('Pledge Start Date'), 'type' => CRM_Utils_Type::T_DATE);
+      $fields['pledge']['pledge_end_date'] = array('title' => ts('Pledge End Date'), 'type' => CRM_Utils_Type::T_DATE);
+      $fields['pledge']['pledge_total_paid'] = ts('Pledge Total Paid');
+      $fields['pledge']['pledge_balance'] = ts('Pledge Balance');
 
       $includeFields = array(
         'contribution' => array(
