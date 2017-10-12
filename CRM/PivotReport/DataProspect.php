@@ -152,6 +152,7 @@ class CRM_PivotReport_DataProspect extends CRM_PivotReport_AbstractData {
       if (!empty($fields[$key]['title'])) {
         $label = $fields[$key]['title'];
       }
+      $label = ts($label);
 
       $formattedValue = $this->formatValue($key, $value);
       $result[$label] = $formattedValue;
