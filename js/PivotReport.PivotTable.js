@@ -235,7 +235,7 @@ CRM.PivotReport.PivotTable = (function($) {
       that.dateFields = result.dateFields.values;
       that.relativeFilters = result.relativeFilters.values;
       that.header = result.getHeader.values;
-      that.total = parseInt(result.getCount.result, 10);
+      that.total = parseInt(result.getCount, 10);
       that.crmConfig = result.getConfig.values[0];
 
       $.each(that.dateFields, function (i, value) {
@@ -246,6 +246,7 @@ CRM.PivotReport.PivotTable = (function($) {
         CRM.alert(that.config.initialLoad.message, '', 'info');
 
         $('input[type="button"].load-all-data-button', this.pivotReportForm).removeClass('hidden');
+        $('#pivot-report-filters').show();
         var filter = that.config.initialLoad.getFilter();
 
         that.loadDataByFilter(filter.getFrom(), filter.getTo());
@@ -370,7 +371,7 @@ CRM.PivotReport.PivotTable = (function($) {
       if (!totalFiltered) {
         $('#pivot-report-preloader').addClass('hidden');
 
-        if (this.config.filter) {
+        if (that.config.filter) {
           $('#pivot-report-filters').removeClass('hidden');
         }
 
@@ -447,6 +448,7 @@ CRM.PivotReport.PivotTable = (function($) {
         cols: [],
         aggregatorName: "Count",
         unusedAttrsVertical: false,
+        menuLimit: 5000,
         rendererOptions: {
             c3: {
                 size: {

@@ -1,11 +1,19 @@
 <div id="pivot-report-filters" class="hidden">
   <form>
-    <label for="keyvalue_from">Activity start date</label>
-    <input type="text" name="keyvalue_from" value="">
-    <label for="keyvalue_to">Activity end date</label>
-    <input type="text" name="keyvalue_to" value="">
-    <input class="apply-filters-button" type="button" value="Apply filters">
-    <input class="load-all-data-button hidden" type="button" value="Load all data">
+    <fieldset>
+      <legend>Working Dataset Filter</legend>
+      <p>
+        The total number of activities exceeds 50,000. Only last 30 days loaded.
+        Use this form to change the date range for which data needs to be
+        visualized.
+      </p>
+      <label for="keyvalue_from">Activity start date</label>
+      <input type="text" name="keyvalue_from" value="">
+      <label for="keyvalue_to">Activity end date</label>
+      <input type="text" name="keyvalue_to" value="">
+      <input class="apply-filters-button" type="button" value="Apply filters">
+      <input class="load-all-data-button hidden" type="button" value="Load all data">
+    </fieldset>
   </form>
 </div>
 
@@ -15,9 +23,10 @@
       new CRM.PivotReport.PivotTable({
         'entityName': 'Activity',
         'filter': true,
+        'filterField': 'Activity Date',
         'initialLoad': {
-          'limit': 5000,
-          'message': 'There are more than 5000 items, getting only items from last 30 days.',
+          'limit': 50000,
+          'message': 'There are more than 50000 items, getting only items from last 30 days.',
           'getFilter': function() {
             var startDateFilterValue = new Date();
             var endDateFilterValue = new Date();
