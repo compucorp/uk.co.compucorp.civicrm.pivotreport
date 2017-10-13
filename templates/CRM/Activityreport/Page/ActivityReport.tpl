@@ -7,9 +7,9 @@
         Use this form to change the date range for which data needs to be
         visualized.
       </p>
-      <label for="keyvalue_from">Activity start date</label>
+      <label for="keyvalue_from">Load Activities From:</label>
       <input type="text" name="keyvalue_from" value="">
-      <label for="keyvalue_to">Activity end date</label>
+      <label for="keyvalue_to">To:</label>
       <input type="text" name="keyvalue_to" value="">
       <input class="apply-filters-button" type="button" value="Apply filters">
       <input class="load-all-data-button hidden" type="button" value="Load all data">
