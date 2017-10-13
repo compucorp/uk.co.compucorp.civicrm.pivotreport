@@ -7,8 +7,8 @@ CRM.PivotReport.Dates = (function($) {
    *
    * @constructor
    */
-  function Dates() {
-
+  function Dates(config) {
+    this.crmConfig = config;
   };
 
   /**
