@@ -652,7 +652,7 @@ abstract class CRM_PivotReport_AbstractData implements CRM_PivotReport_DataInter
     $fields = $this->getFields();
 
     foreach ($fields as $field => $fieldData) {
-      if ($fieldData['type'] & CRM_Utils_Type::T_DATE) {
+      if (!empty($fieldData['type']) && ($fieldData['type'] & CRM_Utils_Type::T_DATE)) {
         $result[] = $fieldData['title'];
       }
     }
