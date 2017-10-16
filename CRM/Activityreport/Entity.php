@@ -9,6 +9,7 @@ class CRM_Activityreport_Entity {
    */
   private static $entities = array(
     'Activity' => TRUE,
+    'Case' => TRUE,
     'Contribution' => TRUE,
     'Membership' => TRUE,
     'Prospect' => 'uk.co.compucorp.civicrm.prospect',
