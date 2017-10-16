@@ -77,6 +77,6 @@ select.relativeFilter {
   vertical-align: middle;
 }
 
-#pivot-report-config .hidden {
+#pivot-report-config .hidden, #pivot-report-filters {
   display: none;
 }
