@@ -62,7 +62,7 @@ CRM.PivotReport.PivotTable = (function($) {
 
           if ($.inArray($(this).text().replace(/[()0-9]/g, ''), that.dateFields) >= 0) {
             $(this).after('' +
-              '<div class="inner_date_filters">' +
+              '<div id="inner_' + fieldName + '" class="inner_date_filters">' +
               ' <form>' +
               '   <input type="text" id="fld_' + fieldName + '_start" name="fld_' + fieldName + '_start" class="inner_date fld_' + fieldName + '_start" value=""> - ' +
               '   <input type="text" id="fld_' + fieldName + '_end" name="fld_' + fieldName + '_end" class="inner_date fld_' + fieldName + '_end" value="">' +
@@ -113,7 +113,7 @@ CRM.PivotReport.PivotTable = (function($) {
         $('input.' + fieldInfo[1]).each(function () {
           var checkDateValue = $('span.value', $(this).parent()).text();
           var checked = false;
-          var dateChecker = new CRM.PivotReport.Dates();
+          var dateChecker = new CRM.PivotReport.Dates(that.crmConfig);
 
           if (dateChecker.dateInRange(checkDateValue, startDateValue, endDateValue)) {
             checked = true;
@@ -146,7 +146,7 @@ CRM.PivotReport.PivotTable = (function($) {
     var unit = relativeDateInfo[1];
     var relativeTerm = relativeDateInfo[0];
 
-    var dateCalculator = new CRM.PivotReport.Dates();
+    var dateCalculator = new CRM.PivotReport.Dates(this.crmConfig);
     var dates = dateCalculator.getRelativeStartAndEndDates(relativeTerm, unit);
 
     var fieldInfo = select.attr('name').split('_');
@@ -157,6 +157,12 @@ CRM.PivotReport.PivotTable = (function($) {
 
     $('#fld_' + fieldName + '_end').val(CRM.utils.formatDate(dates.endDate, CRM.config.dateInputFormat)).change();
     $('input.inner_date.fld_' + fieldName + '_end.hasDatepicker').val(CRM.utils.formatDate(dates.endDate, CRM.config.dateInputFormat));
+
+    if (select.val() !== '') {
+      $('#inner_' + fieldName).hide();
+    } else {
+      $('#inner_' + fieldName).show();
+    }
   };
 
   /**
