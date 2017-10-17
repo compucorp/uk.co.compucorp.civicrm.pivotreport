@@ -9,7 +9,7 @@ class CRM_PivotReport_DataProspect extends CRM_PivotReport_AbstractData {
    * CRM_PivotReport_DataProspect constructor.
    */
   public function __construct() {
-    parent::__construct('Prospect', 'ProspectConverted');
+    parent::__construct('Prospect', 'Case');
   }
 
   /**
@@ -18,16 +18,30 @@ class CRM_PivotReport_DataProspect extends CRM_PivotReport_AbstractData {
   protected function getEntityApiParams(array $inputParams) {
     $params = array(
       'sequential' => 1,
-      'api.Case.getsingle' => array('id' => '$value.prospect_case_id', 'api.Contact.get' => array('id' => array('IN' => '$value.client_id'), 'return' => array('id', 'contact_type', 'contact_sub_type', 'display_name'))),
-      'api.Contribution.get' => array('id' => '$value.payment_entity_id', 'return' => array('id', 'financial_type_id', 'contribution_status', 'total_amount', 'receive_date', 'receipt_date')),
-      'api.Pledge.get' => array('id' => '$value.payment_entity_id', 'return' => array('id', 'financial_type_id', 'status_id', 'pledge_amount', 'pledge_total_paid', 'pledge_create_date', 'pledge_start_date', 'pledge_end_date')),
+      'api.Contact.get' => array('id' => array('IN' => '$value.client_id'), 'return' => array('id', 'contact_type', 'contact_sub_type', 'display_name')),
+      'api.ProspectConverted.get' => array('prospect_case_id' => '$value.id'),
+      'return' => array_merge($this->getCaseFields(), array('contacts')),
       'options' => array(
-        'sort' => 'prospect_case_id ASC',
+        'sort' => 'id ASC',
         'limit' => self::ROWS_API_LIMIT,
       ),
     );
 
     return $params;
+  }
+
+  protected function getCaseFields() {
+    $result = array();
+    $fields = array_keys($this->getFields());
+
+    foreach ($fields as $field) {
+      $fieldParts = explode('.', $field);
+      if ($fieldParts[0] === 'case') {
+        $result[] = $fieldParts[1];
+      }
+    }
+
+    return $result;
   }
 
   /**
@@ -37,21 +51,44 @@ class CRM_PivotReport_DataProspect extends CRM_PivotReport_AbstractData {
     $result = array();
     $fields = $this->getFields();
 
-    foreach ($data as $key => $prospect) {
-      $caseValues = $this->getCaseValues($prospect['api.Case.getsingle']);
-      $clientValues = $this->getRowValues($prospect['api.Case.getsingle']['api.Contact.get']['values'][0], 'client');
-      $managerValues = $this->getManager($prospect['api.Case.getsingle']['contacts']);
+    foreach ($data as $key => $inputRow) {
+      $caseValues = $this->getCaseValues($inputRow);
+      $clientValues = $this->getRowValues($inputRow['api.Contact.get']['values'][0], 'client');
+      $managerValues = $this->getManager($inputRow['contacts']);
 
       $paymentValues = array();
-      if ((int) $prospect['payment_type_id'] === CRM_Prospect_BAO_ProspectConverted::PAYMENT_TYPE_CONTRIBUTION) {
-        $paymentValues = $this->getRowValues($prospect['api.Contribution.get']['values'][0], 'contribution');
-      } else {
-        $paymentValues = $this->getRowValues($prospect['api.Pledge.get']['values'][0], 'pledge');
-        $paymentValues['Pledge Balance'] = CRM_Utils_Money::format((float) $paymentValues['pledge.pledge_amount'] - (float) $paymentValues[$fields['pledge.pledge_total_paid']], NULL, NULL, TRUE);
+      if (!empty($inputRow['api.ProspectConverted.get']['values'][0])) {
+        $paymentEntityId = $inputRow['api.ProspectConverted.get']['values'][0]['payment_entity_id'];
+        if ((int) $inputRow['api.ProspectConverted.get']['values'][0]['payment_type_id'] === CRM_Prospect_BAO_ProspectConverted::PAYMENT_TYPE_CONTRIBUTION) {
+          $contribution = civicrm_api3('Contribution', 'get', array(
+              'sequential' => 1,
+              'id' => $paymentEntityId,
+              'return' => array('id', 'financial_type_id', 'contribution_status', 'total_amount', 'receive_date', 'receipt_date'),
+              'options' => array(
+                'limit' => 1,
+              ),
+            )
+          );
+
+          $paymentValues = $this->getRowValues($contribution['values'][0], 'contribution');
+        } else {
+          $pledge = civicrm_api3('Pledge', 'get', array(
+              'sequential' => 1,
+              'id' => $paymentEntityId,
+              'return' => array('id', 'financial_type_id', 'pledge_status', 'pledge_amount', 'pledge_total_paid', 'pledge_create_date', 'pledge_start_date', 'pledge_end_date'),
+              'options' => array(
+                'limit' => 1,
+              ),
+            )
+          );
+
+          $paymentValues = $this->getRowValues($pledge['values'][0], 'pledge');
+          $paymentValues[ts('Pledge Balance')] = CRM_Utils_Money::format((float) $paymentValues['pledge.pledge_amount'] - (float) $paymentValues[$fields['pledge.pledge_total_paid']], NULL, NULL, TRUE);
+        }
       }
 
-      $row = array_merge($this->emptyRow, $this->additionalHeaderFields, $caseValues, $clientValues, $managerValues, $paymentValues);
-      $result[] = $this->formatRow($key, $row);
+      $outputRow = array_merge($this->emptyRow, $this->additionalHeaderFields, $caseValues, $clientValues, $managerValues, $paymentValues);
+      $result[] = $this->formatRow($key, $outputRow);
     }
 
     return $result;
@@ -257,13 +294,14 @@ class CRM_PivotReport_DataProspect extends CRM_PivotReport_AbstractData {
       $fields['pledge']['pledge_end_date'] = array('title' => ts('Pledge End Date'), 'type' => CRM_Utils_Type::T_DATE);
       $fields['pledge']['pledge_total_paid'] = ts('Pledge Total Paid');
       $fields['pledge']['pledge_balance'] = ts('Pledge Balance');
+      $fields['pledge']['pledge_status'] = ts('Pledge Status');
 
       $includeFields = array(
         'contribution' => array(
           'contribution_id', 'financial_type_id', 'total_amount', 'receive_date', 'receipt_date',
         ),
         'pledge' => array(
-          'pledge_id', 'pledge_financial_type_id', 'pledge_status_id', 'pledge_amount', 'pledge_create_date',
+          'pledge_id', 'pledge_financial_type_id', 'pledge_amount', 'pledge_create_date',
         ),
       );
 
@@ -282,7 +320,7 @@ class CRM_PivotReport_DataProspect extends CRM_PivotReport_AbstractData {
 
       foreach ($groups as $group) {
         foreach ($fields[$group] as $key => $value) {
-          if (!empty($keys[$group][$value['name']])) {
+          if (!empty($value['name']) && !empty($keys[$group][$value['name']])) {
             $key = $value['name'];
           }
           $result[$group . '.' . $key] = $value;
