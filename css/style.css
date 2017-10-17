@@ -12,7 +12,8 @@
 
 /* Customizing CSS for PivotTable */
 table.pvtUi {
-    max-width: 100%;
+  max-width: 100%;
+  border-collapse: separate;
 }
 
 table.pvtUi td:first-child {
@@ -41,6 +42,8 @@ th.pvtAxisLabel, th.pvtRowLabel, th.pvtColLabel {
 }
 
 select.pvtAggregator {
+  margin: 0;
+  width: 80%;
 }
 
 .pvtHorizList li {
@@ -108,4 +111,23 @@ span.pvtTriangle {
   text-indent: 100%;
   white-space: nowrap;
   overflow: hidden;
+}
+
+td.pvtVals {
+  width: 20%;
+  padding: 20px;
+  vertical-align: middle;
+}
+
+#cols_help_msg, #rows_help_msg {
+  margin: 20px;
+  color: #aaa;
+  font-size: small;
+}
+
+table.pvtUi td.pvtVertList {
+  height: 38em;
+  overflow-y: scroll;
+  display: inline-block;
+  width: 190px;
 }

@@ -507,7 +507,7 @@ CRM.PivotReport.PivotTable = (function($) {
       rendererOptions: {
         c3: {
           size: {
-            width: parseInt(that.pivotTableContainer.width() * 0.78, 10)
+            width: parseInt(that.pivotTableContainer.width() * 0.6, 10)
           }
         },
       },
