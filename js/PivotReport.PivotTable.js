@@ -319,8 +319,56 @@ CRM.PivotReport.PivotTable = (function($) {
    */
   PivotTable.prototype.applyConfig = function(config) {
     this.pivotTableContainer.pivotUI(this.data, config , true);
-    this.initDateFilters();
+    this.postRender();
   };
+
+  /**
+   * Makes changes to the pivot report after it is rendered.
+   */
+  PivotTable.prototype.postRender = function() {
+    this.initDateFilters();
+    this.uxImprovements();
+  }
+
+  /**
+   * Implemnts several UX improvements
+   */
+  PivotTable.prototype.uxImprovements = function() {
+    // Move Chart Type Selection Box
+    $('#pivot-report-type').html('');
+    $('#pivot-report-type').append($('select.pvtRenderer'));
+
+    // Prepend Filter Icon to Field Labels
+    $('li.ui-sortable-handle span.pvtAttr span.pvtTriangle').each(function() {
+      $(this).prependTo($(this).parent().parent());
+    });
+
+    // Add Empty Help Message to Rows
+    $('td.pvtAxisContainer.pvtRows').append(
+      '<div id="rows_help_msg">Drag and drop a field here from the list on the left to add as a row heading in the report.</div>'
+    );
+
+    $('td.pvtAxisContainer.pvtRows').bind("DOMSubtreeModified",function(){
+      if ($('td.pvtAxisContainer.pvtRows li.ui-sortable-handle').length < 1) {
+        $('#rows_help_msg').show();
+      } else {
+        $('#rows_help_msg').hide();
+      }
+    });
+
+    // Add empty Help Messaage to Columns
+    $('td.pvtAxisContainer.pvtCols').append(
+      '<div id="cols_help_msg">Drag and drop a field here from the list on the left to add as a column heading in the report.</div>'
+    );
+
+    $('td.pvtAxisContainer.pvtCols').bind("DOMSubtreeModified",function(){
+      if ($('td.pvtAxisContainer.pvtCols li.ui-sortable-handle').length < 1) {
+        $('#cols_help_msg').show();
+      } else {
+        $('#cols_help_msg').hide();
+      }
+    });
+  }
 
   /**
    * Formats incoming data (combine header with fields values)
@@ -434,34 +482,35 @@ CRM.PivotReport.PivotTable = (function($) {
    */
   PivotTable.prototype.initPivotTable = function(data) {
     var that = this;
+    this.data = data;
 
-    this.pivotTableContainer.pivotUI(data, {
-        rendererName: "Table",
-        renderers: $.extend(
-            $.pivotUtilities.renderers, 
-            $.pivotUtilities.c3_renderers,
-            $.pivotUtilities.export_renderers
-        ),
-        vals: ["Total"],
-        rows: [],
-        cols: [],
-        aggregatorName: "Count",
-        unusedAttrsVertical: false,
-        rendererOptions: {
-            c3: {
-                size: {
-                    width: parseInt(that.pivotTableContainer.width() * 0.78, 10)
-                }
-            },
+    var config = {
+      rendererName: "Table",
+      renderers: $.extend(
+        $.pivotUtilities.renderers,
+        $.pivotUtilities.c3_renderers,
+        $.pivotUtilities.export_renderers
+      ),
+      vals: ["Total"],
+      rows: [],
+      cols: [],
+      aggregatorName: "Count",
+      unusedAttrsVertical: true,
+      rendererOptions: {
+        c3: {
+          size: {
+            width: parseInt(that.pivotTableContainer.width() * 0.78, 10)
+          }
         },
-        derivedAttributes: that.config.derivedAttributes,
-        hiddenAttributes: that.config.hiddenAttributes,
-        onRefresh: function (config) {
-          return that.pivotTableOnRefresh(config);
-        }
-    }, false);
+      },
+      derivedAttributes: that.config.derivedAttributes,
+      hiddenAttributes: that.config.hiddenAttributes,
+      onRefresh: function (config) {
+        return that.pivotTableOnRefresh(config);
+      }
+    };
 
-    this.initDateFilters();
+    this.applyConfig(config);
   };
 
   return PivotTable;
