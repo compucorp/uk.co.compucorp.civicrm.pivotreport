@@ -21,7 +21,7 @@ class CRM_PivotReport_DataCase extends CRM_PivotReport_AbstractData {
       'api.Contact.get' => array('id' => array('IN' => '$value.client_id'), 'return' => array('id', 'contact_type', 'contact_sub_type', 'display_name')),
       'return' => array_merge($this->getCaseFields(), array('contacts')),
       'options' => array(
-        'sort' => 'id ASC',
+        'sort' => 'start_date ASC',
         'limit' => self::ROWS_API_LIMIT,
       ),
     );
@@ -259,7 +259,7 @@ class CRM_PivotReport_DataCase extends CRM_PivotReport_AbstractData {
    *
    * @return array
    */
-  private function getOptionValues($field) {
+  protected function getOptionValues($field) {
     if (empty($field['pseudoconstant']['optionGroupName'])) {
       return null;
     }
