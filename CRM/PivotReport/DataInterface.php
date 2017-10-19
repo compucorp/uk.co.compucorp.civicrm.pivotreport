@@ -7,7 +7,7 @@ use CRM_PivotCache_AbstractGroup as AbstractGroup;
  * Also contains all logic to parse Entity data into output format used for
  * cache the data.
  */
-interface CRM_PivotReport_DataInterface {
+interface CRM_PivotData_DataInterface {
 
   /**
    * Returns an array containing formatted entity data and information

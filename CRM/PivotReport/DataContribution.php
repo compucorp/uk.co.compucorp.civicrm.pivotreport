@@ -3,10 +3,10 @@
 /**
  * Provides a functionality to prepare Contribution entity data for Pivot Table.
  */
-class CRM_PivotReport_DataContribution extends CRM_PivotReport_AbstractData {
+class CRM_PivotData_DataContribution extends CRM_PivotData_AbstractData {
 
   /**
-   * CRM_PivotReport_DataContribution constructor.
+   * CRM_PivotData_DataContribution constructor.
    */
   public function __construct() {
     parent::__construct('Contribution');

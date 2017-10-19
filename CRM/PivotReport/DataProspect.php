@@ -3,10 +3,10 @@
 /**
  * Provides a functionality to prepare Prospect data for Pivot Table.
  */
-class CRM_PivotReport_DataProspect extends CRM_PivotReport_DataCase {
+class CRM_PivotData_DataProspect extends CRM_PivotData_DataCase {
 
   /**
-   * CRM_PivotReport_DataProspect constructor.
+   * CRM_PivotData_DataProspect constructor.
    */
   public function __construct() {
     parent::__construct('Prospect', 'Case');

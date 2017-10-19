@@ -7,7 +7,7 @@
  * index (it may be any string identifier of starting row, such as date value)
  * and page number.
  */
-class CRM_PivotReport_DataPage {
+class CRM_PivotData_DataPage {
 
   /**
    * Page data.

@@ -3,10 +3,10 @@
 /**
  * Provides a functionality to prepare Membership entity data for Pivot Table.
  */
-class CRM_PivotReport_DataMembership extends CRM_PivotReport_AbstractData {
+class CRM_PivotData_DataMembership extends CRM_PivotData_AbstractData {
 
   /**
-   * CRM_PivotReport_DataMembership constructor.
+   * CRM_PivotData_DataMembership constructor.
    */
   public function __construct() {
     parent::__construct('Membership');

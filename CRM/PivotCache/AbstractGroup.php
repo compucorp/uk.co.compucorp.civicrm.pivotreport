@@ -1,6 +1,6 @@
 <?php
 
-use CRM_PivotReport_DataPage as DataPage;
+use CRM_PivotData_DataPage as DataPage;
 
 /**
  * @inheritdoc
@@ -24,7 +24,7 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
    * @param string $entity
    *   Name of entity
    *
-   * @return \CRM_PivotReport_AbstractData
+   * @return \CRM_PivotData_AbstractData
    */
   public static function getInstance($entity) {
 
