@@ -259,12 +259,12 @@ class CRM_PivotReport_DataCase extends CRM_PivotReport_AbstractData {
    *
    * @return array
    */
-  protected function getOptionValues($field) {
-    if (empty($field['pseudoconstant']['optionGroupName'])) {
-      return null;
+  protected function getOptionValues($entity, $field) {
+    if (empty($field['pseudoconstant']['optionGroupName']) && empty($field['pseudoconstant']['table'])) {
+      return NULL;
     }
 
-    $result = civicrm_api3('Case', 'getoptions', array(
+    $result = civicrm_api3($entity, 'getoptions', array(
       'field' => $field['name'],
     ));
 

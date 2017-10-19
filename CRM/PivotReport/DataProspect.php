@@ -87,7 +87,13 @@ class CRM_PivotReport_DataProspect extends CRM_PivotReport_DataCase {
     if (empty($this->fields)) {
       $fields = array();
       $keys = array();
-      $groups = array('case', 'client', 'manager', 'contribution', 'pledge');
+      $groups = array(
+        'case' => 'Case',
+        'client' => 'Case',
+        'manager' => 'Case',
+        'contribution' => 'Contribution',
+        'pledge' => 'Pledge',
+      );
 
       // Get standard Fields of Case entity.
       $includeCaseFields = array('case_id', 'case_status_id', 'case_start_date', 'case_end_date');
@@ -162,7 +168,7 @@ class CRM_PivotReport_DataProspect extends CRM_PivotReport_DataCase {
         $fields['pledge'][$fieldKey] = $pledgeFields[$fieldKey];
       }
 
-      foreach ($groups as $group) {
+      foreach ($groups as $group => $entity) {
         foreach ($fields[$group] as $key => $value) {
           if (!empty($value['name']) && !empty($keys[$group][$value['name']])) {
             $key = $value['name'];
@@ -170,7 +176,7 @@ class CRM_PivotReport_DataProspect extends CRM_PivotReport_DataCase {
           $result[$group . '.' . $key] = $value;
 
           if (is_array($value)) {
-            $result[$group . '.' . $key]['optionValues'] = $this->getOptionValues($value);
+            $result[$group . '.' . $key]['optionValues'] = $this->getOptionValues($entity, $value);
           }
         }
       }
