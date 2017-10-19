@@ -109,27 +109,6 @@ class CRM_PivotReport_DataMembership extends CRM_PivotReport_AbstractData {
   }
 
   /**
-   * Returns available Option Values of specified $field array.
-   * If there is no available Option Values for the field, then return null.
-   *
-   * @param array $field
-   *   Field key
-   *
-   * @return array
-   */
-  private function getOptionValues($field) {
-    if (empty($field['pseudoconstant']['optionGroupName'])) {
-      return null;
-    }
-
-    $result = civicrm_api3('Membership', 'getoptions', array(
-      'field' => $field['name'],
-    ));
-
-    return $result['values'];
-  }
-
-  /**
    * @inheritdoc
    */
   protected function getCount(array $params) {

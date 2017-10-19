@@ -61,7 +61,7 @@ class CRM_PivotReport_DataProspect extends CRM_PivotReport_DataCase {
           $pledge = civicrm_api3('Pledge', 'get', array(
               'sequential' => 1,
               'id' => $paymentEntityId,
-              'return' => array('id', 'financial_type_id', 'pledge_status', 'pledge_amount', 'pledge_total_paid', 'pledge_create_date', 'pledge_start_date', 'pledge_end_date'),
+              'return' => array('id', 'pledge_status', 'pledge_amount', 'pledge_total_paid', 'pledge_create_date', 'pledge_start_date', 'pledge_end_date', 'pledge_financial_type'),
               'options' => array(
                 'limit' => 1,
               ),
@@ -87,7 +87,13 @@ class CRM_PivotReport_DataProspect extends CRM_PivotReport_DataCase {
     if (empty($this->fields)) {
       $fields = array();
       $keys = array();
-      $groups = array('case', 'client', 'manager', 'contribution', 'pledge');
+      $groups = array(
+        'case' => 'Case',
+        'client' => 'Case',
+        'manager' => 'Case',
+        'contribution' => 'Contribution',
+        'pledge' => 'Pledge',
+      );
 
       // Get standard Fields of Case entity.
       $includeCaseFields = array('case_id', 'case_status_id', 'case_start_date', 'case_end_date');
@@ -107,7 +113,7 @@ class CRM_PivotReport_DataProspect extends CRM_PivotReport_DataCase {
         'FROM `civicrm_custom_group` g ' .
         'LEFT JOIN `civicrm_custom_field` f ON f.custom_group_id = g.id ' .
         'LEFT JOIN `civicrm_option_group` og ON og.id = f.option_group_id ' .
-        'WHERE g.extends = \'Case\' AND g.is_active = 1 AND g.name IN (\'Prospect_Financial_Information\', \'Prospect_More_Information\', \'Prospect_Substatus\') AND f.is_active = 1 AND f.html_type NOT IN (\'TextArea\', \'RichTextEditor\') AND (f.data_type <> \'String\' OR (f.data_type = \'String\' AND f.html_type <> \'Text\')) '
+        'WHERE g.extends = \'Case\' AND g.is_active = 1 AND f.is_active = 1 '
       );
 
       while ($customFieldsResult->fetch()) {
@@ -138,13 +144,14 @@ class CRM_PivotReport_DataProspect extends CRM_PivotReport_DataCase {
       $fields['pledge']['pledge_total_paid'] = ts('Pledge Total Paid');
       $fields['pledge']['pledge_balance'] = ts('Pledge Balance');
       $fields['pledge']['pledge_status'] = ts('Pledge Status');
+      $fields['pledge']['pledge_financial_type'] = ts('Pledge Financial Type');
 
       $includeFields = array(
         'contribution' => array(
           'contribution_id', 'financial_type_id', 'total_amount', 'receive_date', 'receipt_date',
         ),
         'pledge' => array(
-          'pledge_id', 'pledge_financial_type_id', 'pledge_amount', 'pledge_create_date',
+          'pledge_id', 'pledge_amount', 'pledge_create_date',
         ),
       );
 
@@ -153,7 +160,7 @@ class CRM_PivotReport_DataProspect extends CRM_PivotReport_DataCase {
       foreach ($includeFields['contribution'] as $fieldKey) {
         $fields['contribution'][$fieldKey] = $contributionFields[$fieldKey];
       }
-      $fields['contribution']['contribution_status'] = 'Contribution Status';
+      $fields['contribution']['contribution_status'] = ts('Contribution Status');
 
       // Include Pledge fields.
       $pledgeFields = CRM_Pledge_DAO_Pledge::fields();
@@ -161,7 +168,7 @@ class CRM_PivotReport_DataProspect extends CRM_PivotReport_DataCase {
         $fields['pledge'][$fieldKey] = $pledgeFields[$fieldKey];
       }
 
-      foreach ($groups as $group) {
+      foreach ($groups as $group => $entity) {
         foreach ($fields[$group] as $key => $value) {
           if (!empty($value['name']) && !empty($keys[$group][$value['name']])) {
             $key = $value['name'];
@@ -169,7 +176,7 @@ class CRM_PivotReport_DataProspect extends CRM_PivotReport_DataCase {
           $result[$group . '.' . $key] = $value;
 
           if (is_array($value)) {
-            $result[$group . '.' . $key]['optionValues'] = $this->getOptionValues($value);
+            $result[$group . '.' . $key]['optionValues'] = $this->getOptionValues($value, $entity);
           }
         }
       }
