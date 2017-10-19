@@ -13,6 +13,7 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
   public function install() {
     $this->upgrade_0001();
     $this->upgrade_0002();
+    $this->upgrade_0003();
 
     return TRUE;
   }
@@ -43,7 +44,7 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
         'domain_id'  => CRM_Core_Config::domainID(),
         'label'      => ts('Pivot Report'),
         'name'       => 'pivotreport',
-        'url'        => 'civicrm/pivot-report',
+        'url'        => 'civicrm/activity-report',
         'parent_id'  => $reportsNavId,
         'weight'     => 0,
         'permission' => 'access CiviCRM pivot table reports',
