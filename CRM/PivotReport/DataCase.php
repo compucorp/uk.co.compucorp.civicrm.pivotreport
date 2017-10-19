@@ -251,9 +251,11 @@ class CRM_PivotReport_DataCase extends CRM_PivotReport_AbstractData {
   }
 
   /**
-   * Returns available Option Values of specified $field array.
+   * Returns available Option Values of specified $field array within specified
+   * $entity.
    * If there is no available Option Values for the field, then return null.
    *
+   * @param string $entity
    * @param array $field
    *   Field key
    *
