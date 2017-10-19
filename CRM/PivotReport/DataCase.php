@@ -255,15 +255,19 @@ class CRM_PivotReport_DataCase extends CRM_PivotReport_AbstractData {
    * $entity.
    * If there is no available Option Values for the field, then return null.
    *
-   * @param string $entity
    * @param array $field
    *   Field key
+   * @param string $entity
    *
    * @return array
    */
-  protected function getOptionValues($entity, $field) {
+  protected function getOptionValues($field, $entity = NULL) {
     if (empty($field['pseudoconstant']['optionGroupName']) && empty($field['pseudoconstant']['table'])) {
       return NULL;
+    }
+
+    if (!$entity) {
+      $entity = $this->apiEntityName;
     }
 
     $result = civicrm_api3($entity, 'getoptions', array(

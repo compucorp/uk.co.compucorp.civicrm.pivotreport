@@ -176,7 +176,7 @@ class CRM_PivotReport_DataProspect extends CRM_PivotReport_DataCase {
           $result[$group . '.' . $key] = $value;
 
           if (is_array($value)) {
-            $result[$group . '.' . $key]['optionValues'] = $this->getOptionValues($entity, $value);
+            $result[$group . '.' . $key]['optionValues'] = $this->getOptionValues($value, $entity);
           }
         }
       }
