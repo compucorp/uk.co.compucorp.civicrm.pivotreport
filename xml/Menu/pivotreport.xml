@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <menu>
   <item>
-    <path>civicrm/pivot-report</path>
+    <path>civicrm/activity-report</path>
     <page_callback>CRM_PivotReport_Page_PivotReport</page_callback>
     <page_arguments>entity=Activity</page_arguments>
     <access_arguments>access CiviCRM pivot table reports</access_arguments>
