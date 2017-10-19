@@ -113,7 +113,7 @@ class CRM_PivotReport_DataProspect extends CRM_PivotReport_DataCase {
         'FROM `civicrm_custom_group` g ' .
         'LEFT JOIN `civicrm_custom_field` f ON f.custom_group_id = g.id ' .
         'LEFT JOIN `civicrm_option_group` og ON og.id = f.option_group_id ' .
-        'WHERE g.extends = \'Case\' AND g.is_active = 1 AND f.is_active = 1 AND f.html_type NOT IN (\'TextArea\', \'RichTextEditor\') AND (f.data_type <> \'String\' OR (f.data_type = \'String\' AND f.html_type <> \'Text\')) '
+        'WHERE g.extends = \'Case\' AND g.is_active = 1 AND f.is_active = 1 '
       );
 
       while ($customFieldsResult->fetch()) {
