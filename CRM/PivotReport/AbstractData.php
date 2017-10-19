@@ -661,6 +661,33 @@ abstract class CRM_PivotReport_AbstractData implements CRM_PivotReport_DataInter
   }
 
   /**
+   * Returns available Option Values of specified $field array within specified
+   * $entity.
+   * If there is no available Option Values for the field, then return null.
+   *
+   * @param array $field
+   *   Field key
+   * @param string $entity
+   *
+   * @return array
+   */
+  protected function getOptionValues($field, $entity = NULL) {
+    if (empty($field['pseudoconstant']['optionGroupName']) && empty($field['pseudoconstant']['table'])) {
+      return NULL;
+    }
+
+    if (!$entity) {
+      $entity = $this->apiEntityName;
+    }
+
+    $result = civicrm_api3($entity, 'getoptions', array(
+      'field' => $field['name'],
+    ));
+
+    return $result['values'];
+  }
+
+  /**
    * Returns a string containing Entity index basing on Entity row.
    *
    * The Entity Index is used as a part of cache key. It may be an Entity ID, date,
