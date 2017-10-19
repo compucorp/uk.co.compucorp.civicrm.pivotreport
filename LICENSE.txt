@@ -1,4 +1,4 @@
-Package: uk.co.compucorp.civicrm.activityreport
+Package: uk.co.compucorp.civicrm.pivotreport
 Copyright (C) 2016, coldrunKacper <kacper@coldrun.pl>
 Licensed under the GNU Affero Public License 3.0 (below).
 

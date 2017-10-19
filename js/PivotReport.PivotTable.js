@@ -211,7 +211,7 @@ CRM.PivotReport.PivotTable = (function($) {
     $('input[type="button"].build-cache-button').click(function(e) {
       CRM.confirm({message: 'This operation may take some time to build the cache. Do you really want to build the cache for ' + that.config.entityName + ' data?' })
       .on('crmConfirm:yes', function() {
-        CRM.api3('ActivityReport', 'rebuildcache', {entity: that.config.entityName}).done(function(result) {
+        CRM.api3('PivotReport', 'rebuildcache', {entity: that.config.entityName}).done(function(result) {
           that.initPivotDataLoading();
         });
       });
@@ -228,9 +228,9 @@ CRM.PivotReport.PivotTable = (function($) {
         'sequential': 1,
         'return': ['weekBegins', 'fiscalYearStart']
       }],
-      'getHeader': ['ActivityReport', 'getheader', {'entity': this.config.entityName}],
+      'getHeader': ['PivotReport', 'getheader', {'entity': this.config.entityName}],
       'getCount': [this.config.entityName, 'getcount', that.config.getCountParams()],
-      'dateFields': ['ActivityReport', 'getdatefields', {entity: this.config.entityName}],
+      'dateFields': ['PivotReport', 'getdatefields', {entity: this.config.entityName}],
       'relativeFilters': ['OptionValue', 'get', {
         'sequential': 1,
         'option_group_id': 'relative_date_filters'
@@ -287,7 +287,7 @@ CRM.PivotReport.PivotTable = (function($) {
     params.sequential = 1;
     params.entity = this.config.entityName;
 
-    CRM.api3('ActivityReport', 'get', params).done(function(result) {
+    CRM.api3('PivotReport', 'get', params).done(function(result) {
       that.data = that.data.concat(that.processData(result['values'][0].data));
       var nextKeyValue = result['values'][0].nextKeyValue;
       var nextPage = result['values'][0].nextPage;

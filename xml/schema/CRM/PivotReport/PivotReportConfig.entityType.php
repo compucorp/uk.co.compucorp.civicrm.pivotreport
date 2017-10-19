@@ -4,8 +4,8 @@
 return array (
   0 => 
   array (
-    'name' => 'ActivityReportConfig',
-    'class' => 'CRM_Activityreport_DAO_ActivityReportConfig',
+    'name' => 'PivotReportConfig',
+    'class' => 'CRM_PivotReport_DAO_PivotReportConfig',
     'table' => 'civicrm_pivotreport_config',
   ),
 );

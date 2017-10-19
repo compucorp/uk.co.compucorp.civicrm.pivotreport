@@ -1,15 +1,15 @@
 <?php
 
 /**
- * Provides a functionality to prepare Activity entity data for Pivot Table.
+ * Provides a functionality to prepare Contribution entity data for Pivot Table.
  */
-class CRM_PivotReport_DataMembership extends CRM_PivotReport_AbstractData {
+class CRM_PivotData_DataContribution extends CRM_PivotData_AbstractData {
 
   /**
-   * CRM_PivotReport_DataMembership constructor.
+   * CRM_PivotData_DataContribution constructor.
    */
   public function __construct() {
-    parent::__construct('Membership');
+    parent::__construct('Contribution');
   }
 
   /**
@@ -25,7 +25,7 @@ class CRM_PivotReport_DataMembership extends CRM_PivotReport_AbstractData {
         'return' => array('display_name', 'sort_name', 'contact_type')
       ),
       'options' => array(
-        'sort' => 'join_date ASC',
+        'sort' => 'receive_date ASC',
         'limit' => self::ROWS_API_LIMIT,
       ),
     );
@@ -34,10 +34,61 @@ class CRM_PivotReport_DataMembership extends CRM_PivotReport_AbstractData {
   }
 
   /**
+   * Returns an array containing API date filter conditions basing on specified
+   * dates.
+   *
+   * @param string $startDate
+   * @param string $endDate
+   *
+   * @return array|NULL
+   */
+  private function getAPIDateFilter($startDate, $endDate) {
+    $apiFilter = null;
+
+    if (!empty($startDate) && !empty($endDate)) {
+      $apiFilter = array('BETWEEN' => array($startDate, $endDate));
+    }
+    else if (!empty($startDate) && empty($endDate)) {
+      $apiFilter = array('>=' => $startDate);
+    }
+    else if (empty($startDate) && !empty($endDate)) {
+      $apiFilter = array('<=' => $endDate);
+    }
+
+    return $apiFilter;
+  }
+
+  /**
+   * @inheritdoc
+   */
+  protected function setCustomValue($key, $value) {
+    $result = $value;
+
+    switch ($key) {
+      case 'campaign_id':
+        if (!empty($value)) {
+          $campaign = civicrm_api3('Campaign', 'getsingle', array(
+            'sequential' => 1,
+            'return' => 'title',
+            'id' => $value,
+          ));
+          if ($campaign['is_error']) {
+            $result = '';
+          } else {
+            $result = $campaign['title'];
+          }
+        }
+        break;
+    }
+
+    $this->customizedValues[$key][$value] = $result;
+  }
+
+  /**
    * @inheritdoc
    */
   protected function getEntityIndex(array $row) {
-    return substr($row['Member Since'], 0, 10);
+    return substr($row['Date Received'], 0, 10);
   }
 
   /**
@@ -47,14 +98,14 @@ class CRM_PivotReport_DataMembership extends CRM_PivotReport_AbstractData {
     if (empty($this->fields)) {
       $unsetFields = array(
       );
-      // Get standard Fields of Activity entity.
-      $fields = CRM_Member_DAO_Membership::fields();
+      // Get standard Fields of Contribution entity.
+      $fields = CRM_Contribute_DAO_Contribution::fields();
 
       foreach ($unsetFields as $unsetField) {
         unset($fields[$unsetField]);
       }
 
-      $keys = CRM_Member_DAO_Membership::fieldKeys();
+      $keys = CRM_Contribute_DAO_Contribution::fieldKeys();
       $result = array();
 
       // Now get Custom Fields for entity.
@@ -64,7 +115,7 @@ class CRM_PivotReport_DataMembership extends CRM_PivotReport_AbstractData {
         'FROM `civicrm_custom_group` g ' .
         'LEFT JOIN `civicrm_custom_field` f ON f.custom_group_id = g.id ' .
         'LEFT JOIN `civicrm_option_group` og ON og.id = f.option_group_id ' .
-        'WHERE g.extends = \'Membership\' AND g.is_active = 1 
+        'WHERE g.extends = \'Contribution\' AND g.is_active = 1 
         AND f.is_active = 1 
         AND f.html_type NOT IN (\'TextArea\', \'RichTextEditor\') 
         AND (
@@ -118,7 +169,7 @@ class CRM_PivotReport_DataMembership extends CRM_PivotReport_AbstractData {
       'is_test' => 0,
     );
 
-    return civicrm_api3('Membership', 'getcount', $apiParams);
+    return civicrm_api3('Contribution', 'getcount', $apiParams);
   }
 
 }

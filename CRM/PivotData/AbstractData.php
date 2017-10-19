@@ -5,7 +5,7 @@ use CRM_PivotCache_AbstractGroup as AbstractGroup;
 /**
  * @inheritdoc
  */
-abstract class CRM_PivotReport_AbstractData implements CRM_PivotReport_DataInterface {
+abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface {
 
   /**
    * Limit value for API 'get' action on source entity. Used on rebuilding
@@ -88,7 +88,7 @@ abstract class CRM_PivotReport_AbstractData implements CRM_PivotReport_DataInter
   protected $apiEntityName = NULL;
 
   /**
-   * CRM_PivotReport_AbstractData constructor.
+   * CRM_PivotData_AbstractData constructor.
    *
    * Some entities may have different API name than data group name. In this case
    * we can specify $apiEntityName value to define Entity name used with API
@@ -117,11 +117,11 @@ abstract class CRM_PivotReport_AbstractData implements CRM_PivotReport_DataInter
    * @param string $entity
    *   Name of entity
    *
-   * @return \CRM_PivotReport_AbstractData
+   * @return \CRM_PivotData_AbstractData
    */
   public static function getInstance($entity) {
 
-    $className = 'CRM_PivotReport_Data' . $entity;
+    $className = 'CRM_PivotData_Data' . $entity;
     $dataInstance = new $className();
 
     return $dataInstance;
@@ -235,7 +235,7 @@ abstract class CRM_PivotReport_AbstractData implements CRM_PivotReport_DataInter
         $index = $split['info']['index'];
       }
 
-      $result[] = new CRM_PivotReport_DataPage($split['data'], $index, $page++, $split['info']['nextOffset'], $split['info']['multiValuesOffset']);
+      $result[] = new CRM_PivotData_DataPage($split['data'], $index, $page++, $split['info']['nextOffset'], $split['info']['multiValuesOffset']);
 
       unset($split['data']);
 

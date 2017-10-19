@@ -18,7 +18,7 @@
 {/if}
 
 <form id="whichDataType" method="post">
-  Select which CiviCRM data do you want to use? (<em>default: Contribution</em>)
+  Select which CiviCRM data do you want to use?
   <select name="CRMData" id="CRMData">
     {html_options options=$options_array selected=$CRMDataType}
   </select>

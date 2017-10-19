@@ -3,7 +3,7 @@
 require_once 'CRM/Core/DAO.php';
 require_once 'CRM/Utils/Type.php';
 
-class CRM_Activityreport_DAO_ActivityReportConfig extends CRM_Core_DAO {
+class CRM_PivotReport_DAO_PivotReportConfig extends CRM_Core_DAO {
   /**
    * static instance to hold the table name
    *
@@ -49,7 +49,7 @@ class CRM_Activityreport_DAO_ActivityReportConfig extends CRM_Core_DAO {
   /**
    * class constructor
    *
-   * @return civicrm_activityreportconfig
+   * @return civicrm_pivotreportconfig
    */
   function __construct() {
     $this->__table = 'civicrm_pivotreport_config';

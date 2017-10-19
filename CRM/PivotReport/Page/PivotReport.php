@@ -2,13 +2,13 @@
 
 require_once 'CRM/Core/Page.php';
 
-class CRM_Activityreport_Page_PivotReport extends CRM_Core_Page {
+class CRM_PivotReport_Page_PivotReport extends CRM_Core_Page {
   function run() {
     $args = func_get_args();
 
     $entity = !empty($args[1]['entity']) ? $args[1]['entity'] : NULL;
-    $entityInstance = new CRM_Activityreport_Entity($entity);
-    $supportedEntities = CRM_Activityreport_Entity::getSupportedEntities();
+    $entityInstance = new CRM_PivotReport_Entity($entity);
+    $supportedEntities = CRM_PivotReport_Entity::getSupportedEntities();
 
     CRM_Utils_System::setTitle(ts('Pivot Report'));
 
@@ -18,7 +18,7 @@ class CRM_Activityreport_Page_PivotReport extends CRM_Core_Page {
     $this->assign('cacheBuilt', $entityInstance->getGroupInstance()->isCacheBuilt());
 
     // PivotReport configuration.
-    $this->assign('configList', CRM_Activityreport_BAO_ActivityReportConfig::getConfigList($entity));
+    $this->assign('configList', CRM_PivotReport_BAO_PivotReportConfig::getConfigList($entity));
     $this->assign('canManagePivotReportConfig', true);
 
     parent::run();

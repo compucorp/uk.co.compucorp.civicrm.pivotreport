@@ -1,6 +1,6 @@
 <?php
 
-class CRM_Activityreport_Entity {
+class CRM_PivotReport_Entity {
 
   /**
    * Entities which may be supported by the extension.
@@ -83,17 +83,17 @@ class CRM_Activityreport_Entity {
   }
 
   /**
-   * Returns an instance of CRM_PivotReport_AbstractData for entityName property
+   * Returns an instance of CRM_PivotData_AbstractData for entityName property
    * value.
    *
-   * @return \CRM_PivotReport_AbstractData
+   * @return \CRM_PivotData_AbstractData
    * @throws Exception
    */
   public function getDataInstance() {
-    $className = 'CRM_PivotReport_Data' . $this->entityName;
+    $className = 'CRM_PivotData_Data' . $this->entityName;
 
     if (!class_exists($className)) {
-      throw new Exception("Class '{$className}' does not exist. It should exist and extend CRM_PivotReport_AbstractData class.");
+      throw new Exception("Class '{$className}' does not exist. It should exist and extend CRM_PivotData_AbstractData class.");
     }
 
     return new $className();

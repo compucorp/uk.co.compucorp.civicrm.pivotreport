@@ -1,6 +1,6 @@
 <?php
 
-use CRM_PivotReport_DataPage as DataPage;
+use CRM_PivotData_DataPage as DataPage;
 
 /**
  * Provides an interface for managing 'pivotreport' cache group.
@@ -40,7 +40,7 @@ interface CRM_PivotCache_GroupInterface {
    * Puts a data page into cache table.
    * Returns count of packet items.
    *
-   * @param \CRM_PivotReport_DataPage $page
+   * @param \CRM_PivotData_DataPage $page
    *
    * @return int
    */

@@ -3,10 +3,10 @@
 /**
  * Provides a functionality to prepare Prospect data for Pivot Table.
  */
-class CRM_PivotReport_DataProspect extends CRM_PivotReport_DataCase {
+class CRM_PivotData_DataProspect extends CRM_PivotData_DataCase {
 
   /**
-   * CRM_PivotReport_DataProspect constructor.
+   * CRM_PivotData_DataProspect constructor.
    */
   public function __construct() {
     parent::__construct('Prospect', 'Case');
@@ -106,7 +106,7 @@ class CRM_PivotReport_DataProspect extends CRM_PivotReport_DataCase {
       $keys['case'] = CRM_Case_DAO_Case::fieldKeys();
       $result = array();
 
-      // Now get Custom Fields of Activity entity.
+      // Now get Custom Fields of Case entity.
       $customFieldsResult = CRM_Core_DAO::executeQuery(
         'SELECT g.id AS group_id, f.id AS id, f.label AS label, f.data_type AS data_type, ' .
         'f.html_type AS html_type, f.date_format AS date_format, og.name AS option_group_name ' .

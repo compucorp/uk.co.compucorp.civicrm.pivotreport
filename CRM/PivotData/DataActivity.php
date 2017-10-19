@@ -3,10 +3,10 @@
 /**
  * Provides a functionality to prepare Activity entity data for Pivot Table.
  */
-class CRM_PivotReport_DataActivity extends CRM_PivotReport_AbstractData {
+class CRM_PivotData_DataActivity extends CRM_PivotData_AbstractData {
 
   /**
-   * CRM_PivotReport_DataActivity constructor.
+   * CRM_PivotData_DataActivity constructor.
    */
   public function __construct() {
     parent::__construct('Activity');

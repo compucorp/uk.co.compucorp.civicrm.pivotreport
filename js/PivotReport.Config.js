@@ -42,7 +42,7 @@ CRM.PivotReport.Config = (function($) {
   Config.prototype.configSaveProcess = function(configId, configLabel) {
     var that = this;
 
-    CRM.api3('ActivityReportConfig', 'create', {
+    CRM.api3('PivotReportConfig', 'create', {
       'id': configId,
       'entity': that.PivotTable.getEntityName(),
       'label': configLabel,
@@ -112,7 +112,7 @@ CRM.PivotReport.Config = (function($) {
 
     $('.report-config-save-btn', this.container).show();
 
-    CRM.api3('ActivityReportConfig', 'getsingle', {
+    CRM.api3('PivotReportConfig', 'getsingle', {
       'id': configId
     }).done(function(result) {
       if (result.is_error) {
@@ -193,7 +193,7 @@ CRM.PivotReport.Config = (function($) {
     CRM.confirm({
       'message': 'Are you sure you want to delete this configuration?'
     }).on('crmConfirm:yes', function() {
-      CRM.api3('ActivityReportConfig', 'delete', {
+      CRM.api3('PivotReportConfig', 'delete', {
         'id': configId
       }).done(function(result) {
         if (result.is_error) {
