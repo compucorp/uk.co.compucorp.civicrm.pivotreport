@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Provides a functionality to prepare Activity entity data for Pivot Table.
+ * Provides a functionality to prepare Membership entity data for Pivot Table.
  */
 class CRM_PivotReport_DataMembership extends CRM_PivotReport_AbstractData {
 
@@ -47,7 +47,7 @@ class CRM_PivotReport_DataMembership extends CRM_PivotReport_AbstractData {
     if (empty($this->fields)) {
       $unsetFields = array(
       );
-      // Get standard Fields of Activity entity.
+      // Get standard Fields of Membership entity.
       $fields = CRM_Member_DAO_Membership::fields();
 
       foreach ($unsetFields as $unsetField) {

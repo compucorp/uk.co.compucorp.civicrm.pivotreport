@@ -1,11 +1,11 @@
 <?php
 
-class CRM_Activityreport_BAO_ActivityReportConfig extends CRM_Activityreport_DAO_ActivityReportConfig {
+class CRM_PivotReport_BAO_PivotReportConfig extends CRM_PivotReport_DAO_PivotReportConfig {
 
   public static function getConfigList($entity) {
     $result = array();
 
-    $labels = civicrm_api3('ActivityReportConfig', 'get', array(
+    $labels = civicrm_api3('PivotReportConfig', 'get', array(
       'entity' => $entity,
       'return' => array('label'),
       'options' => array(

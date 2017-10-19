@@ -3,7 +3,7 @@
 /**
  * Collection of upgrade steps.
  */
-class CRM_Activityreport_Upgrader extends CRM_Activityreport_Upgrader_Base {
+class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
 
   /**
    * Installation logic.
@@ -24,26 +24,26 @@ class CRM_Activityreport_Upgrader extends CRM_Activityreport_Upgrader_Base {
    */
   public function uninstall()
   {
-    CRM_Core_DAO::executeQuery("DELETE FROM `civicrm_navigation` WHERE name = 'activityreport'");
+    CRM_Core_DAO::executeQuery("DELETE FROM `civicrm_navigation` WHERE name = 'pivotreport'");
     CRM_Core_BAO_Navigation::resetNavigation();
 
     return TRUE;
   }
 
   /**
-   * Install Activity Report link under Reports menu.
+   * Install Pivot Report link under Reports menu.
    * 
    * @return boolean
    */
   public function upgrade_0001() {
-    CRM_Core_DAO::executeQuery("DELETE FROM `civicrm_navigation` WHERE name = 'activityreport' and parent_id IS NULL");
+    CRM_Core_DAO::executeQuery("DELETE FROM `civicrm_navigation` WHERE name = 'pivotreport' and parent_id IS NULL");
     $reportsNavId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'Reports', 'id', 'name');
     $navigation = new CRM_Core_DAO_Navigation();
     $params = array (
         'domain_id'  => CRM_Core_Config::domainID(),
-        'label'      => ts('Activity Report'),
-        'name'       => 'activityreport',
-        'url'        => 'civicrm/activity-report',
+        'label'      => ts('Pivot Report'),
+        'name'       => 'pivotreport',
+        'url'        => 'civicrm/pivot-report',
         'parent_id'  => $reportsNavId,
         'weight'     => 0,
         'permission' => 'access CiviCRM pivot table reports',
@@ -64,7 +64,7 @@ class CRM_Activityreport_Upgrader extends CRM_Activityreport_Upgrader_Base {
   public function upgrade_0002() {
     $existsResult = civicrm_api3('Job', 'getcount', array(
       'sequential' => 1,
-      'api_entity' => 'ActivityReport',
+      'api_entity' => 'PivotReport',
       'api_action' => 'rebuildcache',
     ));
 
@@ -73,7 +73,7 @@ class CRM_Activityreport_Upgrader extends CRM_Activityreport_Upgrader_Base {
         'run_frequency' => 'Daily',
         'name' => 'Pivot Report Cache Build',
         'description' => 'Job to rebuild the cache that is used to build pivot tble reports.',
-        'api_entity' => 'ActivityReport',
+        'api_entity' => 'PivotReport',
         'api_action' => 'rebuildcache',
       ));
     }
@@ -98,7 +98,7 @@ class CRM_Activityreport_Upgrader extends CRM_Activityreport_Upgrader_Base {
    * @return boolean
    */
   public function onEnable() {
-    CRM_Core_DAO::executeQuery("UPDATE civicrm_navigation SET is_active = 1 WHERE name = 'activityreport'");
+    CRM_Core_DAO::executeQuery("UPDATE civicrm_navigation SET is_active = 1 WHERE name = 'pivotreport'");
     CRM_Core_BAO_Navigation::resetNavigation();
 
     return TRUE;
@@ -110,7 +110,7 @@ class CRM_Activityreport_Upgrader extends CRM_Activityreport_Upgrader_Base {
    * @return boolean
    */
   public function onDisable() {
-    CRM_Core_DAO::executeQuery("UPDATE civicrm_navigation SET is_active = 0 WHERE name = 'activityreport'");
+    CRM_Core_DAO::executeQuery("UPDATE civicrm_navigation SET is_active = 0 WHERE name = 'pivotreport'");
     CRM_Core_BAO_Navigation::resetNavigation();
 
     return TRUE;

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="iso-8859-1" ?>
 
 <table>
-  <base>CRM/Activityreport</base>
-  <class>ActivityReportConfig</class>
-  <name>civicrm_activityreportconfig</name>
+  <base>CRM/PivotReport</base>
+  <class>PivotReportConfig</class>
+  <name>civicrm_pivotreportconfig</name>
   <comment>PivotReport configuration</comment>
   <add>4.4</add>
   <log>true</log>

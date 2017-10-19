@@ -1,32 +1,32 @@
 <?xml version="1.0"?>
 <menu>
   <item>
-    <path>civicrm/activity-report</path>
-    <page_callback>CRM_Activityreport_Page_PivotReport</page_callback>
+    <path>civicrm/pivot-report</path>
+    <page_callback>CRM_PivotReport_Page_PivotReport</page_callback>
     <page_arguments>entity=Activity</page_arguments>
     <access_arguments>access CiviCRM pivot table reports</access_arguments>
   </item>
   <item>
     <path>civicrm/case-report</path>
-    <page_callback>CRM_Activityreport_Page_PivotReport</page_callback>
+    <page_callback>CRM_PivotReport_Page_PivotReport</page_callback>
     <page_arguments>entity=Case</page_arguments>
     <access_arguments>access CiviCRM pivot table reports</access_arguments>
   </item>
   <item>
     <path>civicrm/contribution-report</path>
-    <page_callback>CRM_Activityreport_Page_PivotReport</page_callback>
+    <page_callback>CRM_PivotReport_Page_PivotReport</page_callback>
     <page_arguments>entity=Contribution</page_arguments>
     <access_arguments>access CiviCRM pivot table reports</access_arguments>
   </item>
   <item>
     <path>civicrm/membership-report</path>
-    <page_callback>CRM_Activityreport_Page_PivotReport</page_callback>
+    <page_callback>CRM_PivotReport_Page_PivotReport</page_callback>
     <page_arguments>entity=Membership</page_arguments>
     <access_arguments>access CiviCRM pivot table reports</access_arguments>
   </item>
   <item>
     <path>civicrm/prospect-report</path>
-    <page_callback>CRM_Activityreport_Page_PivotReport</page_callback>
+    <page_callback>CRM_PivotReport_Page_PivotReport</page_callback>
     <page_arguments>entity=Prospect</page_arguments>
     <access_arguments>access CiviCRM pivot table reports</access_arguments>
   </item>

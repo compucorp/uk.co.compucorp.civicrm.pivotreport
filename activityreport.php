@@ -1,14 +1,14 @@
 <?php
 
-require_once 'activityreport.civix.php';
+require_once 'pivotreport.civix.php';
 
 /**
  * Implements hook_civicrm_config().
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_config
  */
-function activityreport_civicrm_config(&$config) {
-  _activityreport_civix_civicrm_config($config);
+function pivotreport_civicrm_config(&$config) {
+  _pivotreport_civix_civicrm_config($config);
 }
 
 /**
@@ -18,8 +18,8 @@ function activityreport_civicrm_config(&$config) {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_xmlMenu
  */
-function activityreport_civicrm_xmlMenu(&$files) {
-  _activityreport_civix_civicrm_xmlMenu($files);
+function pivotreport_civicrm_xmlMenu(&$files) {
+  _pivotreport_civix_civicrm_xmlMenu($files);
 }
 
 /**
@@ -27,8 +27,8 @@ function activityreport_civicrm_xmlMenu(&$files) {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_install
  */
-function activityreport_civicrm_install() {
-  _activityreport_civix_civicrm_install();
+function pivotreport_civicrm_install() {
+  _pivotreport_civix_civicrm_install();
 }
 
 /**
@@ -36,8 +36,8 @@ function activityreport_civicrm_install() {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_uninstall
  */
-function activityreport_civicrm_uninstall() {
-  _activityreport_civix_civicrm_uninstall();
+function pivotreport_civicrm_uninstall() {
+  _pivotreport_civix_civicrm_uninstall();
 }
 
 /**
@@ -45,8 +45,8 @@ function activityreport_civicrm_uninstall() {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_enable
  */
-function activityreport_civicrm_enable() {
-  _activityreport_civix_civicrm_enable();
+function pivotreport_civicrm_enable() {
+  _pivotreport_civix_civicrm_enable();
 }
 
 /**
@@ -54,8 +54,8 @@ function activityreport_civicrm_enable() {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_disable
  */
-function activityreport_civicrm_disable() {
-  _activityreport_civix_civicrm_disable();
+function pivotreport_civicrm_disable() {
+  _pivotreport_civix_civicrm_disable();
 }
 
 /**
@@ -70,8 +70,8 @@ function activityreport_civicrm_disable() {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_upgrade
  */
-function activityreport_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
-  return _activityreport_civix_civicrm_upgrade($op, $queue);
+function pivotreport_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
+  return _pivotreport_civix_civicrm_upgrade($op, $queue);
 }
 
 /**
@@ -82,8 +82,8 @@ function activityreport_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_managed
  */
-function activityreport_civicrm_managed(&$entities) {
-  _activityreport_civix_civicrm_managed($entities);
+function pivotreport_civicrm_managed(&$entities) {
+  _pivotreport_civix_civicrm_managed($entities);
 }
 
 /**
@@ -95,8 +95,8 @@ function activityreport_civicrm_managed(&$entities) {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_caseTypes
  */
-function activityreport_civicrm_caseTypes(&$caseTypes) {
-  _activityreport_civix_civicrm_caseTypes($caseTypes);
+function pivotreport_civicrm_caseTypes(&$caseTypes) {
+  _pivotreport_civix_civicrm_caseTypes($caseTypes);
 }
 
 /**
@@ -109,8 +109,8 @@ function activityreport_civicrm_caseTypes(&$caseTypes) {
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_caseTypes
  */
-function activityreport_civicrm_angularModules(&$angularModules) {
-_activityreport_civix_civicrm_angularModules($angularModules);
+function pivotreport_civicrm_angularModules(&$angularModules) {
+_pivotreport_civix_civicrm_angularModules($angularModules);
 }
 
 /**
@@ -118,32 +118,32 @@ _activityreport_civix_civicrm_angularModules($angularModules);
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_alterSettingsFolders
  */
-function activityreport_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
-  _activityreport_civix_civicrm_alterSettingsFolders($metaDataFolders);
+function pivotreport_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
+  _pivotreport_civix_civicrm_alterSettingsFolders($metaDataFolders);
 }
 
 /**
  * Implementation of hook_civicrm_pageRun
  */
-function activityreport_civicrm_pageRun($page) {
-  if (get_class($page) === 'CRM_Activityreport_Page_PivotReport') {
+function pivotreport_civicrm_pageRun($page) {
+  if (get_class($page) === 'CRM_PivotReport_Page_PivotReport') {
     CRM_Core_Resources::singleton()
-      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'packages/d3/d3.min.js', 1, 'html-header')
-      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'packages/c3/c3.min.js', 1, 'html-header')
-      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'packages/pivottable/pivot.min.js', 1, 'html-header')
-      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'packages/pivottable/c3_renderers.min.js', 2, 'html-header')
-      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'packages/pivottable-cc/export_renderers.js', 2, 'html-header')
-      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'packages/moment.js/moment.min.js', 2, 'html-header')
-      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'packages/bootstrap-sweetalert/sweetalert.min.js', 3, 'html-header')
-      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/PivotReport.Filter.js', 4, 'html-header')
-      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/PivotReport.Dates.js', 5, 'html-header')
-      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/PivotReport.Config.js', 6, 'html-header')
-      ->addScriptFile('uk.co.compucorp.civicrm.activityreport', 'js/PivotReport.PivotTable.js', 7, 'html-header');
+      ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'packages/d3/d3.min.js', 1, 'html-header')
+      ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'packages/c3/c3.min.js', 1, 'html-header')
+      ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'packages/pivottable/pivot.min.js', 1, 'html-header')
+      ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'packages/pivottable/c3_renderers.min.js', 2, 'html-header')
+      ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'packages/pivottable-cc/export_renderers.js', 2, 'html-header')
+      ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'packages/moment.js/moment.min.js', 2, 'html-header')
+      ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'packages/bootstrap-sweetalert/sweetalert.min.js', 3, 'html-header')
+      ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'js/PivotReport.Filter.js', 4, 'html-header')
+      ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'js/PivotReport.Dates.js', 5, 'html-header')
+      ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'js/PivotReport.Config.js', 6, 'html-header')
+      ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'js/PivotReport.PivotTable.js', 7, 'html-header');
     CRM_Core_Resources::singleton()
-      ->addStyleFile('uk.co.compucorp.civicrm.activityreport', 'packages/c3/c3.min.css', 1)
-      ->addStyleFile('uk.co.compucorp.civicrm.activityreport', 'packages/pivottable/pivot.min.css', 2)
-      ->addStyleFile('uk.co.compucorp.civicrm.activityreport', 'packages/bootstrap-sweetalert/sweetalert.min.css', 3)
-      ->addStyleFile('uk.co.compucorp.civicrm.activityreport', 'css/style.css', 3);
+      ->addStyleFile('uk.co.compucorp.civicrm.pivotreport', 'packages/c3/c3.min.css', 1)
+      ->addStyleFile('uk.co.compucorp.civicrm.pivotreport', 'packages/pivottable/pivot.min.css', 2)
+      ->addStyleFile('uk.co.compucorp.civicrm.pivotreport', 'packages/bootstrap-sweetalert/sweetalert.min.css', 3)
+      ->addStyleFile('uk.co.compucorp.civicrm.pivotreport', 'css/style.css', 3);
   }
 }
 
@@ -153,7 +153,7 @@ function activityreport_civicrm_pageRun($page) {
  * @param array $permissions
  * @return void
  */
-function activityreport_civicrm_permission(&$permissions) {
+function pivotreport_civicrm_permission(&$permissions) {
   $prefix = ts('CiviCRM Reports') . ': '; // name of extension or module
   $permissions += array(
     'access CiviCRM pivot table reports' => $prefix . ts('access CiviCRM pivot table reports'),
@@ -163,10 +163,10 @@ function activityreport_civicrm_permission(&$permissions) {
 /**
  * Implements hook_civicrm_entityTypes().
  */
-function activityreport_civicrm_entityTypes(&$entityTypes) {
+function pivotreport_civicrm_entityTypes(&$entityTypes) {
   $entityTypes[] = [
-    'name'  => 'ActivityReportConfig',
-    'class' => 'CRM_Activityreport_DAO_ActivityReportConfig',
+    'name'  => 'PivotReportConfig',
+    'class' => 'CRM_PivotReport_DAO_PivotReportConfig',
     'table' => 'civicrm_pivotreport_config',
   ];
 }

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Provides a functionality to prepare Activity entity data for Pivot Table.
+ * Provides a functionality to prepare Contribution entity data for Pivot Table.
  */
 class CRM_PivotReport_DataContribution extends CRM_PivotReport_AbstractData {
 
@@ -98,7 +98,7 @@ class CRM_PivotReport_DataContribution extends CRM_PivotReport_AbstractData {
     if (empty($this->fields)) {
       $unsetFields = array(
       );
-      // Get standard Fields of Activity entity.
+      // Get standard Fields of Contribution entity.
       $fields = CRM_Contribute_DAO_Contribution::fields();
 
       foreach ($unsetFields as $unsetField) {

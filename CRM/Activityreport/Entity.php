@@ -1,6 +1,6 @@
 <?php
 
-class CRM_Activityreport_Entity {
+class CRM_PivotReport_Entity {
 
   /**
    * Entities which may be supported by the extension.
