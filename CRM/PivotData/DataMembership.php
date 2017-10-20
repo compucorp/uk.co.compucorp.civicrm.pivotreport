@@ -94,6 +94,9 @@ class CRM_PivotData_DataMembership extends CRM_PivotData_AbstractData {
       $fields['contact_type'] = array('name' => 'contact_type', 'title' => 'Contact Type');
       $fields['id'] = array('name' => 'id', 'title' => 'ID');
 
+      $fields['membership_name'] = array('name' => 'membership_name', 'title' => ts('Membership Name'));
+      $fields['relationship_name'] = array('name' => 'relationship_name', 'title' => ts('Relationship Name'));
+
       foreach ($fields as $key => $value) {
         if (!empty($keys[$value['name']])) {
           $key = $value['name'];
