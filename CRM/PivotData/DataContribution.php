@@ -19,7 +19,7 @@ class CRM_PivotData_DataContribution extends CRM_PivotData_AbstractData {
     $params = array(
       'sequential' => 1,
       'is_test' => 0,
-      'return' => implode(',', array_keys($this->getFields())),
+      'return' => implode(',', $this->getContributionFields()),
       'api.Contact.getsingle' => array(
         'id' => '$value.contact_id',
         'return' => array('display_name', 'sort_name', 'contact_type')
@@ -34,28 +34,39 @@ class CRM_PivotData_DataContribution extends CRM_PivotData_AbstractData {
   }
 
   /**
-   * Returns an array containing API date filter conditions basing on specified
-   * dates.
+   * Returns an array containing Contribution fields.
    *
-   * @param string $startDate
-   * @param string $endDate
-   *
-   * @return array|NULL
+   * @return array
    */
-  private function getAPIDateFilter($startDate, $endDate) {
-    $apiFilter = null;
+  protected function getContributionFields() {
+    $result = array();
+    $fields = array_keys($this->getFields());
 
-    if (!empty($startDate) && !empty($endDate)) {
-      $apiFilter = array('BETWEEN' => array($startDate, $endDate));
-    }
-    else if (!empty($startDate) && empty($endDate)) {
-      $apiFilter = array('>=' => $startDate);
-    }
-    else if (empty($startDate) && !empty($endDate)) {
-      $apiFilter = array('<=' => $endDate);
+    foreach ($fields as $field) {
+      $fieldParts = explode('.', $field);
+      if ($fieldParts[0] === 'contribution') {
+        $result[] = $fieldParts[1];
+      }
     }
 
-    return $apiFilter;
+    return $result;
+  }
+
+  /**
+   * @inheritdoc
+   */
+  protected function formatResult($data, $dataKey = null, $level = 0) {
+    $result = array();
+
+    foreach ($data as $key => $contribution) {
+      $contributionValues = $this->getRowValues($contribution, 'contribution');
+      $contactValues = $this->getRowValues($contribution['api.Contact.getsingle'], 'contact');
+
+      $row = array_merge($this->emptyRow, $this->additionalHeaderFields, $contributionValues, $contactValues);
+      $result[] = $this->formatRow($key, $row);
+    }
+
+    return $result;
   }
 
   /**
@@ -96,16 +107,14 @@ class CRM_PivotData_DataContribution extends CRM_PivotData_AbstractData {
    */
   protected function getFields() {
     if (empty($this->fields)) {
-      $unsetFields = array(
-      );
-      // Get standard Fields of Contribution entity.
-      $fields = CRM_Contribute_DAO_Contribution::fields();
+      $fields = array();
+      $keys = array();
+      $groups = array('contribution', 'contact');
 
-      foreach ($unsetFields as $unsetField) {
-        unset($fields[$unsetField]);
-      }
+      // Get standard Fields and Keys of Contribution entity.
+      $fields['contribution'] = CRM_Contribute_DAO_Contribution::fields();
+      $keys['contribution'] = CRM_Contribute_DAO_Contribution::fieldKeys();
 
-      $keys = CRM_Contribute_DAO_Contribution::fieldKeys();
       $result = array();
 
       // Now get Custom Fields for entity.
@@ -123,7 +132,7 @@ class CRM_PivotData_DataContribution extends CRM_PivotData_AbstractData {
         $customField->id = $customFieldsResult->id;
         $customField->find(true);
 
-        $fields['custom_' . $customFieldsResult->id] = array(
+        $fields['contribution']['custom_' . $customFieldsResult->id] = array(
           'name' => 'custom_' . $customFieldsResult->id,
           'title' => $customFieldsResult->label,
           'pseudoconstant' => array(
@@ -133,18 +142,22 @@ class CRM_PivotData_DataContribution extends CRM_PivotData_AbstractData {
         );
       }
 
-      $fields['api.Contact.getsingle'] = array('api_call' => true);
-      $fields['display_name'] = array('name' => 'display_name', 'title' => 'Display Name');
-      $fields['sort_name'] = array('name' => 'sort_name', 'title' => 'Sort Name');
-      $fields['contact_type'] = array('name' => 'contact_type', 'title' => 'Contact Type');
-      $fields['id'] = array('name' => 'id', 'title' => 'ID');
+      $fields['contact']['display_name'] = array('name' => 'display_name', 'title' => 'Display Name');
+      $fields['contact']['sort_name'] = array('name' => 'sort_name', 'title' => 'Sort Name');
+      $fields['contact']['contact_type'] = array('name' => 'contact_type', 'title' => 'Contact Type');
+      $fields['contact']['contact_id'] = array('name' => 'contact_id', 'title' => 'Contact ID');
 
-      foreach ($fields as $key => $value) {
-        if (!empty($keys[$value['name']])) {
-          $key = $value['name'];
+      foreach ($groups as $group) {
+        foreach ($fields[$group] as $key => $value) {
+          if (!empty($value['name']) && !empty($keys[$group][$value['name']])) {
+            $key = $value['name'];
+          }
+          $result[$group . '.' . $key] = $value;
+
+          if (is_array($value)) {
+            $result[$group . '.' . $key]['optionValues'] = $this->getOptionValues($value);
+          }
         }
-        $result[$key] = $value;
-        $result[$key]['optionValues'] = $this->getOptionValues($value);
       }
 
       $this->fields = $result;

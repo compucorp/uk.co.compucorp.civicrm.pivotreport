@@ -143,6 +143,68 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
   }
 
   /**
+   * Returns fields and values basing on specified entity name.
+   *
+   * @param array $data
+   * @param string $entityName
+   *
+   * @return array
+   */
+  protected function getRowValues($data, $entityName) {
+    $result = array();
+    $fields = $this->getFields();
+
+    foreach ($data as $key => $value) {
+      $fieldsKey = $entityName . '.' . $key;
+
+      if (empty($fields[$fieldsKey])) {
+        continue;
+      }
+
+      $resultKey = $fieldsKey;
+      if (!is_array($fields[$fieldsKey])) {
+        $resultKey = $fields[$fieldsKey];
+      }
+
+      $result[$resultKey] = $value;
+    }
+
+    return $result;
+  }
+
+  /**
+   * Returns an array containing formatted rows of specified array.
+   *
+   * @param int $key
+   * @param array $row
+   *
+   * @return array
+   */
+  protected function formatRow($key, $row) {
+    $fields = $this->getFields();
+    $result = array();
+
+    foreach ($row as $key => $value) {
+      $label = $key;
+      if (!empty($fields[$key]['title'])) {
+        $label = $fields[$key]['title'];
+      }
+      $label = ts($label);
+
+      $formattedValue = $this->formatValue($key, $value);
+      $result[$label] = $formattedValue;
+
+      if (is_array($formattedValue)) {
+        $this->multiValues[$key][] = $label;
+      }
+    }
+
+    ksort($result);
+
+    return $result;
+  }
+
+  /**
    * @inheritdoc
    */
   public function rebuildCache(AbstractGroup $cacheGroup, array $params) {
