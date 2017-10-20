@@ -19,7 +19,7 @@ class CRM_PivotData_DataMembership extends CRM_PivotData_AbstractData {
     $params = array(
       'sequential' => 1,
       'is_test' => 0,
-      'return' => implode(',', array_keys($this->getFields())),
+      'return' => implode(',', $this->getMembershipFields()),
       'api.Contact.getsingle' => array(
         'id' => '$value.contact_id',
         'return' => array('display_name', 'sort_name', 'contact_type')
@@ -34,6 +34,42 @@ class CRM_PivotData_DataMembership extends CRM_PivotData_AbstractData {
   }
 
   /**
+   * Returns an array containing Membership fields.
+   *
+   * @return array
+   */
+  protected function getMembershipFields() {
+    $result = array();
+    $fields = array_keys($this->getFields());
+
+    foreach ($fields as $field) {
+      $fieldParts = explode('.', $field);
+      if ($fieldParts[0] === 'membership') {
+        $result[] = $fieldParts[1];
+      }
+    }
+
+    return $result;
+  }
+
+  /**
+   * @inheritdoc
+   */
+  protected function formatResult($data, $dataKey = null, $level = 0) {
+    $result = array();
+
+    foreach ($data as $key => $membership) {
+      $membershipValues = $this->getRowValues($membership, 'membership');
+      $contactValues = $this->getRowValues($membership['api.Contact.getsingle'], 'contact');
+
+      $row = array_merge($this->emptyRow, $this->additionalHeaderFields, $membershipValues, $contactValues);
+      $result[] = $this->formatRow($key, $row);
+    }
+
+    return $result;
+  }
+
+  /**
    * @inheritdoc
    */
   protected function getEntityIndex(array $row) {
@@ -45,16 +81,14 @@ class CRM_PivotData_DataMembership extends CRM_PivotData_AbstractData {
    */
   protected function getFields() {
     if (empty($this->fields)) {
-      $unsetFields = array(
-      );
-      // Get standard Fields of Membership entity.
-      $fields = CRM_Member_DAO_Membership::fields();
+      $fields = array();
+      $keys = array();
+      $groups = array('membership', 'contact');
 
-      foreach ($unsetFields as $unsetField) {
-        unset($fields[$unsetField]);
-      }
+      // Get standard Fields and Keys of Membership entity.
+      $fields['membership'] = CRM_Member_DAO_Membership::fields();
+      $keys['membership'] = CRM_Member_DAO_Membership::fieldKeys();
 
-      $keys = CRM_Member_DAO_Membership::fieldKeys();
       $result = array();
 
       // Now get Custom Fields for entity.
@@ -72,7 +106,7 @@ class CRM_PivotData_DataMembership extends CRM_PivotData_AbstractData {
         $customField->id = $customFieldsResult->id;
         $customField->find(true);
 
-        $fields['custom_' . $customFieldsResult->id] = array(
+        $fields['membership']['custom_' . $customFieldsResult->id] = array(
           'name' => 'custom_' . $customFieldsResult->id,
           'title' => $customFieldsResult->label,
           'pseudoconstant' => array(
@@ -82,21 +116,25 @@ class CRM_PivotData_DataMembership extends CRM_PivotData_AbstractData {
         );
       }
 
-      $fields['api.Contact.getsingle'] = array('api_call' => true);
-      $fields['display_name'] = array('name' => 'display_name', 'title' => 'Display Name');
-      $fields['sort_name'] = array('name' => 'sort_name', 'title' => 'Sort Name');
-      $fields['contact_type'] = array('name' => 'contact_type', 'title' => 'Contact Type');
-      $fields['id'] = array('name' => 'id', 'title' => 'ID');
+      $fields['membership']['membership_name'] = array('name' => 'membership_name', 'title' => ts('Membership Name'));
+      $fields['membership']['relationship_name'] = array('name' => 'relationship_name', 'title' => ts('Relationship Name'));
 
-      $fields['membership_name'] = array('name' => 'membership_name', 'title' => ts('Membership Name'));
-      $fields['relationship_name'] = array('name' => 'relationship_name', 'title' => ts('Relationship Name'));
+      $fields['contact']['display_name'] = array('name' => 'display_name', 'title' => 'Display Name');
+      $fields['contact']['sort_name'] = array('name' => 'sort_name', 'title' => 'Sort Name');
+      $fields['contact']['contact_type'] = array('name' => 'contact_type', 'title' => 'Contact Type');
+      $fields['contact']['contact_id'] = array('name' => 'contact_id', 'title' => 'Contact ID');
 
-      foreach ($fields as $key => $value) {
-        if (!empty($keys[$value['name']])) {
-          $key = $value['name'];
+      foreach ($groups as $group) {
+        foreach ($fields[$group] as $key => $value) {
+          if (!empty($value['name']) && !empty($keys[$group][$value['name']])) {
+            $key = $value['name'];
+          }
+          $result[$group . '.' . $key] = $value;
+
+          if (is_array($value)) {
+            $result[$group . '.' . $key]['optionValues'] = $this->getOptionValues($value);
+          }
         }
-        $result[$key] = $value;
-        $result[$key]['optionValues'] = $this->getOptionValues($value);
       }
 
       $this->fields = $result;
