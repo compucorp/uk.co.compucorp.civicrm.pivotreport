@@ -124,6 +124,13 @@ CRM.PivotReport.PivotTable = (function($) {
           } else if (checked == false && $(this).is(':checked')) {
             $(this).click();
           }
+
+          if (checked === true) {
+            $(this).parent().parent().show();
+          } else {
+            $(this).parent().parent().hide();
+          }
+
         });
       });
 
@@ -142,27 +149,37 @@ CRM.PivotReport.PivotTable = (function($) {
    *   value.
    */
   PivotTable.prototype.changeFilterDates = function (select) {
-    var relativeDateInfo = select.val().split('.');
-    var unit = relativeDateInfo[1];
-    var relativeTerm = relativeDateInfo[0];
-
-    var dateCalculator = new CRM.PivotReport.Dates(this.crmConfig);
-    var dates = dateCalculator.getRelativeStartAndEndDates(relativeTerm, unit);
-
     var fieldInfo = select.attr('name').split('_');
     var fieldName = fieldInfo[1];
 
-    $('#fld_' + fieldName + '_start').val(CRM.utils.formatDate(dates.startDate, CRM.config.dateInputFormat)).change();
-    $('input.inner_date.fld_' + fieldName + '_start.hasDatepicker').val(CRM.utils.formatDate(dates.startDate, CRM.config.dateInputFormat));
-
-    $('#fld_' + fieldName + '_end').val(CRM.utils.formatDate(dates.endDate, CRM.config.dateInputFormat)).change();
-    $('input.inner_date.fld_' + fieldName + '_end.hasDatepicker').val(CRM.utils.formatDate(dates.endDate, CRM.config.dateInputFormat));
+    var startValue = '';
+    var endValue = '';
+    var displayStart = '';
+    var displayEnd = '';
 
     if (select.val() !== '') {
+      var relativeDateInfo = select.val().split('.');
+      var unit = relativeDateInfo[1];
+      var relativeTerm = relativeDateInfo[0];
+
+      var dateCalculator = new CRM.PivotReport.Dates(this.crmConfig);
+      var dates = dateCalculator.getRelativeStartAndEndDates(relativeTerm, unit);
+
+      startValue = dates.startDate.toUTCString();
+      endValue = dates.endDate.toUTCString();
+      displayStart = CRM.utils.formatDate(dates.startDate, CRM.config.dateInputFormat);
+      displayEnd = CRM.utils.formatDate(dates.endDate, CRM.config.dateInputFormat);
+
       $('#inner_' + fieldName).hide();
     } else {
       $('#inner_' + fieldName).show();
     }
+
+    $('input.inner_date.fld_' + fieldName + '_start.hasDatepicker').val(displayStart);
+    $('input.inner_date.fld_' + fieldName + '_end.hasDatepicker').val(displayEnd);
+    $('#fld_' + fieldName + '_start').val(startValue);
+    $('#fld_' + fieldName + '_end').val(endValue);
+    $('#fld_' + fieldName + '_end').change();
   };
 
   /**
