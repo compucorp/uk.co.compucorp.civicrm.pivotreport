@@ -54,8 +54,7 @@
         row.push(aggregatorName);
       } else {
         for (i = 0; i < colKeys.length; i++) {
-          colKey = colKeys[j];
-          row.push(colKey.join("-"));
+          row.push(colKeys[i]);
         }
       }
 
