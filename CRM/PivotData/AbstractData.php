@@ -630,7 +630,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
 
     foreach ($fields as $key => $value) {
       if (!CRM_Utils_Array::value('api_call', $value, false)) {
-        if (!is_array($value)) {
+        if (!is_array($value) && !empty($value)) {
           $key = $value;
         } elseif (!empty($value['title'])) {
           $key = $value['title'];
