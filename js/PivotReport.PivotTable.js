@@ -87,18 +87,25 @@ CRM.PivotReport.PivotTable = (function($) {
             $(this).after(selectContainer);
 
             $('.pvtFilter', container).addClass(fieldName);
-          }
-        }
-      });
+            $('.pvtSearch', container).hide();
 
-      $(':button', container).each(function () {
-        if ($(this).text() == 'Select All') {
-          $(this).addClass(fieldName + '_batchSelector');
-          $(this).off('click');
-          $(this).on('click', function () {
-            $('#fld_' + fieldName + '_start').change();
-            $('input.inner_date.fld_' + fieldName + '_start.hasDatepicker').val($('#fld_' + fieldName + '_start').val());
-          });
+            $(':button', container).each(function () {
+              if ($(this).text() == 'Select All') {
+                $(this).addClass(fieldName + '_batchSelector');
+                $(this).off('click');
+                $(this).on('click', function () {
+                  $('#fld_' + fieldName + '_start').change();
+                  $('input.inner_date.fld_' + fieldName + '_start.hasDatepicker').val($('#fld_' + fieldName + '_start').val());
+                });
+              }
+
+              if ($(this).text() == 'Apply' || $(this).text() == 'Cancel') {
+                $(this).on('click', function () {
+                  that.filterDateValues(fieldName);
+                });
+              }
+            });
+          }
         }
       });
     });
@@ -107,31 +114,7 @@ CRM.PivotReport.PivotTable = (function($) {
 
       $(this).change(function () {
         var fieldInfo = $(this).attr('name').split('_');
-        var startDateValue = $('#fld_' + fieldInfo[1] + '_start').val();
-        var endDateValue = $('#fld_' + fieldInfo[1] + '_end').val();
-
-        $('input.' + fieldInfo[1]).each(function () {
-          var checkDateValue = $('span.value', $(this).parent()).text();
-          var checked = false;
-          var dateChecker = new CRM.PivotReport.Dates(that.crmConfig);
-
-          if (dateChecker.dateInRange(checkDateValue, startDateValue, endDateValue)) {
-            checked = true;
-          }
-
-          if (checked == true && !$(this).is(':checked')) {
-            $(this).click();
-          } else if (checked == false && $(this).is(':checked')) {
-            $(this).click();
-          }
-
-          if (checked === true) {
-            $(this).parent().parent().show();
-          } else {
-            $(this).parent().parent().hide();
-          }
-
-        });
+        that.filterDateValues(fieldInfo[1]);
       });
 
       $(this).crmDatepicker({
@@ -140,6 +123,40 @@ CRM.PivotReport.PivotTable = (function($) {
     });
 
   };
+
+  /**
+   * Given a fieldname, uses start and end dates set on inputs to filter values.
+   *
+   * @param string fieldName
+   *   Name of the field to be filtered
+   */
+  PivotTable.prototype.filterDateValues = function (fieldName) {
+    var that = this;
+    var startDateValue = $('#fld_' + fieldName + '_start').val();
+    var endDateValue = $('#fld_' + fieldName + '_end').val();
+
+    $('input.' + fieldName).each(function () {
+      var checkDateValue = $('span.value', $(this).parent()).text();
+      var checked = false;
+      var dateChecker = new CRM.PivotReport.Dates(that.crmConfig);
+
+      if (dateChecker.dateInRange(checkDateValue, startDateValue, endDateValue)) {
+        checked = true;
+      }
+
+      if (checked == true && !$(this).is(':checked')) {
+        $(this).click();
+      } else if (checked == false && $(this).is(':checked')) {
+        $(this).click();
+      }
+
+      if (checked === true) {
+        $(this).parent().parent().show();
+      } else {
+        $(this).parent().parent().hide();
+      }
+    });
+  }
 
   /**
    * Updates start and end dates according to selected relative date.
