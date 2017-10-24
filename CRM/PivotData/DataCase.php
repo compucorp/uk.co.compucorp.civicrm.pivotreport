@@ -18,6 +18,7 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
   protected function getEntityApiParams(array $inputParams) {
     $params = array(
       'sequential' => 1,
+      'is_deleted' => 0,
       'api.Contact.get' => array('id' => '$value.client_id', 'return' => array('id', 'contact_type', 'contact_sub_type', 'display_name')),
       'return' => array_merge($this->getCaseFields(), array('contacts', 'contact_id')),
       'options' => array(
@@ -256,6 +257,8 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
    * @inheritdoc
    */
   protected function getCount(array $params) {
-    return civicrm_api3('Case', 'getcount', array());
+    return civicrm_api3('Case', 'getcount', array(
+      'is_deleted' => 0
+    ));
   }
 }
