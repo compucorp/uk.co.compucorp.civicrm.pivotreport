@@ -18,9 +18,10 @@ class CRM_PivotData_DataProspect extends CRM_PivotData_DataCase {
   protected function getEntityApiParams(array $inputParams) {
     $params = array(
       'sequential' => 1,
-      'api.Contact.get' => array('id' => array('IN' => '$value.client_id'), 'return' => array('id', 'contact_type', 'contact_sub_type', 'display_name')),
+      'is_deleted' => 0,
+      'api.Contact.get' => array('id' => '$value.client_id', 'return' => array('id', 'contact_type', 'contact_sub_type', 'display_name')),
       'api.ProspectConverted.get' => array('prospect_case_id' => '$value.id'),
-      'return' => array_merge($this->getCaseFields(), array('contacts')),
+      'return' => array_merge($this->getCaseFields(), array('contacts', 'contact_id')),
       'options' => array(
         'sort' => 'id ASC',
         'limit' => self::ROWS_API_LIMIT,

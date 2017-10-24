@@ -58,9 +58,9 @@ CRM.PivotReport.PivotTable = (function($) {
       $(this).children().each(function () {
 
         if ($(this).prop("tagName") == 'H4') {
-          fieldName = $(this).text().replace(/[ ()0-9]/g, '');
+          fieldName = $(this).text().replace(/[ ()0-9?]/g, '');
 
-          if ($.inArray($(this).text().replace(/[()0-9]/g, ''), that.dateFields) >= 0) {
+          if ($.inArray($(this).text().replace(/[()0-9?]/g, ''), that.dateFields) >= 0) {
             $(this).after('' +
               '<div id="inner_' + fieldName + '" class="inner_date_filters">' +
               ' <form>' +

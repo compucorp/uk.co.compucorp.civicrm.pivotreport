@@ -18,8 +18,9 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
   protected function getEntityApiParams(array $inputParams) {
     $params = array(
       'sequential' => 1,
-      'api.Contact.get' => array('id' => array('IN' => '$value.client_id'), 'return' => array('id', 'contact_type', 'contact_sub_type', 'display_name')),
-      'return' => array_merge($this->getCaseFields(), array('contacts')),
+      'is_deleted' => 0,
+      'api.Contact.get' => array('id' => '$value.client_id', 'return' => array('id', 'contact_type', 'contact_sub_type', 'display_name')),
+      'return' => array_merge($this->getCaseFields(), array('contacts', 'contact_id')),
       'options' => array(
         'sort' => 'start_date ASC',
         'limit' => self::ROWS_API_LIMIT,
@@ -192,7 +193,9 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
       $caseFields = CRM_Case_DAO_Case::fields();
 
       foreach ($includeCaseFields as $includeField) {
-        $fields['case'][$includeField] = $caseFields[$includeField];
+        if (isset($caseFields[$includeField])) {
+          $fields['case'][$includeField] = $caseFields[$includeField];
+        }
       }
 
       $keys['case'] = CRM_Case_DAO_Case::fieldKeys();
@@ -254,6 +257,8 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
    * @inheritdoc
    */
   protected function getCount(array $params) {
-    return civicrm_api3('Case', 'getcount', array());
+    return civicrm_api3('Case', 'getcount', array(
+      'is_deleted' => 0
+    ));
   }
 }
