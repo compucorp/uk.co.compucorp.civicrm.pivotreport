@@ -524,20 +524,8 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
 
         $result[$key] = $this->formatResult($value, $dataKey, $level + 1);
 
-        if ($level === 1 && is_array($result[$key]) && !$fields[$key]['api_call']) {
+        if ($level === 1 && is_array($result[$key])) {
           $this->multiValues[$baseKey][] = $key;
-        }
-
-        if (CRM_Utils_Array::value('api_call', $fields[$key], false)) {
-          foreach ($result[$key] as $apiKey => $apiValue) {
-            if (!empty($fields[$apiKey]['title'])) {
-              $apiKey = $fields[$apiKey]['title'];
-            }
-
-            $result[$apiKey] = $apiValue;
-          }
-
-          unset($result[$key]);
         }
       }
 
@@ -578,20 +566,11 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
 
     $fields = $this->getFields();
     $dataType = !empty($fields[$key]['customField']['data_type']) ? $fields[$key]['customField']['data_type'] : null;
-    $isAPICall = CRM_Utils_Array::value('api_call', $fields[$key], false);
 
-    if (is_array($value) && $dataType !== 'File' && !$isAPICall) {
+    if (is_array($value) && $dataType !== 'File') {
       $valueArray = array();
       foreach ($value as $valueKey => $valueItem) {
         $valueArray[] = $this->formatValue($key, $valueKey, $level + 1);
-      }
-      return $valueArray;
-    }
-
-    if ($isAPICall && is_array($value)) {
-      $valueArray = array();
-      foreach ($value as $valueKey => $valueItem) {
-        $valueArray[$valueKey] = $this->formatValue($valueKey, $valueItem, $level + 1);
       }
       return $valueArray;
     }
@@ -691,15 +670,13 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
     $fields = $this->getFields();
 
     foreach ($fields as $key => $value) {
-      if (!CRM_Utils_Array::value('api_call', $value, false)) {
-        if (!is_array($value) && !empty($value)) {
-          $key = $value;
-        } elseif (!empty($value['title'])) {
-          $key = $value['title'];
-        }
-
-        $result[$key] = '';
+      if (!is_array($value) && !empty($value)) {
+        $key = $value;
+      } elseif (!empty($value['title'])) {
+        $key = $value['title'];
       }
+
+      $result[$key] = '';
     }
 
     ksort($result);
