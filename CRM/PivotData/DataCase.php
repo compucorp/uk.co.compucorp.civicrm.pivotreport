@@ -72,7 +72,7 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
   protected function getCaseValues($data) {
     $result = array();
     $fields = $this->getFields();
-    $include = array('id', 'status_id', 'start_date', 'end_date');
+    $include = array('id', 'case_type_id', 'status_id', 'start_date', 'end_date');
 
     foreach ($data as $key => $value) {
       $resultKey = 'case.' . $key;
@@ -189,7 +189,7 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
       $groups = array('case', 'client', 'manager');
 
       // Get standard Fields of Case entity.
-      $includeCaseFields = array('case_id', 'case_status_id', 'case_start_date', 'case_end_date');
+      $includeCaseFields = array('case_id', 'case_type_id', 'case_status_id', 'case_start_date', 'case_end_date');
       $caseFields = CRM_Case_DAO_Case::fields();
 
       foreach ($includeCaseFields as $includeField) {
