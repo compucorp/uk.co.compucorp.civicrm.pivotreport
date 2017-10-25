@@ -52,7 +52,7 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
 
     foreach ($data as $key => $case) {
       $caseValues = $this->getCaseValues($case);
-      $clientValues = $this->getRowValues($case['api.Contact.get']['values'][0], 'client');
+      $clientValues = $this->getClients($case['api.Contact.get']['values']);
       $managerValues = $this->getManager($case['contacts']);
 
       $row = array_merge($this->emptyRow, $this->additionalHeaderFields, $caseValues, $clientValues, $managerValues);
@@ -60,6 +60,24 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
     }
 
     return $result;
+  }
+
+  private function getClients($clients) {
+    $clientFields = array();
+
+    foreach ($clients as $currentClient) {
+      $rowValues = $this->getRowValues($currentClient, 'client');
+
+      foreach ($rowValues as $field => $value){
+        $clientFields[$field][$value] = $value;
+      }
+    }
+
+    foreach ($clientFields as $field => $values) {
+      $clientFields[$field] = implode(', ', $values);
+    }
+
+    return $clientFields;
   }
 
   /**
