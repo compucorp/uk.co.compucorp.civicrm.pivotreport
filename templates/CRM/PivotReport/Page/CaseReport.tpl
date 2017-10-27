@@ -3,6 +3,7 @@
     CRM.$(function ($) {
       new CRM.PivotReport.PivotTable({
         'entityName': 'Case',
+        'uniqueKey': 'Case ID'
       });
     });
 </script>

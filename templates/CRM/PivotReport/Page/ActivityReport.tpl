@@ -22,6 +22,7 @@
     CRM.$(function ($) {
       new CRM.PivotReport.PivotTable({
         'entityName': 'Activity',
+        'uniqueKey': 'Activity ID',
         'filter': true,
         'filterField': 'Activity Date',
         'initialLoad': {
