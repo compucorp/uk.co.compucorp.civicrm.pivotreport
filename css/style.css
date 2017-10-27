@@ -131,3 +131,13 @@ table.pvtUi td.pvtVertList {
   display: inline-block;
   width: 190px;
 }
+
+/* Pivot Table progress bar */
+
+#pivot-report-preloader .progress .progress-bar {
+  -webkit-transition: none;
+  -moz-transition: none;
+  -ms-transition: none;
+  -o-transition: none;
+  transition: none;
+}
