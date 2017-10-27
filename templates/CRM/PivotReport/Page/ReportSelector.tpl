@@ -23,5 +23,5 @@
     {html_options options=$options_array selected=$CRMDataType}
   </select>
   <input id="reportSelectorBtn" type="button" value="Go"/>
-  <input class="build-cache-button hidden" type="button" value="{if !$cacheBuilt}Build Cache{else}Rebuild Cache{/if}">
+  <input class="build-cache-button" type="button" value="{if !$cacheBuilt}Build Cache{else}Rebuild Cache{/if}">
 </form>
