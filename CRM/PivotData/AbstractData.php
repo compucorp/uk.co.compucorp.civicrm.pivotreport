@@ -215,13 +215,13 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
 
     $cacheGroup->clear();
 
-    $count = $this->rebuildData($cacheGroup, $params);
+    $result = $this->rebuildData($cacheGroup, $params);
 
     $this->rebuildHeader($cacheGroup, array_merge($this->emptyRow, $this->additionalHeaderFields));
 
     return array(
       array(
-        'rows' => $count,
+        'rows' => $result['count'],
         'time' => (microtime(true) - $time),
       )
     );
@@ -230,10 +230,38 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
   /**
    * @inheritdoc
    */
-  public function rebuildData(AbstractGroup $cacheGroup, array $params, $offset = 0, $multiValuesOffset = 0, $page = 0) {
-    $total = $this->getCount($params);
+  public function rebuildCachePartial(AbstractGroup $cacheGroup, array $params, $offset, $multiValuesOffset, $index, $page) {
+    $this->emptyRow = $this->getEmptyRow();
+    $this->multiValues = array();
+
+    if (!$offset) {
+      $cacheGroup->clear();
+    }
+
+    $result = $this->rebuildData($cacheGroup, $params, $offset, $offset + self::ROWS_API_LIMIT, $multiValuesOffset, $index, $page);
+
+    if (!$result['count']) {
+      $this->rebuildHeader($cacheGroup, array_merge($this->emptyRow, $this->additionalHeaderFields));
+    }
+
+    return $result;
+  }
+
+  /**
+   * @inheritdoc
+   */
+  public function rebuildData(AbstractGroup $cacheGroup, array $params, $offset = 0, $total = NULL, $multiValuesOffset = 0, $index = NULL, $page = 0) {
+    $totalCount = $this->getCount($params);
+
+    if ($total === NULL) {
+      $total = $totalCount;
+    } else {
+      if ($total > $totalCount) {
+        $total = $totalCount;
+      }
+    }
+
     $apiParams = $this->getEntityApiParams($params);
-    $index = NULL;
     $count = 0;
 
     while ($offset < $total) {
@@ -251,7 +279,13 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
       $index = $pages[$lastPageIndex]->getIndex();
     }
 
-    return $count;
+    return array(
+      'offset' => $offset,
+      'multiValuesOffset' => $multiValuesOffset,
+      'page' => $page,
+      'index' => $index,
+      'count' => $count,
+    );
   }
 
   /**
@@ -344,7 +378,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
       ),
     );
 
-    return array_merge($params, $inputParams);
+    return $params;
   }
 
   /**
