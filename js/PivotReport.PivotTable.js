@@ -10,6 +10,7 @@ CRM.PivotReport.PivotTable = (function($) {
   function PivotTable(config) {
     var defaults = {
       'entityName': null,
+      'uniqueKey': 'ID',
       'filter': false,
       'initialLoad': {
         'limit': 0,
@@ -32,6 +33,8 @@ CRM.PivotReport.PivotTable = (function($) {
     this.header = [];
     this.data = [];
     this.total = 0;
+    this.totalLoaded = 0;
+    this.uniqueLoaded = [];
     this.pivotReportForm = null;
     this.pivotReportKeyValueFrom = null;
     this.pivotReportKeyValueTo = null;
@@ -39,6 +42,7 @@ CRM.PivotReport.PivotTable = (function($) {
     this.relativeFilters = null;
     this.crmConfig = null;
     this.PivotConfig = new CRM.PivotReport.Config(this);
+    this.Preloader = new CRM.PivotReport.Preloader();
 
     this.initFilterForm();
     this.initUI();
@@ -221,7 +225,6 @@ CRM.PivotReport.PivotTable = (function($) {
     this.pivotReportKeyValueTo = $('input[name="keyvalue_to"]', this.pivotReportForm);
 
     $('input[type="button"].apply-filters-button', this.pivotReportForm).click(function(e) {
-      $('#pivot-report-preloader').removeClass('hidden');
       $('#pivot-report-filters').addClass('hidden');
 
       that.loadDataByFilter(that.pivotReportKeyValueFrom.val(), that.pivotReportKeyValueTo.val());
@@ -245,10 +248,37 @@ CRM.PivotReport.PivotTable = (function($) {
     $('input[type="button"].build-cache-button').click(function(e) {
       CRM.confirm({message: 'This operation may take some time to build the cache. Do you really want to build the cache for ' + that.config.entityName + ' data?' })
       .on('crmConfirm:yes', function() {
-        CRM.api3('PivotReport', 'rebuildcache', {entity: that.config.entityName}).done(function(result) {
-          that.initPivotDataLoading();
+        that.Preloader.reset();
+        that.Preloader.setTitle('Building cache');
+        that.Preloader.show();
+
+        CRM.api3(that.config.entityName, 'getcount', that.config.getCountParams()).done(function(result) {
+           that.rebuildCache(0, 0, null, 0, result.result);
         });
       });
+    });
+  };
+
+  PivotTable.prototype.rebuildCache = function(offset, multiValuesOffset, index, page, totalCount) {
+    var that = this;
+
+    CRM.api3('PivotReport', 'rebuildcachepartial', {
+        entity: that.config.entityName,
+        offset: offset,
+        multiValuesOffset: multiValuesOffset,
+        index: index,
+        page: page
+      }).done(function(result) {
+      if (parseInt(result.values.count, 10) === 0) {
+        that.Preloader.hide();
+        that.initPivotDataLoading();
+
+        return;
+      }
+
+      var progressValue = parseInt((offset / totalCount) * 100, 10);
+      that.Preloader.setValue(progressValue);
+      that.rebuildCache(result.values.offset, result.values.multiValuesOffset, result.values.index, result.values.page, totalCount);
     });
   }
 
@@ -300,6 +330,7 @@ CRM.PivotReport.PivotTable = (function($) {
    * Resets data array and init empty Pivot Table.
    */
   PivotTable.prototype.resetData = function() {
+    this.totalLoaded = 0;
     this.data = [];
     this.initPivotTable([]);
   };
@@ -312,12 +343,10 @@ CRM.PivotReport.PivotTable = (function($) {
    * @param {object} loadParams
    *   Object containing params for API 'get' request of Pivot Report data.
    */
-  PivotTable.prototype.loadData = function(loadParams) {
+  PivotTable.prototype.loadData = function(loadParams, totalCount) {
     var that = this;
-
-    CRM.$('span#pivot-report-loading-count').append('.');
-
     var params = loadParams;
+
     params.sequential = 1;
     params.entity = this.config.entityName;
 
@@ -325,6 +354,9 @@ CRM.PivotReport.PivotTable = (function($) {
       that.data = that.data.concat(that.processData(result['values'][0].data));
       var nextKeyValue = result['values'][0].nextKeyValue;
       var nextPage = result['values'][0].nextPage;
+      var progressValue = parseInt((that.totalLoaded / totalCount) * 100, 10);
+
+      that.Preloader.setValue(progressValue);
 
       if (nextKeyValue === '') {
         that.loadComplete(that.data);
@@ -333,18 +365,18 @@ CRM.PivotReport.PivotTable = (function($) {
           "keyvalue_from": nextKeyValue,
           "keyvalue_to": params.keyvalue_to,
           "page": nextPage
-        });
+        }, totalCount);
       }
     });
   };
 
   /**
-   * Hides preloader, show filters and init Pivot Table.
+   * Hides preloader, shows filters and init Pivot Table.
    *
    * @param {array} data
    */
   PivotTable.prototype.loadComplete = function(data) {
-    $('#pivot-report-preloader').addClass('hidden');
+    this.Preloader.hide();
 
     if (this.config.filter) {
       $('#pivot-report-filters').removeClass('hidden');
@@ -414,6 +446,7 @@ CRM.PivotReport.PivotTable = (function($) {
   /**
    * Formats incoming data (combine header with fields values)
    * to be compatible with Pivot library.
+   * Updates totalLoaded with number of unique rows processed.
    *
    * @param {array} data
    *
@@ -429,8 +462,13 @@ CRM.PivotReport.PivotTable = (function($) {
       for (j in data[i]) {
         row[that.header[j]] = data[i][j];
       }
+
+      that.uniqueLoaded[row[that.config.uniqueKey]] = 1;
+
       result.push(row);
     }
+
+    this.totalLoaded = that.uniqueLoaded.length;
 
     return result;
   };
@@ -452,12 +490,15 @@ CRM.PivotReport.PivotTable = (function($) {
     }
 
     this.pivotTableContainer.html('');
+    this.Preloader.reset();
+    this.Preloader.setTitle('Loading filtered data');
+    this.Preloader.show();
 
     CRM.api3(this.config.entityName, 'getcount', this.config.getCountParams(filterValueFrom, filterValueTo)).done(function(result) {
       var totalFiltered = parseInt(result.result, 10);
 
       if (!totalFiltered) {
-        $('#pivot-report-preloader').addClass('hidden');
+        that.Preloader.hide();
 
         if (that.config.filter) {
           $('#pivot-report-filters').removeClass('hidden');
@@ -471,7 +512,7 @@ CRM.PivotReport.PivotTable = (function($) {
           'keyvalue_from': filterValueFrom,
           'keyvalue_to': filterValueTo,
           'page': 0
-        });
+        }, totalFiltered);
       }
     });
   };
@@ -480,6 +521,8 @@ CRM.PivotReport.PivotTable = (function($) {
    * Runs all data loading.
    */
   PivotTable.prototype.loadAllData = function() {
+    var that = this;
+
     this.resetData();
 
     if (this.config.filter) {
@@ -488,12 +531,18 @@ CRM.PivotReport.PivotTable = (function($) {
     }
 
     this.pivotTableContainer.html('');
-    $('#pivot-report-preloader').removeClass('hidden');
+    this.Preloader.reset();
+    this.Preloader.setTitle('Loading data');
+    this.Preloader.show();
 
-    this.loadData({
-      "keyvalue_from": null,
-      "keyvalue_to": null,
-      "page": 0
+    CRM.api3(this.config.entityName, 'getcount', this.config.getCountParams()).done(function(result) {
+        var totalCount = parseInt(result.result, 10);
+
+        that.loadData({
+          "keyvalue_from": null,
+          "keyvalue_to": null,
+          "page": 0
+        }, totalCount);
     });
   };
 
