@@ -3,5 +3,5 @@
 {include file="CRM/PivotReport/Page/ReportConfig.tpl"}
 {include file="CRM/PivotReport/Page/ReportPreloader.tpl"}
 {include file="CRM/PivotReport/Page/`$CRMDataType`Report.tpl"}
-<div id="pivot-report-table">
+<div id="pivot-report-table" class="hidden">
 </div>
