@@ -11,6 +11,7 @@ CRM.PivotReport.PivotTable = (function($) {
     var defaults = {
       'entityName': null,
       'uniqueKey': 'ID',
+      'cacheBuilt': true,
       'filter': false,
       'initialLoad': {
         'limit': 0,
@@ -47,7 +48,16 @@ CRM.PivotReport.PivotTable = (function($) {
     this.initFilterForm();
     this.initUI();
     this.initPivotDataLoading();
+    this.checkCacheBuilt();
   };
+
+  PivotTable.prototype.checkCacheBuilt = function () {
+    if (this.config.cacheBuilt) {
+      $('#pivot-report-config, #pivot-report-filters, #pivot-report-table').removeClass('hidden');
+    } else {
+      $('#pivot-report-config, #pivot-report-filters, #pivot-report-table').addClass('hidden');
+    }
+  }
 
   /**
    * Initializes date filters for each field of Date data type.
@@ -271,6 +281,8 @@ CRM.PivotReport.PivotTable = (function($) {
       }).done(function(result) {
       if (parseInt(result.values.count, 10) === 0) {
         that.Preloader.hide();
+        that.config.cacheBuilt = true;
+        that.checkCacheBuilt();
         that.initPivotDataLoading();
 
         return;
