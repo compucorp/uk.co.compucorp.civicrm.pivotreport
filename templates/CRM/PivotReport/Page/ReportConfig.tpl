@@ -1,4 +1,4 @@
-<div id="pivot-report-config">
+<div id="pivot-report-config" class="hidden">
   <form>
     <div class="form-item">
       Configuration:

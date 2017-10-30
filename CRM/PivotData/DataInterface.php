@@ -32,6 +32,20 @@ interface CRM_PivotData_DataInterface {
   public function rebuildCache(AbstractGroup $cacheGroup, array $params);
 
   /**
+   * Rebuilds pivot report cache partially including header and data.
+   *
+   * @param \CRM_PivotCache_AbstractGroup $cacheGroup
+   * @param array $params
+   * @param int $offset
+   * @param int $multiValuesOffset
+   * @param string $index
+   * @param int $page
+   *
+   * @return array
+   */
+  public function rebuildCachePartial(AbstractGroup $cacheGroup, array $params, $offset, $multiValuesOffset, $index, $page);
+
+  /**
    * Rebuilds entity data cache using entity paginated results.
    *
    * @param \CRM_PivotCache_AbstractGroup $cacheGroup

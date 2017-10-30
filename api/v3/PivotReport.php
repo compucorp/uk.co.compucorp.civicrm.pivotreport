@@ -83,6 +83,36 @@ function civicrm_api3_pivot_report_rebuildcache($params) {
   );
 }
 
+/**
+ * PivotReport.rebuildcachepartial API
+ *
+ * @param array $params
+ * @return array API result descriptor
+ * @throws API_Exception
+ */
+function civicrm_api3_pivot_report_rebuildcachepartial($params) {
+  $entity = !empty($params['entity']) ? $params['entity'] : NULL;
+  $offset = !empty($params['offset']) ? (int) $params['offset'] : 0;
+  $multiValuesOffset = !empty($params['multiValuesOffset']) ? (int) $params['multiValuesOffset'] : 0;
+  $index = !empty($params['index']) ? (int) $params['index'] : NULL;
+  $page = !empty($params['page']) ? (int) $params['page'] : 0;
+
+  $entityInstance = new CRM_PivotReport_Entity($entity);
+  $result = $entityInstance->getDataInstance()->rebuildCachePartial(
+    $entityInstance->getGroupInstance(),
+    $params,
+    $offset,
+    $multiValuesOffset,
+    $index,
+    $page
+  );
+
+  return civicrm_api3_create_success(
+    $result,
+    $params
+  );
+}
+
 function civicrm_api3_pivot_report_getdatefields($params) {
   $entity = !empty($params['entity']) ? $params['entity'] : 'Activity';
   $entityInstance = new CRM_PivotReport_Entity($entity);

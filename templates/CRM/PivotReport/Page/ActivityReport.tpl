@@ -22,6 +22,8 @@
     CRM.$(function ($) {
       new CRM.PivotReport.PivotTable({
         'entityName': 'Activity',
+        'uniqueKey': 'Activity ID',
+        'cacheBuilt': {/literal}{$cacheBuilt|var_export:true}{literal},
         'filter': true,
         'filterField': 'Activity Date',
         'initialLoad': {
