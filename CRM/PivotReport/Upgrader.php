@@ -105,6 +105,12 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
     return TRUE;
   }
 
+  public function upgrade_0005() {
+    $this->executeSqlFile('sql/auto_install.sql');
+
+    return TRUE;
+  }
+
   /**
    * Logic which is executing when enabling extension.
    * 

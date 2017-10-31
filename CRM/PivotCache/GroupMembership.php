@@ -13,7 +13,7 @@ class CRM_PivotCache_GroupMembership extends CRM_PivotCache_AbstractGroup {
    * @inheritdoc
    */
   public function query($page, array $params) {
-    $cache = new CRM_Core_DAO_Cache();
+    $cache = new CRM_PivotReport_DAO_PivotReportCache();
 
     $cache->group_name = $this->getName();
 
