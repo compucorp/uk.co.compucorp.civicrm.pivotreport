@@ -62,13 +62,25 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
     return $result;
   }
 
-  private function getClients($clients) {
+  /**
+   * Builds an array with client's data impleded for each field, to handle cases
+   * with multiple clients.
+   *
+   * @param array $clients
+   *   Array with client's data.
+   *
+   * @return array
+   */
+  protected function getClients($clients) {
     $clientFields = array();
 
     foreach ($clients as $currentClient) {
       $rowValues = $this->getRowValues($currentClient, 'client');
 
       foreach ($rowValues as $field => $value){
+        if (is_array($value)) {
+          $value = implode(', ', $value);
+        }
         $clientFields[$field][$value] = $value;
       }
     }

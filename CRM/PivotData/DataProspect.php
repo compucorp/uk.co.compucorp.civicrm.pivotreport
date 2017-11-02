@@ -40,7 +40,7 @@ class CRM_PivotData_DataProspect extends CRM_PivotData_DataCase {
 
     foreach ($data as $key => $inputRow) {
       $caseValues = $this->getCaseValues($inputRow);
-      $clientValues = $this->getRowValues($inputRow['api.Contact.get']['values'][0], 'client');
+      $clientValues = $this->getClients($inputRow['api.Contact.get']['values']);
       $managerValues = $this->getManager($inputRow['contacts']);
 
       $paymentValues = array();
