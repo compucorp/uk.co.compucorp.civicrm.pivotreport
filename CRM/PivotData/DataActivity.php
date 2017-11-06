@@ -138,13 +138,13 @@ class CRM_PivotData_DataActivity extends CRM_PivotData_AbstractData {
 
       // Now get Custom Fields of Activity entity.
       $customFieldsResult = CRM_Core_DAO::executeQuery(
-        'SELECT g.id AS group_id, f.id AS id, f.label AS label, f.data_type AS data_type, ' .
-        'f.html_type AS html_type, f.date_format AS date_format, og.name AS option_group_name ' .
-        'FROM `civicrm_custom_group` g ' .
-        'LEFT JOIN `civicrm_custom_field` f ON f.custom_group_id = g.id ' .
-        'LEFT JOIN `civicrm_option_group` og ON og.id = f.option_group_id ' .
-        'WHERE g.extends = \'Activity\' AND g.is_active = 1 AND f.is_active = 1 AND f.html_type NOT IN (\'TextArea\', \'RichTextEditor\') AND (f.data_type <> \'String\' OR (f.data_type = \'String\' AND f.html_type <> \'Text\')) '
-      );
+        'SELECT g.id AS group_id, f.id AS id, f.label AS label, f.data_type AS data_type, 
+          f.html_type AS html_type, f.date_format AS date_format, og.name AS option_group_name 
+        FROM `civicrm_custom_group` g 
+        LEFT JOIN `civicrm_custom_field` f ON f.custom_group_id = g.id 
+        LEFT JOIN `civicrm_option_group` og ON og.id = f.option_group_id 
+        WHERE g.extends = \'Activity\' AND g.is_active = 1 AND f.is_active = 1 
+      ');
 
       while ($customFieldsResult->fetch()) {
         $customField = new CRM_Core_BAO_CustomField();
