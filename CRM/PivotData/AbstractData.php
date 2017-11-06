@@ -599,7 +599,9 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
     }
 
     $fields = $this->getFields();
-    $dataType = !empty($fields[$key]['customField']['data_type']) ? $fields[$key]['customField']['data_type'] : null;
+    $coreType = CRM_Utils_Array::value('type', $fields[$key]);
+    $dataType = !empty($fields[$key]['customField']) ? $fields[$key]['customField']['data_type'] : null;
+    $customHTMLType = !empty($fields[$key]['customField']) ? $fields[$key]['customField']['html_type'] : null;
 
     if (is_array($value) && $dataType !== 'File') {
       $valueArray = array();
@@ -613,40 +615,45 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
       return $this->formattedValues[$key][$value];
     }
 
-    if (!empty($fields[$key]['customField'])) {
-      switch ($fields[$key]['customField']['data_type']) {
-        case 'File':
-          $result = CRM_Utils_System::formatWikiURL($value['fileURL'] . ' ' . $value['fileName']);
-          $this->formattedValues[$key][$value] = $result;
-          return $result;
+    switch (true) {
+      case $coreType & CRM_Utils_Type::T_LONGTEXT:
+      case $coreType & CRM_Utils_Type::T_TEXT:
+      case $coreType & CRM_Utils_Type::T_STRING:
+      case $dataType == 'String':
+      case $dataType == 'Memo':
+      case $customHTMLType == 'Text':
+      case $customHTMLType == 'TextArea':
+        $result = '"' . strtr($value, array("\r\n" => ' ', "\n" => ' ', "\r" => ' ')) . '"';
         break;
-        // For few field types we can use 'displayValue()' core method.
-        case 'Date':
-        case 'Boolean':
-        case 'Link':
-        case 'StateProvince':
-        case 'Country':
-          $data = array('data' => $value);
-          CRM_Utils_System::url();
-          $result = CRM_Core_BAO_CustomField::displayValue($data, $fields[$key]['customField']);
-          $this->formattedValues[$key][$value] = $result;
-          return $result;
+
+      case $dataType == 'File':
+        $result = CRM_Utils_System::formatWikiURL($value['fileURL'] . ' ' . $value['fileName']);
         break;
-        // Anyway, 'formatCustomValues()' core method doesn't handle some types
-        // such as 'CheckBox' (looks like they aren't implemented there) so
-        // we deal with them automatically by custom handling of 'optionValues' array.
-      }
+
+      // For few field types we can use 'displayValue()' core method.
+      case $dataType == 'Date':
+      case $dataType == 'Boolean':
+      case $dataType == 'Link':
+      case $dataType == 'StateProvince':
+      case $dataType == 'Country':
+        $data = array('data' => $value);
+        CRM_Utils_System::url();
+        $result = CRM_Core_BAO_CustomField::displayValue($data, $fields[$key]['customField']);
+        break;
+
+      // Anyway, 'formatCustomValues()' core method doesn't handle some types
+      // such as 'CheckBox' (looks like they aren't implemented there) so
+      // we deal with them automatically by custom handling of 'optionValues' array.
+      case !empty($fields[$key]['optionValues']):
+        $result = $fields[$key]['optionValues'][$value];
+        break;
+
+      default:
+        $result = strip_tags($this->customizeValue($key, $value));
+        break;
     }
 
-    if (!empty($fields[$key]['optionValues'])) {
-      $result = $fields[$key]['optionValues'][$value];
-      $this->formattedValues[$key][$value] = $result;
-      return $result;
-    }
-
-    $result = strip_tags($this->customizeValue($key, $value));
     $this->formattedValues[$key][$value] = $result;
-
     return $result;
   }
 
