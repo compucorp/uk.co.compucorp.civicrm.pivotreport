@@ -87,7 +87,7 @@ select.relativeFilter {
 }
 
 #pivot-report-type select.pvtRenderer {
-  width: 50em;
+  width: 14em;
 }
 
 .pvtAxisContainer li span.pvtAttr {
