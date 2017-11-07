@@ -82,6 +82,10 @@ select.relativeFilter {
   display: none;
 }
 
+#pivot-report-config select.report-config-select {
+  width: 26em;
+}
+
 #pivot-report-type select.pvtRenderer {
   width: 50em;
 }
