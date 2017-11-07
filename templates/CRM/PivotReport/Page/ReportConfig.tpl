@@ -16,7 +16,7 @@
           <input type="button" class="report-config-save-new-btn btn btn-primary" value="{ts}Save As New{/ts}">
         </div>
         <div class="form-item">
-          <input type="button" class="report-config-delete-btn btn btn-danger" value="{ts}Delete{/ts}">
+          <input type="button" class="report-config-delete-btn btn btn-danger hidden" value="{ts}Delete{/ts}">
         </div>
       {/if}
     </div>

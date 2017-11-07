@@ -78,7 +78,11 @@ select.relativeFilter {
   vertical-align: middle;
 }
 
-#pivot-report-config .hidden, #pivot-report-filters {
+#pivot-report-config .hidden {
+  display: none;
+}
+
+#pivot-report-filters {
   display: none;
 }
 
