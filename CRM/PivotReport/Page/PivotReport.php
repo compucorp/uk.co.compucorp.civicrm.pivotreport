@@ -10,9 +10,8 @@ class CRM_PivotReport_Page_PivotReport extends CRM_Core_Page {
     $entityInstance = new CRM_PivotReport_Entity($entity);
     $supportedEntities = CRM_PivotReport_Entity::getSupportedEntities();
 
-    CRM_Utils_System::setTitle(ts('Pivot Report'));
+    CRM_Utils_System::setTitle(ts($entity . ' Pivot Report'));
 
-    $this->assign('reportTitle', ts($entity . ' Report'));
     $this->assign('options_array', array_combine($supportedEntities, $supportedEntities));
     $this->assign('CRMDataType', $entity);
     $this->assign('cacheBuilt', $entityInstance->getGroupInstance()->isCacheBuilt());
