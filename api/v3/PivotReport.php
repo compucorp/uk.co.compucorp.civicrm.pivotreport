@@ -122,3 +122,115 @@ function civicrm_api3_pivot_report_getdatefields($params) {
     $params
   );
 }
+
+/**
+ * PivotReport.getsupportedentities API
+ *
+ * @param array $params
+ * @return array API result descriptor
+ * @throws API_Exception
+ */
+function civicrm_api3_pivot_report_getsupportedentities($params) {
+  return civicrm_api3_create_success(
+    CRM_PivotReport_Entity::getSupportedEntities(),
+    $params
+  );
+}
+
+/**
+ * PivotReport.getsupportedentitiescount API
+ *
+ * @param array $params
+ * @return array API result descriptor
+ * @throws API_Exception
+ */
+function civicrm_api3_pivot_report_getsupportedentitiescount($params) {
+  $entities = CRM_PivotReport_Entity::getSupportedEntities();
+  $result = array();
+
+  foreach ($entities as $entity) {
+    $entityInstance = new CRM_PivotReport_Entity($entity);
+    $result[$entity] = (int) $entityInstance->getDataInstance()->getCount();
+  }
+
+  return civicrm_api3_create_success(
+    array($result),
+    $params
+  );
+}
+
+/**
+ * PivotReport.gettotalcount API
+ *
+ * @param array $params
+ * @return array API result descriptor
+ * @throws API_Exception
+ */
+function civicrm_api3_pivot_report_gettotalcount($params) {
+  $entities = CRM_PivotReport_Entity::getSupportedEntities();
+  $totalCount = 0;
+
+  foreach ($entities as $entity) {
+    $entityInstance = new CRM_PivotReport_Entity($entity);
+    $totalCount += (int) $entityInstance->getDataInstance()->getCount();
+  }
+
+  return civicrm_api3_create_success(
+    $totalCount,
+    $params
+  );
+}
+
+/**
+ * PivotReport.getcount API
+ *
+ * @param array $params
+ * @return array API result descriptor
+ * @throws API_Exception
+ */
+function civicrm_api3_pivot_report_getcount($params) {
+  $entity = !empty($params['entity']) ? $params['entity'] : NULL;
+
+  $entityInstance = new CRM_PivotReport_Entity($entity);
+
+  return civicrm_api3_create_success(
+    (int) $entityInstance->getDataInstance()->getCount(),
+    $params
+  );
+}
+
+/**
+ * PivotReport.getbuilddatetime API
+ * Returns last cache build date. If 'format' value equals '1' then output
+ * value is formatted with default CRM date format.
+ *
+ * @param array $params
+ * @return array API result descriptor
+ * @throws API_Exception
+ */
+function civicrm_api3_pivot_report_getbuilddatetime($params) {
+  $result = CRM_PivotReport_BAO_PivotReportCache::getBuildDatetime();
+
+  if (!empty($params['format']) && (int) $params['format'] === 1) {
+    $result = CRM_Utils_Date::customFormat($result);
+  }
+
+  return civicrm_api3_create_success(
+    $result,
+    $params
+  );
+}
+
+/**
+ * PivotReport.updatebuilddatetime API
+ *
+ * @param array $params
+ * @return array API result descriptor
+ * @throws API_Exception
+ */
+function civicrm_api3_pivot_report_updatebuilddatetime($params) {
+  return civicrm_api3_create_success(
+    CRM_PivotReport_BAO_PivotReportCache::updateBuildDatetime(),
+    $params
+  );
+}
