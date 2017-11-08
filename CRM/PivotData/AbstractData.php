@@ -810,5 +810,5 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
    *
    * @return int
    */
-  abstract protected function getCount(array $params);
+  abstract public function getCount(array $params = array());
 }
