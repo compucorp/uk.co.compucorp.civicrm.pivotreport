@@ -83,7 +83,7 @@ select.relativeFilter {
 }
 
 #pivot-report-type select.pvtRenderer {
-  width: 50em;
+  width: 30em;
 }
 
 .pvtAxisContainer li span.pvtAttr {
@@ -140,4 +140,8 @@ table.pvtUi td.pvtVertList {
   -ms-transition: none;
   -o-transition: none;
   transition: none;
+}
+
+div.right-align {
+  float: right;
 }
