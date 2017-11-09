@@ -19,6 +19,12 @@
           <input type="button" class="report-config-delete-btn btn btn-danger hidden" value="{ts}Delete{/ts}">
         </div>
       {/if}
+      <div class="form-item right-align">
+        <input id="exportTSV" type="button" class="btn btn-primary" value="{ts}Export TSV{/ts}">
+      </div>
+      <div class="form-item right-align">
+        <input id="exportCSV" type="button" class="btn btn-primary" value="{ts}Export CSV{/ts}">
+      </div>
     </div>
     <br/>
     <div class="form-item">

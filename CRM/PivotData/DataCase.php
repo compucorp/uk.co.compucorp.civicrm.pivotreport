@@ -286,7 +286,7 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
   /**
    * @inheritdoc
    */
-  protected function getCount(array $params) {
+  public function getCount(array $params = array()) {
     return civicrm_api3('Case', 'getcount', array(
       'is_deleted' => 0
     ));

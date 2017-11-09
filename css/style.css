@@ -149,3 +149,7 @@ table.pvtUi td.pvtVertList {
   -o-transition: none;
   transition: none;
 }
+
+div.right-align {
+  float: right;
+}

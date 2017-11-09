@@ -146,7 +146,7 @@ class CRM_PivotData_DataMembership extends CRM_PivotData_AbstractData {
   /**
    * @inheritdoc
    */
-  protected function getCount(array $params) {
+  public function getCount(array $params = array()) {
     $apiParams = array(
       'is_current_revision' => 1,
       'is_deleted' => 0,

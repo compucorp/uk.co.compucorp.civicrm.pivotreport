@@ -14,6 +14,7 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
     $this->upgrade_0001();
     $this->upgrade_0002();
     $this->upgrade_0003();
+    $this->upgrade_0006();
 
     return TRUE;
   }
@@ -27,7 +28,7 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
   {
     $this->deleteScheduledJob();
 
-    CRM_Core_DAO::executeQuery("DELETE FROM `civicrm_navigation` WHERE name = 'pivotreport'");
+    CRM_Core_DAO::executeQuery("DELETE FROM `civicrm_navigation` WHERE name IN ('pivotreport', 'Pivot Report Config')");
     CRM_Core_BAO_Navigation::resetNavigation();
 
     return TRUE;
@@ -112,6 +113,33 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
   }
 
   /**
+   * Installs Pivot Report Config page link into Administer menu.
+   *
+   * @return bool
+   */
+  public function upgrade_0006() {
+    $administerNavId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'Administer', 'id', 'name');
+
+    $navigation = new CRM_Core_DAO_Navigation();
+    $params = array (
+        'domain_id'  => CRM_Core_Config::domainID(),
+        'label'      => ts('Pivot Report Config'),
+        'name'       => 'Pivot Report Config',
+        'url'        => 'civicrm/pivot-report-config',
+        'parent_id'  => $administerNavId,
+        'weight'     => CRM_Core_BAO_Navigation::calculateWeight($administerNavId),
+        'permission' => 'Admin Pivot Report',
+        'is_active'  => 1
+    );
+    $navigation->copyValues($params);
+    $navigation->save();
+
+    CRM_Core_BAO_Navigation::resetNavigation();
+
+    return TRUE;
+  }
+
+  /**
    * Logic which is executing when enabling extension.
    * 
    * @return boolean
@@ -119,7 +147,7 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
   public function onEnable() {
     $this->setScheduledJobIsActive(TRUE);
 
-    CRM_Core_DAO::executeQuery("UPDATE civicrm_navigation SET is_active = 1 WHERE name = 'pivotreport'");
+    CRM_Core_DAO::executeQuery("UPDATE civicrm_navigation SET is_active = 1 WHERE name IN ('pivotreport', 'Pivot Report Config')");
     CRM_Core_BAO_Navigation::resetNavigation();
 
     return TRUE;
@@ -133,7 +161,7 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
   public function onDisable() {
     $this->setScheduledJobIsActive(FALSE);
 
-    CRM_Core_DAO::executeQuery("UPDATE civicrm_navigation SET is_active = 0 WHERE name = 'pivotreport'");
+    CRM_Core_DAO::executeQuery("UPDATE civicrm_navigation SET is_active = 0 WHERE name IN ('pivotreport', 'Pivot Report Config')");
     CRM_Core_BAO_Navigation::resetNavigation();
 
     return TRUE;
