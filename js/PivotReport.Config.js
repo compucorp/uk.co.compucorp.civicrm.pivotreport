@@ -67,7 +67,7 @@ CRM.PivotReport.Config = (function($) {
         $('.report-config-select', that.container).prepend('<option value="">' + emptyOption + '</option>');
         $('.report-config-select', that.container).val(result.id);
 
-        $('.report-config-save-btn', that.container).show();
+        that.showConfigRelatedButtons();
       }
 
       CRM.alert('Report configuration has been saved', 'Success', 'success');
@@ -106,11 +106,11 @@ CRM.PivotReport.Config = (function($) {
     var that = this;
     var configId = this.getReportConfigurationId();
     if (!configId) {
-      $('.report-config-save-btn', this.container).hide();
+      this.hideConfigRelatedButtons();
       return false;
     }
 
-    $('.report-config-save-btn', this.container).show();
+    this.showConfigRelatedButtons();
 
     CRM.api3('PivotReportConfig', 'getsingle', {
       'id': configId
@@ -203,9 +203,27 @@ CRM.PivotReport.Config = (function($) {
 
         $('.report-config-select option[value=' + configId + ']', this.container).remove();
         CRM.alert('Report configuration has been deleted', 'Success', 'info');
+
+        that.hideConfigRelatedButtons();
       });
     });
   };
+
+  /**
+   * Shows configuration related buttons.
+   */
+  Config.prototype.showConfigRelatedButtons = function() {
+    $('.report-config-save-btn', this.container).removeClass('hidden');
+    $('.report-config-delete-btn', this.container).removeClass('hidden');
+  }
+
+  /**
+   * Hides configuration related buttons.
+   */
+  Config.prototype.hideConfigRelatedButtons = function() {
+    $('.report-config-save-btn', this.container).addClass('hidden');
+    $('.report-config-delete-btn', this.container).addClass('hidden');
+  }
 
   /**
    * Handles UI events.
@@ -215,7 +233,7 @@ CRM.PivotReport.Config = (function($) {
 
     $('form', this.container).on('submit', function(e) {
       e.preventDefault();
-      return that.configSaveNew();
+      return null;
     });
 
     $('.report-config-select', this.container).bind('change', function(e) {

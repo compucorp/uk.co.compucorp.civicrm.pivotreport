@@ -45,11 +45,19 @@ CRM.PivotReport.PivotTable = (function($) {
     this.PivotConfig = new CRM.PivotReport.Config(this);
     this.Preloader = new CRM.PivotReport.Preloader();
 
+    this.removePrintIcon();
     this.initFilterForm();
     this.initUI();
     this.initPivotDataLoading();
     this.checkCacheBuilt();
   };
+
+  /**
+   * Removes standard Print CiviCRM icon on Pivot Report pages.
+   */
+  PivotTable.prototype.removePrintIcon = function() {
+    $('div#printer-friendly').remove();
+  }
 
   PivotTable.prototype.checkCacheBuilt = function () {
     if (this.config.cacheBuilt) {

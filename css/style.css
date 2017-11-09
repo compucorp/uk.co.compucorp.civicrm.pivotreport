@@ -78,12 +78,20 @@ select.relativeFilter {
   vertical-align: middle;
 }
 
-#pivot-report-config .hidden, #pivot-report-filters {
+#pivot-report-config .hidden {
   display: none;
 }
 
+#pivot-report-filters {
+  display: none;
+}
+
+#pivot-report-config select.report-config-select {
+  width: 26em;
+}
+
 #pivot-report-type select.pvtRenderer {
-  width: 30em;
+  width: 14em;
 }
 
 .pvtAxisContainer li span.pvtAttr {
@@ -130,6 +138,10 @@ table.pvtUi td.pvtVertList {
   overflow-y: scroll;
   display: inline-block;
   width: 190px;
+}
+
+div.pivot-report-output-config div.pivot-report-export-button {
+  margin-left: 1em;
 }
 
 /* Pivot Table progress bar */
