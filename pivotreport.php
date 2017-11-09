@@ -186,37 +186,3 @@ function pivotreport_civicrm_entityTypes(&$entityTypes) {
     'table' => 'civicrm_pivotreport_config',
   ];
 }
-
-/**
- * Implements hook_civicrm_navigationMenu()
- *
- * @param array $params
- *   List of menu items
- */
-function pivotreport_civicrm_navigationMenu(&$params) {
-  $entities = CRM_PivotReport_Entity::getSupportedEntities();
-
-  $reportID = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'Reports', 'id', 'name');
-  $pivotID = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'pivotreport', 'id', 'name');
-  $navId = CRM_Core_DAO::singleValueQuery("SELECT max(id) FROM civicrm_navigation");
-
-  $params[$reportID]['child'][$pivotID]['attributes']['url'] = null;
-
-  $weight = 0;
-  foreach ($entities as $currentItem) {
-    $navId++;
-
-    $params[$reportID]['child'][$pivotID]['child'][$navId] = array(
-      'attributes' => array (
-        'label' => ts($currentItem),
-        'name' => strtolower($currentItem) . '-report',
-        'url' => 'civicrm/' . strtolower($currentItem) . '-report',
-        'permission' => 'access CiviCRM pivot table reports',
-        'separator' => 0,
-        'parentID' => $pivotID,
-        'navID' => $navId,
-        'active' => 1
-      ),
-    );
-  }
-}
