@@ -135,4 +135,19 @@ class CRM_PivotReport_BAO_PivotReportCache extends CRM_PivotReport_DAO_PivotRepo
     return $clauses ? implode(' AND ', $clauses) : '(1)';
   }
 
+  /**
+   * Gets build_datetime cache value.
+   *
+   * @return string
+   */
+  public static function getBuildDatetime() {
+    return self::getItem('admin', 'build_datetime');
+  }
+
+  /**
+   * Updates build_datetime cache value with current date.
+   */
+  public static function updateBuildDatetime() {
+    self::setItem(date('Y-m-d H:i:s'), 'admin', 'build_datetime');
+  }
 }

@@ -126,6 +126,16 @@ function pivotreport_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
  * Implementation of hook_civicrm_pageRun
  */
 function pivotreport_civicrm_pageRun($page) {
+  if (get_class($page) === 'CRM_PivotReport_Page_PivotReportAdmin') {
+    CRM_Core_Resources::singleton()
+      ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'packages/bootstrap/bootstrap.min.js', 1, 'html-header')
+      ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'js/PivotReport.Admin.js', 2, 'html-header')
+      ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'js/PivotReport.Preloader.js', 3, 'html-header');
+    CRM_Core_Resources::singleton()
+      ->addStyleFile('uk.co.compucorp.civicrm.pivotreport', 'packages/bootstrap/bootstrap.min.css', 1)
+      ->addStyleFile('uk.co.compucorp.civicrm.pivotreport', 'css/style_admin.css', 2);
+  }
+
   if (get_class($page) === 'CRM_PivotReport_Page_PivotReport') {
     CRM_Core_Resources::singleton()
       ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'packages/d3/d3.min.js', 1, 'html-header')
