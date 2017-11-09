@@ -1,8 +1,6 @@
 {if !$cacheBuilt}
   <div class="messages error">
-    This report works using a cache built with data in CiviCRM, but the cache
-    has not been built yet. If you want to load the information into the report,
-    click on the 'Build Cache' button to start working.
+    {ts}The report data has not yet been built. Please contact your admin. Or if you are an admin, please go to <a href="/civicrm/pivot-report-config">Pivot Report Config</a> to refresh the data.{/ts}
   </div>
 {else}
   {include file="CRM/PivotReport/Page/ReportConfig.tpl"}
