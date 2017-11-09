@@ -15,6 +15,7 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
     $this->upgrade_0002();
     $this->upgrade_0003();
     $this->upgrade_0006();
+    $this->upgrade_0007();
 
     return TRUE;
   }
@@ -28,6 +29,8 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
   {
     $this->deleteScheduledJob();
 
+    $pivotID = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'pivotreport', 'id', 'name');
+    CRM_Core_DAO::executeQuery("DELETE FROM `civicrm_navigation` WHERE parent_id = $pivotID");
     CRM_Core_DAO::executeQuery("DELETE FROM `civicrm_navigation` WHERE name IN ('pivotreport', 'Pivot Report Config')");
     CRM_Core_BAO_Navigation::resetNavigation();
 
@@ -144,7 +147,7 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
    *
    * @return bool
    */
-  public function upgrade_0006() {
+  public function upgrade_0007() {
     $reportsNavId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'Reports', 'id', 'name');
 
     CRM_Core_DAO::executeQuery("DELETE FROM `civicrm_navigation` WHERE name = 'pivotreport'");
@@ -204,7 +207,13 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
   public function onEnable() {
     $this->setScheduledJobIsActive(TRUE);
 
-    CRM_Core_DAO::executeQuery("UPDATE civicrm_navigation SET is_active = 1 WHERE name IN ('pivotreport', 'Pivot Report Config')");
+    $pivotID = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'pivotreport', 'id', 'name');
+    CRM_Core_DAO::executeQuery("
+      UPDATE civicrm_navigation 
+      SET is_active = 1 
+      WHERE name IN ('pivotreport', 'Pivot Report Config')
+      OR parent_id = $pivotID
+    ");
     CRM_Core_BAO_Navigation::resetNavigation();
 
     return TRUE;
@@ -218,7 +227,13 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
   public function onDisable() {
     $this->setScheduledJobIsActive(FALSE);
 
-    CRM_Core_DAO::executeQuery("UPDATE civicrm_navigation SET is_active = 0 WHERE name IN ('pivotreport', 'Pivot Report Config')");
+    $pivotID = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'pivotreport', 'id', 'name');
+    CRM_Core_DAO::executeQuery("
+      UPDATE civicrm_navigation 
+      SET is_active = 0 
+      WHERE name IN ('pivotreport', 'Pivot Report Config')
+      OR parent_id = $pivotID
+    ");
     CRM_Core_BAO_Navigation::resetNavigation();
 
     return TRUE;
