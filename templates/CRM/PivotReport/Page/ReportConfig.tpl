@@ -14,9 +14,9 @@
       Chart Type:
     </div>
     <div id="pivot-report-type" class="form-item"></div>
-    {if ($canManagePivotReportConfig)}
+    {if $canManagePivotReportConfig}
       <div class="form-item">
-        <input type="button" class="report-config-save-btn btn btn-primary hidden" value="{ts}Save Report{/ts}">
+        <input type="button" class="report-config-save-btn btn btn-primary" value="{ts}Save Report{/ts}" style="display: none;">
       </div>
       <div class="form-item">
         <input type="button" class="report-config-save-new-btn btn btn-primary" value="{ts}Save As New{/ts}">
@@ -25,6 +25,12 @@
         <input type="button" class="report-config-delete-btn btn btn-danger" value="{ts}Delete{/ts}">
       </div>
     {/if}
+    <div class="form-item right-align">
+      <input id="exportTSV" type="button" class="btn btn-primary" value="{ts}Export TSV{/ts}">
+    </div>
+    <div class="form-item right-align">
+      <input id="exportCSV" type="button" class="btn btn-primary" value="{ts}Export CSV{/ts}">
+    </div>
   </form>
 </div>
 <div id="">

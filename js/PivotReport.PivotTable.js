@@ -413,6 +413,22 @@ CRM.PivotReport.PivotTable = (function($) {
   PivotTable.prototype.postRender = function() {
     this.initDateFilters();
     this.uxImprovements();
+    this.setUpExportButtons();
+  }
+
+  /**
+   * Returns current date in YYYYMMDD_HHII format.
+   *
+   * @returns {String}
+   */
+  PivotTable.prototype.getCurrentTimestamp = function () {
+    var now = new Date();
+    var month = now.getMonth() + 1;
+    var day = now.getDate();
+    var date = [now.getFullYear(), ('0' + month).substring(month.length), ('0' + day).substring(day.length)];
+    var time = [now.getHours(), now.getMinutes()];
+
+    return date.join('') + '_' + time.join('');
   }
 
   /**
@@ -453,6 +469,40 @@ CRM.PivotReport.PivotTable = (function($) {
         $('#cols_help_msg').hide();
       }
     });
+  }
+
+  /**
+   * Implements functionality to generate CSV and TSV export files and send their
+   * content as a download.
+   */
+  PivotTable.prototype.setUpExportButtons = function () {
+    var that = this;
+
+    $('#exportCSV').unbind().click(function () {
+      var data = new $.pivotUtilities.PivotData(that.data, that.PivotConfig.getPivotConfig());
+      var downloader = $.pivotUtilities.export_renderers["CSV Export"](data, that.PivotConfig.getPivotConfig());
+      downloader.attr('download', 'pivot_report_' + that.getCurrentTimestamp() + '.csv');
+      downloader.css('display', 'none');
+      $('#pivot-report-type').append(downloader);
+      $('#download')[0].click();
+      downloader.remove();
+    });
+
+    $('#exportTSV').unbind().click(function () {
+      var data = new $.pivotUtilities.PivotData(that.data, that.PivotConfig.getPivotConfig());
+      var downloader = $.pivotUtilities.export_renderers["TSV Export"](data, that.PivotConfig.getPivotConfig());
+      downloader.attr('download', 'pivot_report_' + that.getCurrentTimestamp() + '.tsv');
+      downloader.css('display', 'none');
+      $('#pivot-report-type').append(downloader);
+      $('#download')[0].click();
+      downloader.remove();
+    });
+
+    $('select.pvtRenderer option').each(function () {
+      if ($(this).val() == 'CSV Export' || $(this).val() == 'TSV Export') {
+        $(this).remove();
+      }
+    })
   }
 
   /**
