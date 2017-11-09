@@ -233,7 +233,7 @@ CRM.PivotReport.Config = (function($) {
 
     $('form', this.container).on('submit', function(e) {
       e.preventDefault();
-      return that.configSaveNew();
+      return null;
     });
 
     $('.report-config-select', this.container).bind('change', function(e) {

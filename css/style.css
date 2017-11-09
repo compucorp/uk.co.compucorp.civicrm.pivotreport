@@ -140,6 +140,10 @@ table.pvtUi td.pvtVertList {
   width: 190px;
 }
 
+div.pivot-report-output-config div.pivot-report-export-button {
+  margin-left: 1em;
+}
+
 /* Pivot Table progress bar */
 
 #pivot-report-preloader .progress .progress-bar {

@@ -26,10 +26,10 @@
       </div>
       <div id="pivot-report-type" class="form-item"></div>
       <div class="form-item right-align pivot-report-export-button">
-        <input id="exportTSV" type="button" class="btn btn-primary" value="{ts}Export TSV{/ts}">
+          <button id="exportTSV"><i class="fa fa-file-excel-o" aria-hidden="true"></i> {ts}Export TSV{/ts}</button>
       </div>
       <div class="form-item right-align pivot-report-export-button">
-        <input id="exportCSV" type="button" class="btn btn-primary" value="{ts}Export CSV{/ts}">
+        <button id="exportCSV"><i class="fa fa-file-excel-o" aria-hidden="true"></i> {ts}Export CSV{/ts}</button>
       </div>
     </div>
   </form>
