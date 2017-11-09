@@ -15,6 +15,7 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
     $this->upgrade_0002();
     $this->upgrade_0003();
     $this->upgrade_0006();
+    $this->upgrade_0007();
 
     return TRUE;
   }
@@ -28,6 +29,8 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
   {
     $this->deleteScheduledJob();
 
+    $pivotID = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'pivotreport', 'id', 'name');
+    CRM_Core_DAO::executeQuery("DELETE FROM `civicrm_navigation` WHERE parent_id = $pivotID");
     CRM_Core_DAO::executeQuery("DELETE FROM `civicrm_navigation` WHERE name IN ('pivotreport', 'Pivot Report Config')");
     CRM_Core_BAO_Navigation::resetNavigation();
 
@@ -140,6 +143,63 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
   }
 
   /**
+   * Add menu items for each enabled entity as a sub item of Pivot Report.
+   *
+   * @return bool
+   */
+  public function upgrade_0007() {
+    $reportsNavId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'Reports', 'id', 'name');
+
+    CRM_Core_DAO::executeQuery("DELETE FROM `civicrm_navigation` WHERE name = 'pivotreport'");
+    $this->createNavigationItem(array(
+      'domain_id'  => CRM_Core_Config::domainID(),
+      'label'      => ts('Pivot Report'),
+      'name'       => 'pivotreport',
+      'url'        => '',
+      'parent_id'  => $reportsNavId,
+      'weight'     => 0,
+      'permission' => 'access CiviCRM pivot table reports',
+      'has_separator'  => 1,
+      'is_active'  => 1
+    ));
+
+    $entities = CRM_PivotReport_Entity::getSupportedEntities();
+    $pivotID = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'pivotreport', 'id', 'name');
+    $weight = 0;
+
+    foreach ($entities as $currentItem) {
+      $itemName = strtolower($currentItem) . '-report';
+      CRM_Core_DAO::executeQuery("DELETE FROM `civicrm_navigation` WHERE name = '$itemName'");
+      $this->createNavigationItem(array(
+        'domain_id'  => CRM_Core_Config::domainID(),
+        'label'      => ts($currentItem),
+        'name'       => $itemName,
+        'url'        => 'civicrm/' . strtolower($currentItem) . '-report',
+        'parent_id'  => $pivotID,
+        'weight'     => $weight++,
+        'permission' => 'access CiviCRM pivot table reports',
+        'has_separator'  => 0,
+        'is_active'  => 1
+      ));
+    }
+
+    CRM_Core_BAO_Navigation::resetNavigation();
+
+    return TRUE;
+  }
+
+  /**
+   * Creates new menu item using provided parameters.
+   *
+   * @param array $params
+   */
+  private function createNavigationItem($params) {
+    $navigation = new CRM_Core_DAO_Navigation();
+    $navigation->copyValues($params);
+    $navigation->save();
+  }
+
+  /**
    * Logic which is executing when enabling extension.
    * 
    * @return boolean
@@ -147,7 +207,13 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
   public function onEnable() {
     $this->setScheduledJobIsActive(TRUE);
 
-    CRM_Core_DAO::executeQuery("UPDATE civicrm_navigation SET is_active = 1 WHERE name IN ('pivotreport', 'Pivot Report Config')");
+    $pivotID = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'pivotreport', 'id', 'name');
+    CRM_Core_DAO::executeQuery("
+      UPDATE civicrm_navigation 
+      SET is_active = 1 
+      WHERE name IN ('pivotreport', 'Pivot Report Config')
+      OR parent_id = $pivotID
+    ");
     CRM_Core_BAO_Navigation::resetNavigation();
 
     return TRUE;
@@ -161,7 +227,13 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
   public function onDisable() {
     $this->setScheduledJobIsActive(FALSE);
 
-    CRM_Core_DAO::executeQuery("UPDATE civicrm_navigation SET is_active = 0 WHERE name IN ('pivotreport', 'Pivot Report Config')");
+    $pivotID = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'pivotreport', 'id', 'name');
+    CRM_Core_DAO::executeQuery("
+      UPDATE civicrm_navigation 
+      SET is_active = 0 
+      WHERE name IN ('pivotreport', 'Pivot Report Config')
+      OR parent_id = $pivotID
+    ");
     CRM_Core_BAO_Navigation::resetNavigation();
 
     return TRUE;
