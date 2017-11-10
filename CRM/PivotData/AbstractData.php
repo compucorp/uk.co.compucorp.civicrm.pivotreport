@@ -768,6 +768,15 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
   }
 
   /**
+   * Returns apiEntityName property value.
+   *
+   * @return string
+   */
+  public function getApiEntityName() {
+    return $this->apiEntityName;
+  }
+
+  /**
    * Returns a string containing Entity index basing on Entity row.
    *
    * The Entity Index is used as a part of cache key. It may be an Entity ID, date,

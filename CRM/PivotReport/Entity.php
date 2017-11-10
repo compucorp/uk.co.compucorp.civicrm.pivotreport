@@ -8,11 +8,19 @@ class CRM_PivotReport_Entity {
    * @var array
    */
   private static $entities = array(
-    'Activity' => TRUE,
-    'Case' => TRUE,
-    'Contribution' => TRUE,
-    'Membership' => TRUE,
-    'Prospect' => 'uk.co.compucorp.civicrm.prospect',
+    'Activity' => array(),
+    'Case' => array(),
+    'Contribution' => array(),
+    'Membership' => array(),
+    'Prospect' => array(
+      'extensions' => array(
+        'uk.co.compucorp.civicrm.prospect',
+      ),
+      'entities' => array(
+        'Contribution',
+        'Pledge',
+      ),
+    ),
   );
 
   /**
@@ -33,13 +41,14 @@ class CRM_PivotReport_Entity {
    * Creates an instance of the class related to specified Entity name.
    *
    * @param string $entityName
+   * @param bool $checkSupport
    *
    * @throws Exception
    */
-  public function __construct($entityName) {
+  public function __construct($entityName, $checkSupport = TRUE) {
     $this->entityName = $entityName;
 
-    if (!$this->isSupported()) {
+    if ($checkSupport && !$this->isSupported()) {
       throw new Exception("Entity '{$entityName}' is not supported by Pivot Report extension.");
     }
   }
@@ -62,24 +71,84 @@ class CRM_PivotReport_Entity {
   public static function getSupportedEntities() {
     if (empty(self::$supportedEntities)) {
       foreach (self::$entities as $key => $value) {
-        if ($value === TRUE) {
-          self::$supportedEntities[] = $key;
-        } else {
-          $isEnabled = CRM_Core_DAO::getFieldValue(
-            'CRM_Core_DAO_Extension',
-            $value,
-            'is_active',
-            'full_name'
-          );
-
-          if ($isEnabled) {
-            self::$supportedEntities[] = $key;
-          }
+        // Check all required extensions.
+        if (!empty($value['extensions']) && !self::checkExtensions($value['extensions'])) {
+          continue;
         }
+
+        // Check all required entities.
+        if (!empty($value['entities']) && !self::checkApiEntities($value['entities'])) {
+          continue;
+        }
+
+        // Check main Pivot Report entity itself.
+        $entity = new self($key, FALSE);
+        $dataInstance = $entity->getDataInstance();
+        $apiEntityName = $dataInstance->getApiEntityName();
+        if (!self::checkApiEntities(array($apiEntityName))) {
+          continue;
+        }
+
+        self::$supportedEntities[] = $key;
       }
     }
 
     return self::$supportedEntities;
+  }
+
+  /**
+   * Returns TRUE if all given extensions are present and enabled.
+   * Otherwise returns FALSE.
+   *
+   * @param array $extensions
+   *
+   * @return boolean
+   */
+  private static function checkExtensions(array $extensions) {
+    foreach ($extensions as $extension) {
+      $isEnabled = CRM_Core_DAO::getFieldValue(
+        'CRM_Core_DAO_Extension',
+        $extension,
+        'is_active',
+        'full_name'
+      );
+
+      if (!$isEnabled) {
+        return FALSE;
+      }
+    }
+
+    return TRUE;
+  }
+
+  /**
+   * Returns TRUE if all given entities are accessible via API 'get' call.
+   * Otherwise returns FALSE.
+   *
+   * @param array $entities
+   *
+   * @return boolean
+   */
+  private static function checkApiEntities(array $entities) {
+    foreach ($entities as $entity) {
+      $result = TRUE;
+
+      try {
+        $response = civicrm_api3($entity, 'get');
+
+        if (!empty($response['is_error']) && (int) $response['is_error']) {
+          $result = FALSE;
+        }
+      } catch (Exception $e) {
+        $result = FALSE;
+      }
+
+      if (!$result) {
+        return FALSE;
+      }
+    }
+
+    return TRUE;
   }
 
   /**
