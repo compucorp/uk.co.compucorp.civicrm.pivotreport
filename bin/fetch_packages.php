@@ -27,6 +27,19 @@ $packages = array (
     ),
     'version' => 'latest'
   ),
+  'moment.js' => array(
+    'files' => array(
+      'moment.min.js',
+    ),
+    'version' => 'latest'
+  ),
+  'bootstrap-sweetalert' => array(
+    'files' => array(
+      'sweetalert.min.js',
+      'sweetalert.min.css',
+    ),
+    'version' => 'latest',
+  ),
 );
 
 $package_dir = "packages";

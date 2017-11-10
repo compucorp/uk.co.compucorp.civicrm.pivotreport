@@ -1,0 +1,17 @@
+/* Pivot Table progress bar */
+
+#pivot-report-preloader {
+  margin-top: 1em;
+}
+
+#pivot-report-preloader .progress .progress-bar {
+  -webkit-transition: none;
+  -moz-transition: none;
+  -ms-transition: none;
+  -o-transition: none;
+  transition: none;
+}
+
+#pivot-report-admin .build-date-time {
+  margin-top: 1em;
+}

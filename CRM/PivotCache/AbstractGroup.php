@@ -1,6 +1,6 @@
 <?php
 
-use CRM_PivotReport_DataPage as DataPage;
+use CRM_PivotData_DataPage as DataPage;
 
 /**
  * @inheritdoc
@@ -19,6 +19,22 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
   }
 
   /**
+   * Returns instance of data class for given entity.
+   *
+   * @param string $entity
+   *   Name of entity
+   *
+   * @return \CRM_PivotData_AbstractData
+   */
+  public static function getInstance($entity) {
+
+    $className = 'CRM_PivotCache_Group' . $entity;
+    $dataInstance = new $className();
+
+    return $dataInstance;
+  }
+
+  /**
    * Gets cache group name.
    *
    * @return string
@@ -31,14 +47,14 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
    * @inheritdoc
    */
   public function clear() {
-    CRM_Core_BAO_Cache::deleteGroup($this->getName());
+    CRM_PivotReport_BAO_PivotReportCache::deleteGroup($this->getName());
   }
 
   /**
    * @inheritdoc
    */
   public function getHeader() {
-    return json_decode(CRM_Core_BAO_Cache::getItem($this->getName(), 'header'));
+    return json_decode(CRM_PivotReport_BAO_PivotReportCache::getItem($this->getName(), 'header'));
   }
 
   /**
@@ -46,7 +62,7 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
    */
   public function cacheHeader(array $rows) {
     $jsonHeader = json_encode($this->sortHeader($rows));
-    CRM_Core_BAO_Cache::setItem($jsonHeader, $this->getName(), 'header');
+    CRM_PivotReport_BAO_PivotReportCache::setItem($jsonHeader, $this->getName(), 'header');
   }
 
   /**
@@ -74,7 +90,7 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
     $count = count($page->getData());
 
     $jsonData = json_encode($page->getData());
-    CRM_Core_BAO_Cache::setItem($jsonData, $this->getName(), $this->getPath($page->getIndex(), $page->getPage()));
+    CRM_PivotReport_BAO_PivotReportCache::setItem($jsonData, $this->getName(), $this->getPath($page->getIndex(), $page->getPage()));
 
     return $count;
   }
@@ -99,10 +115,11 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
    *   True if there is data in cache for the entity, false otherwise
    */
   public function isCacheBuilt() {
-    $cache = new CRM_Core_DAO_Cache();
+    $cache = new CRM_PivotReport_DAO_PivotReportCache();
 
     $cache->group_name = $this->getName();
     $cache->whereAdd("path = 'header'");
+    $cache->whereAdd("group_name = '{$this->getName()}'");
     $cache->orderBy('path ASC');
     $cache->find();
 
@@ -112,5 +129,4 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
 
     return false;
   }
-
 }
