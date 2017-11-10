@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<table>
+  <base>CRM/PivotReport</base>
+  <class>PivotReportConfig</class>
+  <name>civicrm_pivotreportconfig</name>
+  <comment>PivotReport configuration</comment>
+  <add>4.4</add>
+  <log>true</log>
+
+  <field>
+    <name>id</name>
+    <type>int unsigned</type>
+    <required>true</required>
+    <comment></comment>
+  </field>
+  <primaryKey>
+    <name>id</name>
+    <autoincrement>true</autoincrement>
+  </primaryKey>
+
+  <field>
+    <name>entity</name>
+    <type>varchar</type>
+    <length>255</length>
+    <comment></comment>
+    <title>Entity</title>
+    <required>true</required>
+    <export>true</export>
+    <uniqueName>pivotreport_config_etity</uniqueName>
+    <comment>Entity name</comment>
+  </field>
+
+  <field>
+    <name>label</name>
+    <type>varchar</type>
+    <length>255</length>
+    <comment></comment>
+    <title>Label</title>
+    <required>true</required>
+    <export>true</export>
+    <uniqueName>pivotreport_config_label</uniqueName>
+    <comment>Configuration label</comment>
+  </field>
+
+  <field>
+    <name>json_config</name>
+    <type>text</type>
+    <title>JSON config</title>
+    <uniqueName>pivotreport_config_json</uniqueName>
+    <comment>Configuration JSON data</comment>
+  </field>
+</table>

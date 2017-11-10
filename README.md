@@ -1,7 +1,7 @@
-Activity Report extension
+Pivot Report extension
 ======
 
-This extension provides a CiviCRM report page with Pivot Table containing Activity data.
+This extension provides a CiviCRM report page with Pivot Table containing various CiviCRM Entities data.
 
 Installation
 ------
@@ -10,15 +10,24 @@ Go to
 - Administer -> System Settings -> Manage Extensions (for CiviCRM < 4.7)
 - Administer -> System Settings -> Extensions (for CiviCRM >= 4.7)
 
-and install Activity Report (uk.co.compucorp.civicrm.activityreport) extension.
+and install Pivot Report (uk.co.compucorp.civicrm.pivotreport) extension.
 
 No additional steps are required.
+
+Supported entities
+------
+Pivot Report extensions supports following CiviCRM entities:
+ - Activity
+ - Case
+ - Contribution
+ - Membership
+ - Prospect (if Prospect extension is installed)
 
 Usage
 ------
 
 After installing the new page is available from the top CiviCRM menu:
-- Reports -> Activity Report
+- Reports -> Pivot Report
 
 About Pivot Table
 ------
@@ -34,10 +43,10 @@ Pivot Table User Interface
 
 Pivot Table (PivotTable.js library) implements a pivot table drag'n'drop UI similar to that found in popular spreadsheet programs. You can drag attributes into/out of the row/column areas, and specify rendering, aggregation and filtering options. There is a [step-by-step tutorial](https://github.com/nicolaskruchten/pivottable/wiki/UI-Tutorial) in the wiki.
 
-Activity Data
+Pivot Report data
 ------
 
-The Pivot Table contains every Activity field including any Custom Fields with various data types such as:
+The Pivot Table contains entity fields including any custom fields with various data types such as:
 - Alphanumeric
 - Integer
 - Number
