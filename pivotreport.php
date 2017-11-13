@@ -142,7 +142,6 @@ function pivotreport_civicrm_pageRun($page) {
       ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'packages/c3/c3.min.js', 1, 'html-header')
       ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'packages/pivottable/pivot.min.js', 1, 'html-header')
       ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'packages/pivottable/c3_renderers.min.js', 2, 'html-header')
-      ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'packages/pivottable-cc/export_renderers.js', 2, 'html-header')
       ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'packages/moment.js/moment.min.js', 2, 'html-header')
       ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'packages/bootstrap/bootstrap.min.js', 3, 'html-header')
       ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'packages/bootstrap-sweetalert/sweetalert.min.js', 4, 'html-header')
@@ -150,6 +149,7 @@ function pivotreport_civicrm_pageRun($page) {
       ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'js/PivotReport.Filter.js', 5, 'html-header')
       ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'js/PivotReport.Dates.js', 6, 'html-header')
       ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'js/PivotReport.Config.js', 7, 'html-header')
+      ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'js/PivotReport.Export.js', 7, 'html-header')
       ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'js/PivotReport.PivotTable.js', 8, 'html-header');
     CRM_Core_Resources::singleton()
       ->addStyleFile('uk.co.compucorp.civicrm.pivotreport', 'packages/c3/c3.min.css', 1)
