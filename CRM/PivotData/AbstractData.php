@@ -175,12 +175,12 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
   /**
    * Returns an array containing formatted rows of specified array.
    *
-   * @param int $key
+   * @param int $baseKey
    * @param array $row
    *
    * @return array
    */
-  protected function formatRow($key, $row) {
+  protected function formatRow($baseKey, $row) {
     $fields = $this->getFields();
     $result = array();
 
@@ -195,7 +195,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
       $result[$label] = $formattedValue;
 
       if (is_array($formattedValue)) {
-        $this->multiValues[$key][] = $label;
+        $this->multiValues[$baseKey][] = $label;
       }
     }
 
