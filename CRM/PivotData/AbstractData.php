@@ -603,11 +603,13 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
     $dataType = !empty($fields[$key]['customField']) ? $fields[$key]['customField']['data_type'] : null;
     $customHTMLType = !empty($fields[$key]['customField']) ? $fields[$key]['customField']['html_type'] : null;
 
+    // Handle multiple values
     if (is_array($value) && $dataType !== 'File') {
       $valueArray = array();
       foreach ($value as $valueKey => $valueItem) {
-        $valueArray[] = $this->formatValue($key, $valueKey, $level + 1);
+        $valueArray[] = $this->formatValue($key, $valueItem, $level + 1);
       }
+
       return $valueArray;
     }
 
@@ -616,6 +618,14 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
     }
 
     switch (true) {
+      // Anyway, 'formatCustomValues()' core method doesn't handle some types
+      // such as 'CheckBox' (looks like they aren't implemented there) so
+      // we deal with them automatically by custom handling of 'optionValues' array.
+      case !empty($fields[$key]['optionValues']):
+        $result = $fields[$key]['optionValues'][$value];
+        break;
+
+      // Protect string values from line-breaks
       case $coreType & CRM_Utils_Type::T_LONGTEXT:
       case $coreType & CRM_Utils_Type::T_TEXT:
       case $coreType & CRM_Utils_Type::T_STRING:
@@ -626,6 +636,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
         $result = strtr($value, array("\r\n" => ' ', "\n" => ' ', "\r" => ' '));
         break;
 
+      // Handle files
       case $dataType == 'File':
         $result = CRM_Utils_System::formatWikiURL($value['fileURL'] . ' ' . $value['fileName']);
         break;
@@ -639,13 +650,6 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
         $data = array('data' => $value);
         CRM_Utils_System::url();
         $result = CRM_Core_BAO_CustomField::displayValue($data, $fields[$key]['customField']);
-        break;
-
-      // Anyway, 'formatCustomValues()' core method doesn't handle some types
-      // such as 'CheckBox' (looks like they aren't implemented there) so
-      // we deal with them automatically by custom handling of 'optionValues' array.
-      case !empty($fields[$key]['optionValues']):
-        $result = $fields[$key]['optionValues'][$value];
         break;
 
       default:
