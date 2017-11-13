@@ -171,38 +171,6 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
   }
 
   /**
-   * Returns an array containing formatted rows of specified array.
-   *
-   * @param int $key
-   * @param array $row
-   *
-   * @return array
-   */
-  protected function formatRow($key, $row) {
-    $fields = $this->getFields();
-    $result = array();
-
-    foreach ($row as $key => $value) {
-      $label = $key;
-      if (!empty($fields[$key]['title'])) {
-        $label = $fields[$key]['title'];
-      }
-      $label = ts($label);
-
-      $formattedValue = $this->formatValue($key, $value);
-      $result[$label] = $formattedValue;
-
-      if (is_array($formattedValue)) {
-        $this->multiValues[$key][] = $label;
-      }
-    }
-
-    ksort($result);
-
-    return $result;
-  }
-
-  /**
    * @inheritdoc
    */
   protected function getEntityIndex(array $row) {
