@@ -150,6 +150,7 @@ function pivotreport_civicrm_pageRun($page) {
       ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'js/PivotReport.Filter.js', 5, 'html-header')
       ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'js/PivotReport.Dates.js', 6, 'html-header')
       ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'js/PivotReport.Config.js', 7, 'html-header')
+      ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'js/PivotReport.Export.js', 7, 'html-header')
       ->addScriptFile('uk.co.compucorp.civicrm.pivotreport', 'js/PivotReport.PivotTable.js', 8, 'html-header');
     CRM_Core_Resources::singleton()
       ->addStyleFile('uk.co.compucorp.civicrm.pivotreport', 'packages/c3/c3.min.css', 1)

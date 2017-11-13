@@ -488,29 +488,18 @@ CRM.PivotReport.PivotTable = (function($) {
 
     $('#exportCSV').unbind().click(function () {
       var data = new $.pivotUtilities.PivotData(that.data, that.PivotConfig.getPivotConfig());
-      var downloader = $.pivotUtilities.export_renderers["CSV Export"](data, that.PivotConfig.getPivotConfig());
-      downloader.attr('download', 'pivot_report_' + that.getCurrentTimestamp() + '.csv');
-      downloader.css('display', 'none');
-      $('#pivot-report-type').append(downloader);
-      $('#download')[0].click();
-      downloader.remove();
+      var config = that.PivotConfig.getPivotConfig();
+      var downloader = new CRM.PivotReport.Export(data, config);
+      downloader.export('CSV');
     });
 
     $('#exportTSV').unbind().click(function () {
       var data = new $.pivotUtilities.PivotData(that.data, that.PivotConfig.getPivotConfig());
-      var downloader = $.pivotUtilities.export_renderers["TSV Export"](data, that.PivotConfig.getPivotConfig());
-      downloader.attr('download', 'pivot_report_' + that.getCurrentTimestamp() + '.tsv');
-      downloader.css('display', 'none');
-      $('#pivot-report-type').append(downloader);
-      $('#download')[0].click();
-      downloader.remove();
+      var config = that.PivotConfig.getPivotConfig();
+      var downloader = new CRM.PivotReport.Export(data, config);
+      downloader.export('TSV');
     });
 
-    $('select.pvtRenderer option').each(function () {
-      if ($(this).val() == 'CSV Export' || $(this).val() == 'TSV Export') {
-        $(this).remove();
-      }
-    })
   }
 
   /**
@@ -648,8 +637,7 @@ CRM.PivotReport.PivotTable = (function($) {
       rendererName: "Table",
       renderers: $.extend(
         $.pivotUtilities.renderers,
-        $.pivotUtilities.c3_renderers,
-        $.pivotUtilities.export_renderers
+        $.pivotUtilities.c3_renderers
       ),
       vals: ["Total"],
       rows: [],

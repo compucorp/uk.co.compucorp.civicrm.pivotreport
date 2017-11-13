@@ -623,7 +623,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
       case $dataType == 'Memo':
       case $customHTMLType == 'Text':
       case $customHTMLType == 'TextArea':
-        $result = '"' . strtr($value, array("\r\n" => ' ', "\n" => ' ', "\r" => ' ')) . '"';
+        $result = strtr($value, array("\r\n" => ' ', "\n" => ' ', "\r" => ' '));
         break;
 
       case $dataType == 'File':
