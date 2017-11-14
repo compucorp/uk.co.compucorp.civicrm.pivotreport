@@ -123,7 +123,7 @@ CRM.PivotReport.PivotTable = (function($) {
 
               if ($(this).text() == 'Apply' || $(this).text() == 'Cancel') {
                 $(this).on('click', function () {
-                  that.filterDateValues(fieldName);
+                  that.filterDateValues(fieldName, true);
                 });
               }
             });
@@ -151,8 +151,12 @@ CRM.PivotReport.PivotTable = (function($) {
    *
    * @param string fieldName
    *   Name of the field to be filtered
+   * @param bool applyOnly
+   *   Do we want to use filter values for apply only?
+   *   If so, then we don't change checkboxes status but only show/hide
+   *   checkboxes basing on date filter values.
    */
-  PivotTable.prototype.filterDateValues = function (fieldName) {
+  PivotTable.prototype.filterDateValues = function (fieldName, applyOnly) {
     var that = this;
     var startDateValue = $('#fld_' + fieldName + '_start').val();
     var endDateValue = $('#fld_' + fieldName + '_end').val();
@@ -166,10 +170,12 @@ CRM.PivotReport.PivotTable = (function($) {
         checked = true;
       }
 
-      if (checked == true && !$(this).is(':checked')) {
-        $(this).click();
-      } else if (checked == false && $(this).is(':checked')) {
-        $(this).click();
+      if (!applyOnly) {
+       if (checked == true && !$(this).is(':checked')) {
+          $(this).prop('checked', true).toggleClass('changed');
+        } else if (checked == false && $(this).is(':checked')) {
+          $(this).prop('checked', false).toggleClass('changed');
+        }
       }
 
       if (checked === true) {
