@@ -189,6 +189,28 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
   }
 
   /**
+   * Changes 'Pivot Report Config' label to 'Pivot Report Configuration'.
+   * @return bool
+   */
+  public function upgrade_0008() {
+    $configItem = civicrm_api3('Navigation', 'get', array(
+      'sequential' => 1,
+      'name' => 'Pivot Report Config',
+    ));
+
+    if (!empty($configItem['id'])) {
+      civicrm_api3('Navigation', 'create', array(
+        'id' => $configItem['id'],
+        'label' => ts('Pivot Report Configuration'),
+      ));
+
+      CRM_Core_BAO_Navigation::resetNavigation();
+    }
+
+    return TRUE;
+  }
+
+  /**
    * Creates new menu item using provided parameters.
    *
    * @param array $params

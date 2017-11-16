@@ -9,6 +9,7 @@ CRM.PivotReport.Preloader = (function($) {
     this.container = CRM.$('#pivot-report-preloader');
     this.title = CRM.$('.pivot-report-loading-title', this.container);
     this.progressBar = CRM.$('.progress > .progress-bar', this.container);
+    this.progressValue = CRM.$('.progress > .progress-value', this.container);
   }
 
   /**
@@ -49,9 +50,8 @@ CRM.PivotReport.Preloader = (function($) {
   Preloader.prototype.setValue = function(value) {
     var progressValue = value + '%';
 
-    this.progressBar.attr('aria-valuenow', progressValue);
     this.progressBar.css('width', progressValue);
-    this.progressBar.text(progressValue);
+    this.progressValue.text(progressValue);
   }
 
   return Preloader;

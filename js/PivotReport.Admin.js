@@ -80,6 +80,9 @@ CRM.PivotReport.Admin = (function($) {
           that.Preloader.hide();
           that.updateBuildDateTime();
 
+          $('input.build-cache-button', that.container).prop('disabled', false);
+          $('div.in-progress', that.container).addClass('hidden');
+
           CRM.alert('All Pivot Reports have been refreshed.', null, 'success');
         }
 
@@ -130,6 +133,9 @@ CRM.PivotReport.Admin = (function($) {
     $('input[type="button"].build-cache-button').click(function(e) {
       CRM.confirm({message: 'This operation may take some time to build the cache. Do you really want to build the cache for all supported entities?' })
       .on('crmConfirm:yes', function() {
+        $('input.build-cache-button', that.container).prop('disabled', true);
+        $('div.in-progress', that.container).removeClass('hidden');
+
         that.buildCache();
       });
     });
