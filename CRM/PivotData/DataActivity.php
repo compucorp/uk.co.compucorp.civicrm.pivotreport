@@ -4,6 +4,10 @@
  * Provides a functionality to prepare Activity entity data for Pivot Table.
  */
 class CRM_PivotData_DataActivity extends CRM_PivotData_AbstractData {
+  /**
+   * @inheritdoc
+   */
+  const ROWS_MULTIVALUES_LIMIT = 500;
 
   /**
    * CRM_PivotData_DataActivity constructor.
@@ -144,6 +148,7 @@ class CRM_PivotData_DataActivity extends CRM_PivotData_AbstractData {
         LEFT JOIN `civicrm_custom_field` f ON f.custom_group_id = g.id 
         LEFT JOIN `civicrm_option_group` og ON og.id = f.option_group_id 
         WHERE g.extends = \'Activity\' AND g.is_active = 1 AND f.is_active = 1 
+        AND f.html_type NOT IN (\'TextArea\', \'RichTextEditor\') AND (f.data_type <> \'String\' OR (f.data_type = \'String\' AND f.html_type <> \'Text\'))
       ');
 
       while ($customFieldsResult->fetch()) {
