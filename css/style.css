@@ -154,6 +154,12 @@ div.pivot-report-output-config div.pivot-report-export-button {
   transition: none;
 }
 
+#pivot-report-preloader .progress .progress-value {
+  position: absolute;
+  width: 100%;
+  text-align: center;
+}
+
 div.right-align {
   float: right;
 }
