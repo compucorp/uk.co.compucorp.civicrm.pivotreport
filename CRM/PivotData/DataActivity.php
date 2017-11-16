@@ -4,6 +4,10 @@
  * Provides a functionality to prepare Activity entity data for Pivot Table.
  */
 class CRM_PivotData_DataActivity extends CRM_PivotData_AbstractData {
+  /**
+   * @inheritdoc
+   */
+  const ROWS_MULTIVALUES_LIMIT = 500;
 
   /**
    * CRM_PivotData_DataActivity constructor.
