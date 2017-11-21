@@ -94,7 +94,7 @@ function civicrm_api3_pivot_report_rebuildcachepartial($params) {
   $entity = !empty($params['entity']) ? $params['entity'] : NULL;
   $offset = !empty($params['offset']) ? (int) $params['offset'] : 0;
   $multiValuesOffset = !empty($params['multiValuesOffset']) ? (int) $params['multiValuesOffset'] : 0;
-  $index = !empty($params['index']) ? (int) $params['index'] : NULL;
+  $index = !empty($params['index']) ? $params['index'] : NULL;
   $page = !empty($params['page']) ? (int) $params['page'] : 0;
 
   $entityInstance = new CRM_PivotReport_Entity($entity);
