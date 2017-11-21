@@ -10,7 +10,11 @@ class CRM_PivotReport_Entity {
   private static $entities = array(
     'Activity' => array(),
     'Case' => array(),
-    'Contribution' => array(),
+    'Contribution' => array(
+      'components' => array(
+        'CiviContribute',
+      ),
+    ),
     'Membership' => array(),
     'Prospect' => array(
       'extensions' => array(
@@ -29,6 +33,13 @@ class CRM_PivotReport_Entity {
    * @var array
    */
   private static $supportedEntities = array();
+
+  /**
+   * List of Components enabled in CiviCRM.
+   *
+   * @var array
+   */
+  private static $enabledComponents = NULL;
 
   /**
    * Entity name.
@@ -71,6 +82,11 @@ class CRM_PivotReport_Entity {
   public static function getSupportedEntities() {
     if (empty(self::$supportedEntities)) {
       foreach (self::$entities as $key => $value) {
+        // Check all required components.
+        if (!empty($value['components']) && !self::checkComponents($value['components'])) {
+          continue;
+        }
+
         // Check all required extensions.
         if (!empty($value['extensions']) && !self::checkExtensions($value['extensions'])) {
           continue;
@@ -94,6 +110,48 @@ class CRM_PivotReport_Entity {
     }
 
     return self::$supportedEntities;
+  }
+
+  /**
+   * Returns TRUE if all given components are present and enabled.
+   * Otherwise returns FALSE.
+   *
+   * @param array $components
+   *
+   * @return boolean
+   */
+  private static function checkComponents(array $components) {
+    $enabledComponents = self::getEnabledComponents();
+
+    foreach ($components as $component) {
+      if (!in_array($component, $enabledComponents)) {
+        return FALSE;
+      }
+    }
+
+    return TRUE;
+  }
+
+  /**
+   * Returns an array containing enabled CiviCRM components.
+   *
+   * @return array|NULL
+   */
+  private static function getEnabledComponents() {
+    if (self::$enabledComponents == NULL) {
+      $settings = civicrm_api3('Setting', 'get', array(
+        'sequential' => 1,
+        'return' => array('enable_components'),
+      ));
+
+      if (!empty($settings['values'][0]['enable_components'])) {
+        self::$enabledComponents = $settings['values'][0]['enable_components'];
+      } else {
+        self::$enabledComponents = array();
+      }
+    }
+
+    return self::$enabledComponents;
   }
 
   /**

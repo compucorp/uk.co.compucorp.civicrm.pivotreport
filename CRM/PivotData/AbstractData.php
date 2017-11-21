@@ -132,7 +132,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
    */
   public function get(AbstractGroup $cacheGroup, array $params, $page = 0) {
     $dataSetInstance = new CRM_PivotCache_DataSet($this->name);
-    $dataSet = $dataSetInstance->get($cacheGroup, $page, self::ROWS_RETURN_LIMIT, $params);
+    $dataSet = $dataSetInstance->get($cacheGroup, $page, $this::ROWS_RETURN_LIMIT, $params);
 
     return array(
       array(
@@ -238,7 +238,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
       $cacheGroup->clear();
     }
 
-    $result = $this->rebuildData($cacheGroup, $params, $offset, $offset + self::ROWS_API_LIMIT, $multiValuesOffset, $index, $page);
+    $result = $this->rebuildData($cacheGroup, $params, $offset, $offset + $this::ROWS_API_LIMIT, $multiValuesOffset, $index, $page, TRUE);
 
     if (!$result['count']) {
       $this->rebuildHeader($cacheGroup, array_merge($this->emptyRow, $this->additionalHeaderFields));
@@ -250,7 +250,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
   /**
    * @inheritdoc
    */
-  public function rebuildData(AbstractGroup $cacheGroup, array $params, $offset = 0, $total = NULL, $multiValuesOffset = 0, $index = NULL, $page = 0) {
+  public function rebuildData(AbstractGroup $cacheGroup, array $params, $offset = 0, $total = NULL, $multiValuesOffset = 0, $index = NULL, $page = 0, $isPartial = FALSE) {
     $totalCount = $this->getCount($params);
 
     if ($total === NULL) {
@@ -265,10 +265,6 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
     $count = 0;
 
     while ($offset < $total) {
-      if ($offset) {
-        $offset--;
-      }
-
       $pages = $this->getPaginatedResults($apiParams, $offset, $multiValuesOffset, $page, $index);
       $count += $this->cachePages($cacheGroup, $pages);
 
@@ -277,6 +273,10 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
       $multiValuesOffset = $pages[$lastPageIndex]->getNextMultiValuesOffset();
       $page = $pages[$lastPageIndex]->getPage() + 1;
       $index = $pages[$lastPageIndex]->getIndex();
+
+      if ($isPartial) {
+        break;
+      }
     }
 
     return array(
@@ -309,11 +309,8 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
   protected function getPaginatedResults(array $apiParams, $offset = 0, $multiValuesOffset = 0, $page = 0, $index = NULL) {
     $result = array();
     $rowsCount = 0;
-
     $apiParams['options']['offset'] = $offset;
-
     $entities = civicrm_api3($this->apiEntityName, 'get', $apiParams);
-
     $formattedEntities = $this->formatResult($entities['values']);
 
     unset($entities);
@@ -322,7 +319,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
       $split = $this->splitMultiValues($formattedEntities, $offset, $multiValuesOffset);
       $rowsCount += count($split['data']);
 
-      if ($rowsCount > self::ROWS_PAGINATED_LIMIT) {
+      if ($rowsCount > $this::ROWS_PAGINATED_LIMIT) {
         break;
       }
 
@@ -374,7 +371,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
       'sequential' => 1,
       'return' => implode(',', array_keys($this->getFields())),
       'options' => array(
-        'limit' => self::ROWS_API_LIMIT,
+        'limit' => $this::ROWS_API_LIMIT,
       ),
     );
 
@@ -410,7 +407,6 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
       }
 
       if ($index !== $entityIndexValue) {
-        $totalOffset--;
         break;
       }
 
@@ -418,7 +414,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
       if (!empty($this->multiValues[$key])) {
         $multiValuesFields = array_combine($this->multiValues[$key], array_fill(0, count($this->multiValues[$key]), 0));
 
-        $multiValuesRows = $this->populateMultiValuesRow($row, $multiValuesFields, $multiValuesOffset, self::ROWS_MULTIVALUES_LIMIT - $i);
+        $multiValuesRows = $this->populateMultiValuesRow($row, $multiValuesFields, $multiValuesOffset, $this::ROWS_MULTIVALUES_LIMIT - $i);
 
         $result = array_merge($result, $multiValuesRows['data']);
         $multiValuesOffset = 0;
@@ -427,19 +423,19 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
       }
       $i = count($result);
 
-      if ($i === self::ROWS_MULTIVALUES_LIMIT) {
+      $totalOffset++;
+
+      if ($i >= $this::ROWS_MULTIVALUES_LIMIT) {
         break;
       }
 
       unset($this->multiValues[$key]);
-
-      $totalOffset++;
     }
 
     return array(
       'info' => array(
         'index' => $index,
-        'nextOffset' => !empty($multiValuesRows['info']['multiValuesOffset']) ? $totalOffset : $totalOffset + 1,
+        'nextOffset' => !empty($multiValuesRows['info']['multiValuesOffset']) ? $totalOffset - 1: $totalOffset,
         'multiValuesOffset' => !empty($multiValuesRows['info']['multiValuesOffset']) ? $multiValuesRows['info']['multiValuesOffset'] : 0,
         'multiValuesTotal' => !empty($multiValuesRows['info']['multiValuesTotal']) ? $multiValuesRows['info']['multiValuesTotal'] : 0,
       ),
