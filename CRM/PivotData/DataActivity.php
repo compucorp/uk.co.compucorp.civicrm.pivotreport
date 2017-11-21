@@ -7,6 +7,16 @@ class CRM_PivotData_DataActivity extends CRM_PivotData_AbstractData {
   /**
    * @inheritdoc
    */
+  const ROWS_API_LIMIT = 500;
+
+  /**
+   * @inheritdoc
+   */
+  const ROWS_PAGINATED_LIMIT = 1000;
+
+  /**
+   * @inheritdoc
+   */
   const ROWS_MULTIVALUES_LIMIT = 500;
 
   /**
@@ -30,7 +40,7 @@ class CRM_PivotData_DataActivity extends CRM_PivotData_AbstractData {
       'is_test' => 0,
       'return' => implode(',', array_keys($this->getFields())),
       'options' => array(
-        'sort' => 'activity_date_time ASC',
+        'sort' => 'activity_date_time ASC, id ASC',
         'limit' => self::ROWS_API_LIMIT,
       ),
     );
