@@ -43,15 +43,7 @@ CRM.PivotReport.Export = (function($) {
   Export.prototype.sendContent = function (content, type) {
     var that = this;
 
-    var anchor = $('<a id="download" href="data:text/tsv,' + encodeURIComponent(content) + '"> Download as a ' + type + ' File </a>');
-    anchor.css('display', 'none');
-    anchor.click(function() {
-      $('#download').attr('download', 'pivot_report_' + that.getCurrentTimestamp() + '.' + type.toLowerCase());
-    });
-
-    $('#pivot-report-type').append(anchor);
-    $('#download')[0].click();
-    anchor.remove();
+    window.saveAs(new Blob([content], {type: 'text/' + type.toLowerCase()})   , 'pivot_report_' + that.getCurrentTimestamp() + '.' + type.toLowerCase());
   }
 
   /**
