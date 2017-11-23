@@ -221,6 +221,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
     $result = $this->rebuildData($cacheGroup, $params);
 
     $this->rebuildHeader($cacheGroup, array_merge($this->emptyRow, $this->additionalHeaderFields));
+    $this->rebuildPivotCount($cacheGroup, $result['count']);
 
     return array(
       array(
