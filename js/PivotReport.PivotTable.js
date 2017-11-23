@@ -10,7 +10,6 @@ CRM.PivotReport.PivotTable = (function($) {
   function PivotTable(config) {
     var defaults = {
       'entityName': null,
-      'uniqueKey': 'ID',
       'cacheBuilt': true,
       'filter': false,
       'initialLoad': {
@@ -34,6 +33,7 @@ CRM.PivotReport.PivotTable = (function($) {
     this.header = [];
     this.data = [];
     this.total = 0;
+    this.pivotCount = 0;
     this.totalLoaded = 0;
     this.uniqueLoaded = [];
     this.pivotReportForm = null;
@@ -274,6 +274,7 @@ CRM.PivotReport.PivotTable = (function($) {
       }],
       'getHeader': ['PivotReport', 'getheader', {'entity': this.config.entityName}],
       'getCount': [this.config.entityName, 'getcount', that.config.getCountParams()],
+      'getPivotCount': ['PivotReport', 'getpivotcount', {'entity': this.config.entityName}],
       'dateFields': ['PivotReport', 'getdatefields', {entity: this.config.entityName}],
       'relativeFilters': ['OptionValue', 'get', {
         'sequential': 1,
@@ -286,6 +287,7 @@ CRM.PivotReport.PivotTable = (function($) {
       that.relativeFilters = result.relativeFilters.values;
       that.header = result.getHeader.values;
       that.total = parseInt(result.getCount, 10);
+      that.pivotCount = parseInt(result.getPivotCount.values, 10);
       that.crmConfig = result.getConfig.values[0];
 
       $.each(that.dateFields, function (i, value) {
@@ -482,12 +484,10 @@ CRM.PivotReport.PivotTable = (function($) {
         row[that.header[j]] = data[i][j];
       }
 
-      that.uniqueLoaded[row[that.config.uniqueKey]] = 1;
-
       result.push(row);
     }
 
-    this.totalLoaded = that.uniqueLoaded.length;
+    this.totalLoaded += result.length;
 
     return result;
   };
@@ -554,8 +554,8 @@ CRM.PivotReport.PivotTable = (function($) {
     this.Preloader.setTitle('Loading data');
     this.Preloader.show();
 
-    CRM.api3(this.config.entityName, 'getcount', this.config.getCountParams()).done(function(result) {
-        var totalCount = parseInt(result.result, 10);
+    CRM.api3('PivotReport', 'getpivotcount', {'entity': this.config.entityName}).done(function(result) {
+        var totalCount = parseInt(result.values, 10);
 
         that.loadData({
           "keyvalue_from": null,

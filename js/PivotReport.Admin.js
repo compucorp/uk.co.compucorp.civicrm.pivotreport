@@ -9,6 +9,7 @@ CRM.PivotReport.Admin = (function($) {
     this.container = $('#pivot-report-admin');
     this.totalCount = 0;
     this.loadedCount = {};
+    this.cachedPivotCount = {};
     this.Preloader = new CRM.PivotReport.Preloader();
     this.Preloader.hide();
 
@@ -43,6 +44,7 @@ CRM.PivotReport.Admin = (function($) {
 
       for (var i in result.values[0]) {
         that.loadedCount[i] = 0;
+        that.cachedPivotCount[i] = 0;
         that.cacheEntity(i, 0, 0, null, 0, result.values[0][i]);
       }
     });
@@ -66,9 +68,11 @@ CRM.PivotReport.Admin = (function($) {
         offset: offset,
         multiValuesOffset: multiValuesOffset,
         index: index,
-        page: page
+        page: page,
+        pivotCount: that.cachedPivotCount[entity]
     }).done(function(result) {
       that.loadedCount[entity] = offset;
+      that.cachedPivotCount[entity] += result.values.count;
 
       var progressValue = parseInt((that.getTotalLoadedCount() / that.totalCount) * 100, 10);
       that.Preloader.setValue(progressValue);
