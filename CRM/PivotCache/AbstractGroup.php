@@ -110,6 +110,35 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
   }
 
   /**
+   * @inheritdoc
+   */
+  public function query($page, array $params) {
+    $cache = new CRM_PivotReport_DAO_PivotReportCache();
+
+    $cache->group_name = $this->getName();
+
+    $this->customizeQuery($cache, $page, $params);
+
+    $cache->whereAdd("path NOT IN ('header', 'entityCount', 'pivotCount')");
+
+    $cache->orderBy('path ASC');
+
+    $cache->find();
+
+    return $cache;
+  }
+
+  /**
+   * Allows to modify Pivot Report Cache DAO object before executing the query.
+   *
+   * @param \CRM_PivotReport_DAO_PivotReportCache $queryObject
+   * @param int $page
+   * @param array $params
+   */
+  protected function customizeQuery(CRM_PivotReport_DAO_PivotReportCache $queryObject, $page, array $params) {
+  }
+
+  /**
    * Gets a cache path string by specified index and page.
    *
    * @param string $index
