@@ -96,6 +96,7 @@ function civicrm_api3_pivot_report_rebuildcachepartial($params) {
   $multiValuesOffset = !empty($params['multiValuesOffset']) ? (int) $params['multiValuesOffset'] : 0;
   $index = !empty($params['index']) ? $params['index'] : NULL;
   $page = !empty($params['page']) ? (int) $params['page'] : 0;
+  $pivotCount = !empty($params['pivotCount']) ? (int) $params['pivotCount'] : 0;
 
   $entityInstance = new CRM_PivotReport_Entity($entity);
   $result = $entityInstance->getDataInstance()->rebuildCachePartial(
@@ -104,7 +105,8 @@ function civicrm_api3_pivot_report_rebuildcachepartial($params) {
     $offset,
     $multiValuesOffset,
     $index,
-    $page
+    $page,
+    $pivotCount
   );
 
   return civicrm_api3_create_success(
@@ -195,6 +197,42 @@ function civicrm_api3_pivot_report_getcount($params) {
 
   return civicrm_api3_create_success(
     (int) $entityInstance->getDataInstance()->getCount(),
+    $params
+  );
+}
+
+/**
+ * PivotReport.getentitycount API
+ *
+ * @param array $params
+ * @return array API result descriptor
+ * @throws API_Exception
+ */
+function civicrm_api3_pivot_report_getentitycount($params) {
+  $entity = !empty($params['entity']) ? $params['entity'] : NULL;
+
+  $entityInstance = new CRM_PivotReport_Entity($entity);
+
+  return civicrm_api3_create_success(
+    (int) $entityInstance->getDataInstance()->getEntityCount($entityInstance->getGroupInstance()),
+    $params
+  );
+}
+
+/**
+ * PivotReport.getpivotcount API
+ *
+ * @param array $params
+ * @return array API result descriptor
+ * @throws API_Exception
+ */
+function civicrm_api3_pivot_report_getpivotcount($params) {
+  $entity = !empty($params['entity']) ? $params['entity'] : NULL;
+
+  $entityInstance = new CRM_PivotReport_Entity($entity);
+
+  return civicrm_api3_create_success(
+    (int) $entityInstance->getDataInstance()->getPivotCount($entityInstance->getGroupInstance()),
     $params
   );
 }
