@@ -10,7 +10,6 @@ CRM.PivotReport.PivotTable = (function($) {
   function PivotTable(config) {
     var defaults = {
       'entityName': null,
-      'uniqueKey': 'ID',
       'cacheBuilt': true,
       'filter': false,
       'initialLoad': {
@@ -34,6 +33,7 @@ CRM.PivotReport.PivotTable = (function($) {
     this.header = [];
     this.data = [];
     this.total = 0;
+    this.pivotCount = 0;
     this.totalLoaded = 0;
     this.uniqueLoaded = [];
     this.pivotReportForm = null;
@@ -47,7 +47,6 @@ CRM.PivotReport.PivotTable = (function($) {
 
     this.removePrintIcon();
     this.initFilterForm();
-    this.initUI();
     this.initPivotDataLoading();
     this.checkCacheBuilt();
   };
@@ -264,51 +263,6 @@ CRM.PivotReport.PivotTable = (function($) {
   };
 
   /**
-   * Handles UI events.
-   */
-  PivotTable.prototype.initUI = function() {
-    var that = this;
-
-    $('input[type="button"].build-cache-button').click(function(e) {
-      CRM.confirm({message: 'This operation may take some time to build the cache. Do you really want to build the cache for ' + that.config.entityName + ' data?' })
-      .on('crmConfirm:yes', function() {
-        that.Preloader.reset();
-        that.Preloader.setTitle('Building cache');
-        that.Preloader.show();
-
-        CRM.api3(that.config.entityName, 'getcount', that.config.getCountParams()).done(function(result) {
-           that.rebuildCache(0, 0, null, 0, result.result);
-        });
-      });
-    });
-  };
-
-  PivotTable.prototype.rebuildCache = function(offset, multiValuesOffset, index, page, totalCount) {
-    var that = this;
-
-    CRM.api3('PivotReport', 'rebuildcachepartial', {
-        entity: that.config.entityName,
-        offset: offset,
-        multiValuesOffset: multiValuesOffset,
-        index: index,
-        page: page
-      }).done(function(result) {
-      if (parseInt(result.values.count, 10) === 0) {
-        that.Preloader.hide();
-        that.config.cacheBuilt = true;
-        that.checkCacheBuilt();
-        that.initPivotDataLoading();
-
-        return;
-      }
-
-      var progressValue = parseInt((offset / totalCount) * 100, 10);
-      that.Preloader.setValue(progressValue);
-      that.rebuildCache(result.values.offset, result.values.multiValuesOffset, result.values.index, result.values.page, totalCount);
-    });
-  }
-
-  /**
    * Loads header, checks total number of items and then starts data fetching.
    */
   PivotTable.prototype.initPivotDataLoading = function() {
@@ -320,6 +274,7 @@ CRM.PivotReport.PivotTable = (function($) {
       }],
       'getHeader': ['PivotReport', 'getheader', {'entity': this.config.entityName}],
       'getCount': [this.config.entityName, 'getcount', that.config.getCountParams()],
+      'getPivotCount': ['PivotReport', 'getpivotcount', {'entity': this.config.entityName}],
       'dateFields': ['PivotReport', 'getdatefields', {entity: this.config.entityName}],
       'relativeFilters': ['OptionValue', 'get', {
         'sequential': 1,
@@ -332,6 +287,7 @@ CRM.PivotReport.PivotTable = (function($) {
       that.relativeFilters = result.relativeFilters.values;
       that.header = result.getHeader.values;
       that.total = parseInt(result.getCount, 10);
+      that.pivotCount = parseInt(result.getPivotCount.values, 10);
       that.crmConfig = result.getConfig.values[0];
 
       $.each(that.dateFields, function (i, value) {
@@ -528,12 +484,10 @@ CRM.PivotReport.PivotTable = (function($) {
         row[that.header[j]] = data[i][j];
       }
 
-      that.uniqueLoaded[row[that.config.uniqueKey]] = 1;
-
       result.push(row);
     }
 
-    this.totalLoaded = that.uniqueLoaded.length;
+    this.totalLoaded += result.length;
 
     return result;
   };
@@ -600,8 +554,8 @@ CRM.PivotReport.PivotTable = (function($) {
     this.Preloader.setTitle('Loading data');
     this.Preloader.show();
 
-    CRM.api3(this.config.entityName, 'getcount', this.config.getCountParams()).done(function(result) {
-        var totalCount = parseInt(result.result, 10);
+    CRM.api3('PivotReport', 'getpivotcount', {'entity': this.config.entityName}).done(function(result) {
+        var totalCount = parseInt(result.values, 10);
 
         that.loadData({
           "keyvalue_from": null,

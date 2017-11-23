@@ -54,7 +54,7 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
    * @inheritdoc
    */
   public function getHeader() {
-    return json_decode(CRM_PivotReport_BAO_PivotReportCache::getItem($this->getName(), 'header'));
+    return json_decode($this->getCacheValue('header'));
   }
 
   /**
@@ -62,7 +62,21 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
    */
   public function cacheHeader(array $rows) {
     $jsonHeader = json_encode($this->sortHeader($rows));
-    CRM_PivotReport_BAO_PivotReportCache::setItem($jsonHeader, $this->getName(), 'header');
+    $this->setCacheValue('header', $jsonHeader);
+  }
+
+  /**
+   * @inheritdoc
+   */
+  public function setCacheValue($key, $value) {
+    CRM_PivotReport_BAO_PivotReportCache::setItem($value, $this->getName(), $key);
+  }
+
+  /**
+   * @inheritdoc
+   */
+  public function getCacheValue($key) {
+    return CRM_PivotReport_BAO_PivotReportCache::getItem($this->getName(), $key);
   }
 
   /**
@@ -90,9 +104,38 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
     $count = count($page->getData());
 
     $jsonData = json_encode($page->getData());
-    CRM_PivotReport_BAO_PivotReportCache::setItem($jsonData, $this->getName(), $this->getPath($page->getIndex(), $page->getPage()));
+    $this->setCacheValue($this->getPath($page->getIndex(), $page->getPage()), $jsonData);
 
     return $count;
+  }
+
+  /**
+   * @inheritdoc
+   */
+  public function query($page, array $params) {
+    $cache = new CRM_PivotReport_DAO_PivotReportCache();
+
+    $cache->group_name = $this->getName();
+
+    $this->customizeQuery($cache, $page, $params);
+
+    $cache->whereAdd("path NOT IN ('header', 'entityCount', 'pivotCount')");
+
+    $cache->orderBy('path ASC');
+
+    $cache->find();
+
+    return $cache;
+  }
+
+  /**
+   * Allows to modify Pivot Report Cache DAO object before executing the query.
+   *
+   * @param \CRM_PivotReport_DAO_PivotReportCache $queryObject
+   * @param int $page
+   * @param array $params
+   */
+  protected function customizeQuery(CRM_PivotReport_DAO_PivotReportCache $queryObject, $page, array $params) {
   }
 
   /**
@@ -118,7 +161,7 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
     $cache = new CRM_PivotReport_DAO_PivotReportCache();
 
     $cache->group_name = $this->getName();
-    $cache->whereAdd("path = 'header'");
+    $cache->whereAdd("path = 'pivotCount'");
     $cache->whereAdd("group_name = '{$this->getName()}'");
     $cache->orderBy('path ASC');
     $cache->find();

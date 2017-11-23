@@ -25,7 +25,7 @@ class CRM_PivotData_DataMembership extends CRM_PivotData_AbstractData {
         'return' => array('display_name', 'sort_name', 'contact_type')
       ),
       'options' => array(
-        'sort' => 'join_date ASC',
+        'sort' => 'join_date ASC, id ASC',
         'limit' => self::ROWS_API_LIMIT,
       ),
     );
@@ -148,8 +148,6 @@ class CRM_PivotData_DataMembership extends CRM_PivotData_AbstractData {
    */
   public function getCount(array $params = array()) {
     $apiParams = array(
-      'is_current_revision' => 1,
-      'is_deleted' => 0,
       'is_test' => 0,
     );
 

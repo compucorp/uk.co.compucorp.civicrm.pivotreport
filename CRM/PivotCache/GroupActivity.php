@@ -12,11 +12,7 @@ class CRM_PivotCache_GroupActivity extends CRM_PivotCache_AbstractGroup {
   /**
    * @inheritdoc
    */
-  public function query($page, array $params) {
-    $cache = new CRM_PivotReport_DAO_PivotReportCache();
-
-    $cache->group_name = $this->getName();
-
+  protected function customizeQuery(CRM_PivotReport_DAO_PivotReportCache $queryObject, $page, array $params) {
     if (!empty($params['keyvalue_from'])) {
       $whereStartDate = CRM_Core_DAO::createSQLFilter(
         'path',
@@ -26,7 +22,7 @@ class CRM_PivotCache_GroupActivity extends CRM_PivotCache_AbstractGroup {
         'String'
       );
 
-      $cache->whereAdd($whereStartDate);
+      $queryObject->whereAdd($whereStartDate);
     }
 
     if (!empty($params['keyvalue_to'])) {
@@ -38,15 +34,7 @@ class CRM_PivotCache_GroupActivity extends CRM_PivotCache_AbstractGroup {
         'String'
       );
 
-      $cache->whereAdd($whereEndDate);
+      $queryObject->whereAdd($whereEndDate);
     }
-
-    $cache->whereAdd("path <> 'header'");
-
-    $cache->orderBy('path ASC');
-
-    $cache->find();
-
-    return $cache;
   }
 }

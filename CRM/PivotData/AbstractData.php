@@ -215,9 +215,13 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
 
     $cacheGroup->clear();
 
+    $totalCount = $this->getCount($params);
+    $this->rebuildEntityCount($cacheGroup, $totalCount);
+
     $result = $this->rebuildData($cacheGroup, $params);
 
     $this->rebuildHeader($cacheGroup, array_merge($this->emptyRow, $this->additionalHeaderFields));
+    $this->rebuildPivotCount($cacheGroup, $result['count']);
 
     return array(
       array(
@@ -230,18 +234,22 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
   /**
    * @inheritdoc
    */
-  public function rebuildCachePartial(AbstractGroup $cacheGroup, array $params, $offset, $multiValuesOffset, $index, $page) {
+  public function rebuildCachePartial(AbstractGroup $cacheGroup, array $params, $offset, $multiValuesOffset, $index, $page, $pivotCount) {
     $this->emptyRow = $this->getEmptyRow();
     $this->multiValues = array();
 
     if (!$offset) {
       $cacheGroup->clear();
+
+      $totalCount = $this->getCount($params);
+      $this->rebuildEntityCount($cacheGroup, $totalCount);
     }
 
     $result = $this->rebuildData($cacheGroup, $params, $offset, $offset + $this::ROWS_API_LIMIT, $multiValuesOffset, $index, $page, TRUE);
 
     if (!$result['count']) {
       $this->rebuildHeader($cacheGroup, array_merge($this->emptyRow, $this->additionalHeaderFields));
+      $this->rebuildPivotCount($cacheGroup, $pivotCount);
     }
 
     return $result;
@@ -293,6 +301,44 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
    */
   public function rebuildHeader(AbstractGroup $cacheGroup, array $header) {
     $cacheGroup->cacheHeader($header);
+  }
+
+  /**
+   * Rebuilds entity count cache value.
+   *
+   * @param \CRM_PivotCache_AbstractGroup $cacheGroup
+   * @param int $entityCount
+   */
+  public function rebuildEntityCount(AbstractGroup $cacheGroup, $entityCount) {
+    $cacheGroup->setCacheValue('entityCount', $entityCount);
+  }
+
+  /**
+   * Returns entity count cache value.
+   *
+   * @param \CRM_PivotCache_AbstractGroup $cacheGroup
+   */
+  public function getEntityCount(AbstractGroup $cacheGroup) {
+    return $cacheGroup->getCacheValue('entityCount');
+  }
+
+  /**
+   * Rebuilds pivot count cache value.
+   *
+   * @param \CRM_PivotCache_AbstractGroup $cacheGroup
+   * @param int $pivotCount
+   */
+  public function rebuildPivotCount(AbstractGroup $cacheGroup, $pivotCount) {
+    $cacheGroup->setCacheValue('pivotCount', $pivotCount);
+  }
+
+  /**
+   * Returns pivot count cache value.
+   *
+   * @param \CRM_PivotCache_AbstractGroup $cacheGroup
+   */
+  public function getPivotCount(AbstractGroup $cacheGroup) {
+    return $cacheGroup->getCacheValue('pivotCount');
   }
 
   /**
