@@ -17,7 +17,7 @@ class CRM_PivotCache_GroupProspect extends CRM_PivotCache_AbstractGroup {
 
     $cache->group_name = $this->getName();
 
-    $cache->whereAdd("path <> 'header'");
+    $cache->whereAdd("path NOT IN ('header', 'entityCount', 'pivotCount')");
 
     $cache->orderBy('path ASC');
 

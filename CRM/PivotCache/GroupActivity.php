@@ -41,7 +41,7 @@ class CRM_PivotCache_GroupActivity extends CRM_PivotCache_AbstractGroup {
       $cache->whereAdd($whereEndDate);
     }
 
-    $cache->whereAdd("path <> 'header'");
+    $cache->whereAdd("path NOT IN ('header', 'entityCount', 'pivotCount')");
 
     $cache->orderBy('path ASC');
 
