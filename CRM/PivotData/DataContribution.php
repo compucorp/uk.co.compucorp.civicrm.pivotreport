@@ -25,7 +25,7 @@ class CRM_PivotData_DataContribution extends CRM_PivotData_AbstractData {
         'return' => array('display_name', 'sort_name', 'contact_type')
       ),
       'options' => array(
-        'sort' => 'receive_date ASC',
+        'sort' => 'receive_date ASC, id ASC',
         'limit' => self::ROWS_API_LIMIT,
       ),
     );

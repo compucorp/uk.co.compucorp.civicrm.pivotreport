@@ -22,7 +22,7 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
       'api.Contact.get' => array('id' => '$value.client_id', 'return' => array('id', 'contact_type', 'contact_sub_type', 'display_name')),
       'return' => array_merge($this->getCaseFields(), array('contacts', 'contact_id')),
       'options' => array(
-        'sort' => 'start_date ASC',
+        'sort' => 'start_date ASC, id ASC',
         'limit' => self::ROWS_API_LIMIT,
       ),
     );
