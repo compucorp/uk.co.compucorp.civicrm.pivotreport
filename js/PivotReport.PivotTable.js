@@ -47,7 +47,6 @@ CRM.PivotReport.PivotTable = (function($) {
 
     this.removePrintIcon();
     this.initFilterForm();
-    this.initUI();
     this.initPivotDataLoading();
     this.checkCacheBuilt();
   };
@@ -262,51 +261,6 @@ CRM.PivotReport.PivotTable = (function($) {
 
     this.config.initFilterForm(this.pivotReportKeyValueFrom, this.pivotReportKeyValueTo);
   };
-
-  /**
-   * Handles UI events.
-   */
-  PivotTable.prototype.initUI = function() {
-    var that = this;
-
-    $('input[type="button"].build-cache-button').click(function(e) {
-      CRM.confirm({message: 'This operation may take some time to build the cache. Do you really want to build the cache for ' + that.config.entityName + ' data?' })
-      .on('crmConfirm:yes', function() {
-        that.Preloader.reset();
-        that.Preloader.setTitle('Building cache');
-        that.Preloader.show();
-
-        CRM.api3(that.config.entityName, 'getcount', that.config.getCountParams()).done(function(result) {
-           that.rebuildCache(0, 0, null, 0, result.result);
-        });
-      });
-    });
-  };
-
-  PivotTable.prototype.rebuildCache = function(offset, multiValuesOffset, index, page, totalCount) {
-    var that = this;
-
-    CRM.api3('PivotReport', 'rebuildcachepartial', {
-        entity: that.config.entityName,
-        offset: offset,
-        multiValuesOffset: multiValuesOffset,
-        index: index,
-        page: page
-      }).done(function(result) {
-      if (parseInt(result.values.count, 10) === 0) {
-        that.Preloader.hide();
-        that.config.cacheBuilt = true;
-        that.checkCacheBuilt();
-        that.initPivotDataLoading();
-
-        return;
-      }
-
-      var progressValue = parseInt((offset / totalCount) * 100, 10);
-      that.Preloader.setValue(progressValue);
-      that.rebuildCache(result.values.offset, result.values.multiValuesOffset, result.values.index, result.values.page, totalCount);
-    });
-  }
 
   /**
    * Loads header, checks total number of items and then starts data fetching.
