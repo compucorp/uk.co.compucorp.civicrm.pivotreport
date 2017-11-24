@@ -20,6 +20,11 @@ class CRM_PivotData_DataActivity extends CRM_PivotData_AbstractData {
   const ROWS_MULTIVALUES_LIMIT = 500;
 
   /**
+   * @inheritdoc
+   */
+  const ROWS_RETURN_LIMIT = 1000;
+
+  /**
    * CRM_PivotData_DataActivity constructor.
    */
   public function __construct() {
