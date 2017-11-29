@@ -236,12 +236,14 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
   /**
    * @inheritdoc
    */
-  public function rebuildCachePartial(AbstractGroup $cacheGroup, array $params, $offset, $multiValuesOffset, $index, $page, $pivotCount) {
+  public function rebuildCachePartial(AbstractGroup $cacheGroup, array $params, $offset, $multiValuesOffset, $index, $page, $pivotCount, $clear = TRUE) {
     $this->emptyRow = $this->getEmptyRow();
     $this->multiValues = array();
 
     if (!$offset) {
-      $cacheGroup->clear();
+      if ($clear) {
+        $cacheGroup->clear();
+      }
 
       $totalCount = $this->getCount($params);
       $this->rebuildEntityCount($cacheGroup, $totalCount);
