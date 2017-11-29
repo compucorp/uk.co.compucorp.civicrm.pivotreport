@@ -1,4 +1,5 @@
 <?php
+
 use CRM_PivotReport_ExtensionUtil as E;
 
 class CRM_PivotReport_BAO_PivotReportCache extends CRM_PivotReport_DAO_PivotReportCache {
@@ -7,6 +8,68 @@ class CRM_PivotReport_BAO_PivotReportCache extends CRM_PivotReport_DAO_PivotRepo
    * @var array ($cacheKey => $cacheValue)
    */
   static $_cache = NULL;
+
+  /**
+   * Caches single chunk of Pivot Entity based on previously saved Cron Job
+   * status data.
+   * Returns an array containing Entity, Offset and MultiValuesOffset values
+   * and time taken to complete in microseconds or NULL if there is active
+   * lock present (which means that previous run didn't finish yet).
+   *
+   * @return string
+   */
+  public static function rebuildCacheCronJob() {
+    if (self::isLocked()) {
+      return NULL;
+    }
+
+    $time = microtime(true);
+    self::setIsLocked(TRUE);
+
+    $status = new CRM_PivotCache_PivotReportCronJobStatus();
+
+    $entityInstance = new CRM_PivotReport_Entity($status->getEntity());
+    $result = $entityInstance->getDataInstance()->rebuildCachePartial(
+      $entityInstance->getGroupInstance(),
+      array(),
+      $status->getOffset(),
+      $status->getMultiValuesOffset(),
+      $status->getIndex(),
+      $status->getPage(),
+      $status->getPivotCount(),
+      FALSE
+    );
+
+    if (!$result['count']) {
+      $status->setupNextEntity();
+    } else {
+      $status->setOffset($result['offset']);
+      $status->setMultiValuesOffset($result['multiValuesOffset']);
+      $status->setPage($result['page']);
+      $status->setIndex($result['index']);
+      $status->setPivotCount($status->getPivotCount() + $result['count']);
+    }
+
+    $status->update();
+
+    $cacheBuilt = FALSE;
+    if (!$status->getEntity()) {
+      self::deleteActiveCache();
+      self::activateCache();
+      self::updateBuildDatetime();
+      $cacheBuilt = TRUE;
+    }
+
+    self::setIsLocked(FALSE);
+
+    return array(
+      'entity' => $status->getEntity(),
+      'offset' => $status->getOffset(),
+      'multiValuesOffset' => $status->getMultiValuesOffset(),
+      'time' => microtime(true) - $time,
+      'cacheBuilt' => $cacheBuilt,
+    );
+  }
 
   /**
    * Retrieve an item from the DB cache.
@@ -64,7 +127,7 @@ class CRM_PivotReport_BAO_PivotReportCache extends CRM_PivotReport_DAO_PivotRepo
 
     $table = self::getTableName();
     $where = self::whereCache($group, $path);
-    $dataExists = CRM_Core_DAO::singleValueQuery("SELECT COUNT(*) FROM $table WHERE {$where}");
+    $dataExists = CRM_Core_DAO::singleValueQuery("SELECT COUNT(*) FROM $table WHERE {$where} AND is_active = 0");
     $now = date('Y-m-d H:i:s');
     $dataSerialized = serialize($data);
 
@@ -83,6 +146,7 @@ class CRM_PivotReport_BAO_PivotReportCache extends CRM_PivotReport_DAO_PivotRepo
           'path' => $path,
           'data' => $dataSerialized,
           'created_date' => $now,
+          'is_active' => 0,
         ));
       $dao = CRM_Core_DAO::executeQuery($insert->toSQL(), array(), TRUE, NULL, FALSE, FALSE);
     }
@@ -133,6 +197,74 @@ class CRM_PivotReport_BAO_PivotReportCache extends CRM_PivotReport_DAO_PivotRepo
     }
 
     return $clauses ? implode(' AND ', $clauses) : '(1)';
+  }
+
+  /**
+   * Deletes all active cache of Pivot Report entities data.
+   */
+  public static function deleteActiveCache() {
+    $table = self::getTableName();
+    $where = self::whereActiveCache();
+
+    CRM_Core_DAO::executeQuery("DELETE FROM $table WHERE $where");
+  }
+
+  /**
+   * Composes a SQL WHERE clause for the active cache.
+   *
+   * @return string
+   */
+  private static function whereActiveCache() {
+    $clauses = array();
+    $clauses[] = 'group_name <> "admin"';
+    $clauses[] = 'is_active = 1';
+
+    return implode(' AND ', $clauses);
+  }
+
+  /**
+   * Sets 'is_active' values to 1 for all cache rows.
+   */
+  private static function activateCache() {
+    $table = self::getTableName();
+
+    CRM_Core_DAO::executeQuery("UPDATE $table SET is_active = 1 WHERE group_name <> 'admin'");
+  }
+
+  /**
+   * Gets is_locked cache value.
+   *
+   * @return bool
+   */
+  public static function isLocked() {
+    return self::getItem('admin', 'is_locked');
+  }
+
+  /**
+   * Updates is_locked cache value with given value.
+   *
+   * @param bool $value
+   */
+  public static function setIsLocked($value) {
+    self::setItem($value, 'admin', 'is_locked');
+  }
+
+  /**
+   * Gets cron_job_status cache values.
+   *
+   * @return array|NULL
+   */
+  public static function getCronJobStatus() {
+    return self::getItem('admin', 'cron_job_status');
+  }
+
+  /**
+   * Sets cron_job_status cache values.
+   *
+   * @param array $values
+   */
+  public static function setCronJobStatus(array $values) {
+    self::setItem($values, 'admin', 'cron_job_status');
   }
 
   /**
