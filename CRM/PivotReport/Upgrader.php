@@ -16,6 +16,7 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
     $this->upgrade_0003();
     $this->upgrade_0006();
     $this->upgrade_0007();
+    $this->upgrade_0009();
 
     return TRUE;
   }
@@ -206,6 +207,18 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
 
       CRM_Core_BAO_Navigation::resetNavigation();
     }
+
+    return TRUE;
+  }
+
+  /**
+   * Adds 'is_active' field into 'civicrm_pivotreportcache' table and
+   * sets its value to '1' for all existing cache rows.
+   *
+   * @return boolean
+   */
+  public function upgrade_0009() {
+    $this->executeSqlFile('sql/civicrm_pivotreportcache_is_active.sql');
 
     return TRUE;
   }

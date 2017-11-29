@@ -87,6 +87,12 @@ class CRM_PivotReport_DAO_PivotReportCache extends CRM_Core_DAO {
    */
   public $expired_date;
   /**
+   * Is the cache entry active?
+   *
+   * @var boolean
+   */
+  public $is_active;
+  /**
    * Class constructor.
    */
   function __construct() {
@@ -164,6 +170,18 @@ class CRM_PivotReport_DAO_PivotReportCache extends CRM_Core_DAO {
           'description' => 'When should the cache item expire',
           'required' => false,
           'default' => 'NULL',
+          'table_name' => 'civicrm_pivotreportcache',
+          'entity' => 'PivotReportCache',
+          'bao' => 'CRM_PivotReport_DAO_PivotReportCache',
+          'localizable' => 0,
+        ) ,
+        'is_active' => array(
+          'name' => 'is_active',
+          'type' => CRM_Utils_Type::T_BOOLEAN,
+          'title' => ts('Is active?') ,
+          'description' => 'Is the cache entry active?',
+          'required' => false,
+          'default' => 0,
           'table_name' => 'civicrm_pivotreportcache',
           'entity' => 'PivotReportCache',
           'bao' => 'CRM_PivotReport_DAO_PivotReportCache',

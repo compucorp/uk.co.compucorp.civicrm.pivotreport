@@ -72,5 +72,14 @@
     <comment>When should the cache item expire</comment>
     <add>4.7</add>
   </field>
+  <field>
+    <name>is_active</name>
+    <title>Is active?</title>
+    <type>boolean</type>
+    <default>0</default>
+    <required>false</required>
+    <comment>Is the cache entry active?</comment>
+    <add>4.7</add>
+  </field>
 
 </table>
