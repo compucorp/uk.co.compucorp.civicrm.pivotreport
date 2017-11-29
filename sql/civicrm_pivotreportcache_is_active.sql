@@ -2,7 +2,7 @@
 ALTER TABLE `civicrm_pivotreportcache` ADD `is_active` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0' AFTER `expired_date`;
 
 -- Update 'is_active' value to 1 for each currently existing Pivot Cache row.
-UPDATE `civicrm_pivotreportcache` SET is_active = 1;
+UPDATE `civicrm_pivotreportcache` SET is_active = 1 WHERE group_name <> 'admin';
 
 -- Drop existing unique indexes to allow having the same group name and path.
 ALTER TABLE `civicrm_pivotreportcache` DROP INDEX `UI_group_path`;
