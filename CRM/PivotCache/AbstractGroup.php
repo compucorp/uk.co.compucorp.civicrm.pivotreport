@@ -39,7 +39,7 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
    *
    * @return string
    */
-  protected function getName() {
+  public function getName() {
     return $this->name;
   }
 
@@ -119,7 +119,7 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
 
     $this->customizeQuery($cache, $page, $params);
 
-    $cache->whereAdd("path NOT IN ('header', 'entityCount', 'pivotCount')");
+    $cache->whereAdd("path NOT IN ('header', 'entityCount', 'pivotCount') AND is_active = 1");
 
     $cache->orderBy('path ASC');
 
@@ -163,6 +163,7 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
     $cache->group_name = $this->getName();
     $cache->whereAdd("path = 'pivotCount'");
     $cache->whereAdd("group_name = '{$this->getName()}'");
+    $cache->whereAdd("is_active = 1");
     $cache->orderBy('path ASC');
     $cache->find();
 

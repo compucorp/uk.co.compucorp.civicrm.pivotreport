@@ -236,12 +236,14 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
   /**
    * @inheritdoc
    */
-  public function rebuildCachePartial(AbstractGroup $cacheGroup, array $params, $offset, $multiValuesOffset, $index, $page, $pivotCount) {
+  public function rebuildCachePartial(AbstractGroup $cacheGroup, array $params, $offset, $multiValuesOffset, $index, $page, $pivotCount, $clear = TRUE) {
     $this->emptyRow = $this->getEmptyRow();
     $this->multiValues = array();
 
     if (!$offset) {
-      $cacheGroup->clear();
+      if ($clear) {
+        $cacheGroup->clear();
+      }
 
       $totalCount = $this->getCount($params);
       $this->rebuildEntityCount($cacheGroup, $totalCount);
@@ -252,6 +254,9 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
     if (!$result['count']) {
       $this->rebuildHeader($cacheGroup, array_merge($this->emptyRow, $this->additionalHeaderFields));
       $this->rebuildPivotCount($cacheGroup, $pivotCount);
+
+      CRM_PivotReport_BAO_PivotReportCache::deleteActiveCache($cacheGroup->getName());
+      CRM_PivotReport_BAO_PivotReportCache::activateCache($cacheGroup->getName());
     }
 
     return $result;
@@ -813,6 +818,15 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
     ));
 
     return $result['values'];
+  }
+
+  /**
+   * Returns name property value.
+   *
+   * @return string
+   */
+  public function getName() {
+    return $this->name;
   }
 
   /**
