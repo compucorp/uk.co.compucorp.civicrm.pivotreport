@@ -39,7 +39,7 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
    *
    * @return string
    */
-  protected function getName() {
+  public function getName() {
     return $this->name;
   }
 

@@ -254,6 +254,9 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
     if (!$result['count']) {
       $this->rebuildHeader($cacheGroup, array_merge($this->emptyRow, $this->additionalHeaderFields));
       $this->rebuildPivotCount($cacheGroup, $pivotCount);
+
+      CRM_PivotReport_BAO_PivotReportCache::deleteActiveCache($cacheGroup->getName());
+      CRM_PivotReport_BAO_PivotReportCache::activateCache($cacheGroup->getName());
     }
 
     return $result;
@@ -815,6 +818,15 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
     ));
 
     return $result['values'];
+  }
+
+  /**
+   * Returns name property value.
+   *
+   * @return string
+   */
+  public function getName() {
+    return $this->name;
   }
 
   /**

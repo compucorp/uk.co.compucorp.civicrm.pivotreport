@@ -54,8 +54,6 @@ class CRM_PivotReport_BAO_PivotReportCache extends CRM_PivotReport_DAO_PivotRepo
 
     $cacheBuilt = FALSE;
     if (!$status->getEntity()) {
-      self::deleteActiveCache();
-      self::activateCache();
       self::updateBuildDatetime();
       $cacheBuilt = TRUE;
     }
@@ -201,34 +199,34 @@ class CRM_PivotReport_BAO_PivotReportCache extends CRM_PivotReport_DAO_PivotRepo
 
   /**
    * Deletes all active cache of Pivot Report entities data.
+   *
+   * @param string $group
    */
-  public static function deleteActiveCache() {
+  public static function deleteActiveCache($group = NULL) {
     $table = self::getTableName();
-    $where = self::whereActiveCache();
+    $where = 'group_name <> "admin" AND is_active = 1';
+
+    if ($group) {
+      $where .= ' AND group_name = "' . CRM_Core_DAO::escapeString($group) . '"';
+    }
 
     CRM_Core_DAO::executeQuery("DELETE FROM $table WHERE $where");
   }
 
   /**
-   * Composes a SQL WHERE clause for the active cache.
-   *
-   * @return string
-   */
-  private static function whereActiveCache() {
-    $clauses = array();
-    $clauses[] = 'group_name <> "admin"';
-    $clauses[] = 'is_active = 1';
-
-    return implode(' AND ', $clauses);
-  }
-
-  /**
    * Sets 'is_active' values to 1 for all cache rows.
+   *
+   * @param string $group
    */
-  private static function activateCache() {
+  public static function activateCache($group = NULL) {
     $table = self::getTableName();
+    $where = "group_name <> 'admin'";
 
-    CRM_Core_DAO::executeQuery("UPDATE $table SET is_active = 1 WHERE group_name <> 'admin'");
+    if ($group) {
+      $where .= ' AND group_name = "' . CRM_Core_DAO::escapeString($group) . '"';
+    }
+
+    CRM_Core_DAO::executeQuery("UPDATE $table SET is_active = 1 WHERE $where");
   }
 
   /**
