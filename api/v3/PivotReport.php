@@ -84,6 +84,22 @@ function civicrm_api3_pivot_report_rebuildcache($params) {
 }
 
 /**
+ * PivotReport.rebuildcachecronjob API
+ *
+ * @param array $params
+ * @return array API result descriptor
+ * @throws API_Exception
+ */
+function civicrm_api3_pivot_report_rebuildcachecronjob($params) {
+  $result = CRM_PivotReport_BAO_PivotReportCache::rebuildCacheCronJob();
+
+  return civicrm_api3_create_success(
+    array($result),
+    $params
+  );
+}
+
+/**
  * PivotReport.rebuildcachepartial API
  *
  * @param array $params
