@@ -223,6 +223,8 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
     $this->rebuildHeader($cacheGroup, array_merge($this->emptyRow, $this->additionalHeaderFields));
     $this->rebuildPivotCount($cacheGroup, $result['count']);
 
+    CRM_PivotReport_BAO_PivotReportCache::deleteActiveCache($cacheGroup->getName());
+    CRM_PivotReport_BAO_PivotReportCache::activateCache($cacheGroup->getName());
     CRM_PivotReport_BAO_PivotReportCache::updateBuildDatetime();
 
     return array(
