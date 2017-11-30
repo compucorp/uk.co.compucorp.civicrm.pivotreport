@@ -41,11 +41,10 @@ interface CRM_PivotData_DataInterface {
    * @param string $index
    * @param int $page
    * @param int $pivotCount
-   * @param bool $clear
    *
    * @return array
    */
-  public function rebuildCachePartial(AbstractGroup $cacheGroup, array $params, $offset, $multiValuesOffset, $index, $page, $pivotCount, $clear = TRUE);
+  public function rebuildCachePartial(AbstractGroup $cacheGroup, array $params, $offset, $multiValuesOffset, $index, $page, $pivotCount);
 
   /**
    * Rebuilds entity data cache using entity paginated results.

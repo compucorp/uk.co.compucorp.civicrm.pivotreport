@@ -230,15 +230,17 @@ class CRM_PivotReport_Entity {
    * Returns an instance of CRM_PivotCache_AbstractGroup for entityName property
    * value.
    *
+   * @param int $source
+   *
    * @return \CRM_PivotCache_AbstractGroup
    * @throws Exception
    */
-  public function getGroupInstance() {
+  public function getGroupInstance($source = NULL) {
     $className = 'CRM_PivotCache_Group' . $this->entityName;
     if (!class_exists($className)) {
       throw new Exception("Class '{$className}' does not exist. It should exist and extend CRM_PivotCache_AbstractGroup class.");
     }
 
-    return new $className();
+    return new $className(NULL, $source);
   }
 }

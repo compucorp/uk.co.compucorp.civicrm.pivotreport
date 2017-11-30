@@ -5,6 +5,21 @@ use CRM_PivotReport_ExtensionUtil as E;
 class CRM_PivotReport_BAO_PivotReportCache extends CRM_PivotReport_DAO_PivotReportCache {
 
   /**
+   * Cache built using API rebuildcache action.
+   */
+  const SOURCE_REBUILDCACHE = 1;
+
+  /**
+   * Cache built using API rebuildcachecronjob action.
+   */
+  const SOURCE_REBUILDCACHECRONJOB = 2;
+
+  /**
+   * Cache built using Pivot Report Config UI.
+   */
+  const SOURCE_UI = 3;
+
+  /**
    * @var array ($cacheKey => $cacheValue)
    */
   static $_cache = NULL;
@@ -30,14 +45,13 @@ class CRM_PivotReport_BAO_PivotReportCache extends CRM_PivotReport_DAO_PivotRepo
 
     $entityInstance = new CRM_PivotReport_Entity($status->getEntity());
     $result = $entityInstance->getDataInstance()->rebuildCachePartial(
-      $entityInstance->getGroupInstance(),
+      $entityInstance->getGroupInstance(self::SOURCE_REBUILDCACHECRONJOB),
       array(),
       $status->getOffset(),
       $status->getMultiValuesOffset(),
       $status->getIndex(),
       $status->getPage(),
-      $status->getPivotCount(),
-      FALSE
+      $status->getPivotCount()
     );
 
     if (!$result['count']) {
@@ -112,8 +126,10 @@ class CRM_PivotReport_BAO_PivotReportCache extends CRM_PivotReport_DAO_PivotRepo
    *   (required) The group name of the item.
    * @param string $path
    *   (required) The path under which this item is stored.
+   * @param int $source
+   *   (optional) Source of the cache item.
    */
-  public static function setItem(&$data, $group, $path) {
+  public static function setItem(&$data, $group, $path, $source = NULL) {
     if (self::$_cache === NULL) {
       self::$_cache = array();
     }
@@ -124,7 +140,7 @@ class CRM_PivotReport_BAO_PivotReportCache extends CRM_PivotReport_DAO_PivotRepo
     }
 
     $table = self::getTableName();
-    $where = self::whereCache($group, $path);
+    $where = self::whereCache($group, $path, $source);
     $dataExists = CRM_Core_DAO::singleValueQuery("SELECT COUNT(*) FROM $table WHERE {$where} AND is_active = 0");
     $now = date('Y-m-d H:i:s');
     $dataSerialized = serialize($data);
@@ -145,6 +161,7 @@ class CRM_PivotReport_BAO_PivotReportCache extends CRM_PivotReport_DAO_PivotRepo
           'data' => $dataSerialized,
           'created_date' => $now,
           'is_active' => 0,
+          'source' => $source,
         ));
       $dao = CRM_Core_DAO::executeQuery($insert->toSQL(), array(), TRUE, NULL, FALSE, FALSE);
     }
@@ -170,10 +187,12 @@ class CRM_PivotReport_BAO_PivotReportCache extends CRM_PivotReport_DAO_PivotRepo
    *   The group name of the entries to be deleted.
    * @param string $path
    *   Path of the item that needs to be deleted.
+   * @param int $source
+   *   Source of the cache group.
    */
-  public static function deleteGroup($group = NULL, $path = NULL) {
+  public static function deleteGroup($group, $path = NULL, $source = NULL) {
     $table = self::getTableName();
-    $where = self::whereCache($group, $path);
+    $where = self::whereCache($group, $path, $source);
     CRM_Core_DAO::executeQuery("DELETE FROM $table WHERE $where");
   }
 
@@ -183,15 +202,22 @@ class CRM_PivotReport_BAO_PivotReportCache extends CRM_PivotReport_DAO_PivotRepo
    * @param string $group
    * @param string|NULL $path
    *   Filter by path. If NULL, then return all paths.
+   * @param int $source
+   *   Source of the cache group.
    *
    * @return string
    */
-  protected static function whereCache($group, $path) {
+  protected static function whereCache($group, $path = NULL, $source = NULL) {
     $clauses = array();
-    $clauses[] = ('group_name = "' . CRM_Core_DAO::escapeString($group) . '"');
+
+    $clauses[] = 'group_name = "' . CRM_Core_DAO::escapeString($group) . '"';
 
     if ($path) {
       $clauses[] = ('path = "' . CRM_Core_DAO::escapeString($path) . '"');
+    }
+
+    if ($source) {
+      $clauses[] = 'source = ' . CRM_Core_DAO::escapeString($source);
     }
 
     return $clauses ? implode(' AND ', $clauses) : '(1)';
@@ -216,15 +242,11 @@ class CRM_PivotReport_BAO_PivotReportCache extends CRM_PivotReport_DAO_PivotRepo
   /**
    * Sets 'is_active' values to 1 for all cache rows.
    *
-   * @param string $group
+   * @param \CRM_PivotCache_AbstractGroup $group
    */
-  public static function activateCache($group = NULL) {
+  public static function activateCache($group) {
     $table = self::getTableName();
-    $where = "group_name <> 'admin'";
-
-    if ($group) {
-      $where .= ' AND group_name = "' . CRM_Core_DAO::escapeString($group) . '"';
-    }
+    $where = 'group_name = "' . CRM_Core_DAO::escapeString($group->getName()) . '" AND source = ' . CRM_Core_DAO::escapeString($group->getSource());
 
     CRM_Core_DAO::executeQuery("UPDATE $table SET is_active = 1 WHERE $where");
   }

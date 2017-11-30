@@ -224,6 +224,17 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
   }
 
   /**
+   * Adds 'source' field into 'civicrm_pivotreportcache' table.
+   *
+   * @return boolean
+   */
+  public function upgrade_0010() {
+    $this->executeSqlFile('sql/civicrm_pivotreportcache_source.sql');
+
+    return TRUE;
+  }
+
+  /**
    * Creates new menu item using provided parameters.
    *
    * @param array $params

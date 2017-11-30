@@ -224,8 +224,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
     $this->rebuildPivotCount($cacheGroup, $result['count']);
 
     CRM_PivotReport_BAO_PivotReportCache::deleteActiveCache($cacheGroup->getName());
-    CRM_PivotReport_BAO_PivotReportCache::activateCache($cacheGroup->getName());
-    CRM_PivotReport_BAO_PivotReportCache::updateBuildDatetime();
+    CRM_PivotReport_BAO_PivotReportCache::activateCache($cacheGroup);
 
     return array(
       array(
@@ -238,14 +237,12 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
   /**
    * @inheritdoc
    */
-  public function rebuildCachePartial(AbstractGroup $cacheGroup, array $params, $offset, $multiValuesOffset, $index, $page, $pivotCount, $clear = TRUE) {
+  public function rebuildCachePartial(AbstractGroup $cacheGroup, array $params, $offset, $multiValuesOffset, $index, $page, $pivotCount) {
     $this->emptyRow = $this->getEmptyRow();
     $this->multiValues = array();
 
-    if (!$offset) {
-      if ($clear) {
-        $cacheGroup->clear();
-      }
+    if (!$offset && !$multiValuesOffset) {
+      $cacheGroup->clear();
 
       $totalCount = $this->getCount($params);
       $this->rebuildEntityCount($cacheGroup, $totalCount);
@@ -258,7 +255,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
       $this->rebuildPivotCount($cacheGroup, $pivotCount);
 
       CRM_PivotReport_BAO_PivotReportCache::deleteActiveCache($cacheGroup->getName());
-      CRM_PivotReport_BAO_PivotReportCache::activateCache($cacheGroup->getName());
+      CRM_PivotReport_BAO_PivotReportCache::activateCache($cacheGroup);
     }
 
     return $result;
