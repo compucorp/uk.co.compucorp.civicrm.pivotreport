@@ -72,10 +72,12 @@ function civicrm_api3_pivot_report_rebuildcache($params) {
   foreach ($entities as $entity) {
     $entityInstance = new CRM_PivotReport_Entity($entity);
     $result[$entity] = $entityInstance->getDataInstance()->rebuildCache(
-      $entityInstance->getGroupInstance(),
+      $entityInstance->getGroupInstance(CRM_PivotReport_BAO_PivotReportCache::SOURCE_REBUILDCACHE),
       array()
     );
   }
+
+  CRM_PivotReport_BAO_PivotReportCache::updateBuildDatetime();
 
   return civicrm_api3_create_success(
     $result,
@@ -116,7 +118,7 @@ function civicrm_api3_pivot_report_rebuildcachepartial($params) {
 
   $entityInstance = new CRM_PivotReport_Entity($entity);
   $result = $entityInstance->getDataInstance()->rebuildCachePartial(
-    $entityInstance->getGroupInstance(),
+    $entityInstance->getGroupInstance(CRM_PivotReport_BAO_PivotReportCache::SOURCE_UI),
     $params,
     $offset,
     $multiValuesOffset,

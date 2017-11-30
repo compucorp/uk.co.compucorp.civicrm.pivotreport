@@ -14,8 +14,16 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
    */
   protected $name = NULL;
 
-  public function __construct($name = NULL) {
+  /**
+   * Source of cache group.
+   *
+   * @var int
+   */
+  protected $source = NULL;
+
+  public function __construct($name, $source) {
     $this->name = 'pivotreport.' . $name;
+    $this->source = $source;
   }
 
   /**
@@ -44,10 +52,19 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
   }
 
   /**
+   * Gets cache group source.
+   *
+   * @return string
+   */
+  public function getSource() {
+    return $this->source;
+  }
+
+  /**
    * @inheritdoc
    */
   public function clear() {
-    CRM_PivotReport_BAO_PivotReportCache::deleteGroup($this->getName());
+    CRM_PivotReport_BAO_PivotReportCache::deleteGroup($this->getName(), NULL, $this->source);
   }
 
   /**
@@ -69,7 +86,7 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
    * @inheritdoc
    */
   public function setCacheValue($key, $value) {
-    CRM_PivotReport_BAO_PivotReportCache::setItem($value, $this->getName(), $key);
+    CRM_PivotReport_BAO_PivotReportCache::setItem($value, $this->getName(), $key, $this->source);
   }
 
   /**
