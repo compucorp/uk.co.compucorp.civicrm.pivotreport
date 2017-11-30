@@ -93,6 +93,12 @@ class CRM_PivotReport_DAO_PivotReportCache extends CRM_Core_DAO {
    */
   public $is_active;
   /**
+   * Source of the cache row
+   *
+   * @var int
+   */
+  public $source;
+  /**
    * Class constructor.
    */
   function __construct() {
@@ -182,6 +188,18 @@ class CRM_PivotReport_DAO_PivotReportCache extends CRM_Core_DAO {
           'description' => 'Is the cache entry active?',
           'required' => false,
           'default' => 0,
+          'table_name' => 'civicrm_pivotreportcache',
+          'entity' => 'PivotReportCache',
+          'bao' => 'CRM_PivotReport_DAO_PivotReportCache',
+          'localizable' => 0,
+        ) ,
+        'source' => array(
+          'name' => 'source',
+          'type' => CRM_Utils_Type::T_INT,
+          'title' => ts('Source of the cache row') ,
+          'description' => 'Source of the cache row (1 - Drush rebuildcache, 2 - Drush rebuildcachecronjob, 3 - PivotReport Admin UI)',
+          'required' => false,
+          'default' => 'NULL',
           'table_name' => 'civicrm_pivotreportcache',
           'entity' => 'PivotReportCache',
           'bao' => 'CRM_PivotReport_DAO_PivotReportCache',
