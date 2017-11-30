@@ -673,7 +673,11 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
       // such as 'CheckBox' (looks like they aren't implemented there) so
       // we deal with them automatically by custom handling of 'optionValues' array.
       case !empty($fields[$key]['optionValues']):
-        $result = $fields[$key]['optionValues'][$value];
+        if (isset($fields[$key]['optionValues'][$value])) {
+          $result = $fields[$key]['optionValues'][$value];
+        } else {
+          $result = $value;
+        }
         break;
 
       // Protect string values from line-breaks
