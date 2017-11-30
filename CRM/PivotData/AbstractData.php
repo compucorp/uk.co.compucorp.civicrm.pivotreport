@@ -676,7 +676,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
         if (isset($fields[$key]['optionValues'][$value])) {
           $result = $fields[$key]['optionValues'][$value];
         } else {
-          $result = $value;
+          $result = '';
         }
         break;
 
