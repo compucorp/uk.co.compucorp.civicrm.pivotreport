@@ -10,9 +10,9 @@ class CRM_PivotReport_BAO_PivotReportCache extends CRM_PivotReport_DAO_PivotRepo
   const SOURCE_REBUILDCACHE = 1;
 
   /**
-   * Cache built using API rebuildcachecronjob action.
+   * Cache built using API rebuildcachechunk action.
    */
-  const SOURCE_REBUILDCACHECRONJOB = 2;
+  const SOURCE_REBUILDCACHECHUNK = 2;
 
   /**
    * Cache built using Pivot Report Config UI.
@@ -25,7 +25,7 @@ class CRM_PivotReport_BAO_PivotReportCache extends CRM_PivotReport_DAO_PivotRepo
   static $_cache = NULL;
 
   /**
-   * Caches single chunk of Pivot Entity based on previously saved Cron Job
+   * Caches single chunk of Pivot Entity based on previously saved chunk
    * status data.
    * Returns an array containing Entity, Offset and MultiValuesOffset values
    * and time taken to complete in microseconds or NULL if there is active
@@ -33,7 +33,7 @@ class CRM_PivotReport_BAO_PivotReportCache extends CRM_PivotReport_DAO_PivotRepo
    *
    * @return string
    */
-  public static function rebuildCacheCronJob() {
+  public static function rebuildCacheChunk() {
     if (self::isLocked()) {
       return NULL;
     }
@@ -41,11 +41,11 @@ class CRM_PivotReport_BAO_PivotReportCache extends CRM_PivotReport_DAO_PivotRepo
     $time = microtime(true);
     self::setIsLocked(TRUE);
 
-    $status = new CRM_PivotCache_PivotReportCronJobStatus();
+    $status = new CRM_PivotCache_PivotReportChunkStatus();
 
     $entityInstance = new CRM_PivotReport_Entity($status->getEntity());
     $result = $entityInstance->getDataInstance()->rebuildCachePartial(
-      $entityInstance->getGroupInstance(self::SOURCE_REBUILDCACHECRONJOB),
+      $entityInstance->getGroupInstance(self::SOURCE_REBUILDCACHECHUNK),
       array(),
       $status->getOffset(),
       $status->getMultiValuesOffset(),
@@ -270,21 +270,21 @@ class CRM_PivotReport_BAO_PivotReportCache extends CRM_PivotReport_DAO_PivotRepo
   }
 
   /**
-   * Gets cron_job_status cache values.
+   * Gets chunk_status cache values.
    *
    * @return array|NULL
    */
-  public static function getCronJobStatus() {
-    return self::getItem('admin', 'cron_job_status');
+  public static function getChunkStatus() {
+    return self::getItem('admin', 'chunk_status');
   }
 
   /**
-   * Sets cron_job_status cache values.
+   * Sets chunk_status cache values.
    *
    * @param array $values
    */
-  public static function setCronJobStatus(array $values) {
-    self::setItem($values, 'admin', 'cron_job_status');
+  public static function setChunkStatus(array $values) {
+    self::setItem($values, 'admin', 'chunk_status');
   }
 
   /**

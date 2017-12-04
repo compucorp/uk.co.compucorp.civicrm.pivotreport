@@ -197,7 +197,7 @@ class CRM_PivotReport_DAO_PivotReportCache extends CRM_Core_DAO {
           'name' => 'source',
           'type' => CRM_Utils_Type::T_INT,
           'title' => ts('Source of the cache row') ,
-          'description' => 'Source of the cache row (1 - Drush rebuildcache, 2 - Drush rebuildcachecronjob, 3 - PivotReport Admin UI)',
+          'description' => 'Source of the cache row (1 - rebuildcache, 2 - rebuildcachechunk, 3 - PivotReport Admin UI)',
           'required' => false,
           'default' => 'NULL',
           'table_name' => 'civicrm_pivotreportcache',

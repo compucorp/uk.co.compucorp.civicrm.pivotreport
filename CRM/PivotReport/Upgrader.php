@@ -17,6 +17,8 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
     $this->upgrade_0006();
     $this->upgrade_0007();
     $this->upgrade_0009();
+    $this->upgrade_0010();
+    $this->upgrade_0011();
 
     return TRUE;
   }
@@ -230,6 +232,19 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
    */
   public function upgrade_0010() {
     $this->executeSqlFile('sql/civicrm_pivotreportcache_source.sql');
+
+    return TRUE;
+  }
+
+  /**
+   * Updates 'source' field's comment and deletes 'cron_job_status' entry.
+   * 'cron_job_status' is now named 'chunk_status'.
+   *
+   * @return boolean
+   */
+  public function upgrade_0011() {
+    $this->executeSqlFile('sql/civicrm_pivotreportcache_source_comment.sql');
+    $this->executeSqlFile('sql/delete_cron_job_status_entry.sql');
 
     return TRUE;
   }
