@@ -11,7 +11,6 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
    * @var array
    */
   private $scheduledJobs = array(
-    'rebuildcache',
     'rebuildcachechunk',
   );
 
@@ -350,17 +349,6 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
    * Creates a scheduled job entries.
    */
   private function createScheduledJobs() {
-    if (!$this->getScheduledJobId('rebuildcache')) {
-      civicrm_api3('Job', 'create', array(
-        'run_frequency' => 'Daily',
-        'name' => 'Pivot Report Cache Build',
-        'description' => 'Job to rebuild Pivot Report cache.',
-        'api_entity' => 'PivotReport',
-        'api_action' => 'rebuildcache',
-        'is_active' => 0,
-      ));
-    }
-
     if (!$this->getScheduledJobId('rebuildcachechunk')) {
       civicrm_api3('Job', 'create', array(
         'run_frequency' => 'Always',
