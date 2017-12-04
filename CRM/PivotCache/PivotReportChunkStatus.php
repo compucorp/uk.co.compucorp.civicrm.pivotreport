@@ -51,12 +51,13 @@ class CRM_PivotCache_PivotReportChunkStatus {
 
   /**
    * Initializes Chunk Status object with latest values from cache
-   * or with defaults if cache values don't esist.
+   * or with defaults if cache values don't exist.
    */
   public function __construct() {
     $values = PivotReportCache::getItem('admin', 'chunk_status');
 
-    $defaultEntity = array_shift(Entity::getSupportedEntities());
+    $supportedEntities = Entity::getSupportedEntities();
+    $defaultEntity = array_shift($supportedEntities);
 
     $this->entity = !empty($values['entity']) ? $values['entity'] : $defaultEntity;
     $this->offset = !empty($values['offset']) ? $values['offset'] : 0;
