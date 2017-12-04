@@ -647,7 +647,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
     }
 
     $fields = $this->getFields();
-    $coreType = CRM_Utils_Array::value('type', $fields[$key]);
+    $coreType = !empty($fields[$key]['type']) ? $fields[$key]['type'] : null;
     $dataType = !empty($fields[$key]['customField']) ? $fields[$key]['customField']['data_type'] : null;
     $customHTMLType = !empty($fields[$key]['customField']) ? $fields[$key]['customField']['html_type'] : null;
 
