@@ -300,6 +300,7 @@ class CRM_PivotReport_BAO_PivotReportCache extends CRM_PivotReport_DAO_PivotRepo
    * Updates build_datetime cache value with current date.
    */
   public static function updateBuildDatetime() {
-    self::setItem(date('Y-m-d H:i:s'), 'admin', 'build_datetime');
+    $date = date('Y-m-d H:i:s');
+    self::setItem($date, 'admin', 'build_datetime');
   }
 }
