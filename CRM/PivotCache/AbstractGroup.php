@@ -177,11 +177,9 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
   public function isCacheBuilt() {
     $cache = new CRM_PivotReport_DAO_PivotReportCache();
 
-    $cache->group_name = $this->getName();
     $cache->whereAdd("path = 'pivotCount'");
     $cache->whereAdd("group_name = '{$this->getName()}'");
     $cache->whereAdd("is_active = 1");
-    $cache->orderBy('path ASC');
     $cache->find();
 
     if ($cache->N > 0) {
