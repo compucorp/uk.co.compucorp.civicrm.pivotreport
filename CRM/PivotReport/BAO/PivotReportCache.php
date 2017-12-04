@@ -193,7 +193,7 @@ class CRM_PivotReport_BAO_PivotReportCache extends CRM_PivotReport_DAO_PivotRepo
   public static function deleteGroup($group, $path = NULL, $source = NULL) {
     $table = self::getTableName();
     $where = self::whereCache($group, $path, $source);
-    CRM_Core_DAO::executeQuery("DELETE FROM $table WHERE $where");
+    CRM_Core_DAO::executeQuery("DELETE FROM $table WHERE $where AND is_active = 0");
   }
 
   /**
