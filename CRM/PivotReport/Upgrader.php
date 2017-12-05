@@ -6,17 +6,28 @@
 class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
 
   /**
+   * List of scheduled jobs provided by the extension.
+   *
+   * @var array
+   */
+  private $scheduledJobs = array(
+    'rebuildcachechunk',
+  );
+
+  /**
    * Installation logic.
    * 
    * @return boolean
    */
   public function install() {
     $this->upgrade_0001();
-    $this->upgrade_0002();
     $this->upgrade_0003();
     $this->upgrade_0006();
     $this->upgrade_0007();
     $this->upgrade_0009();
+    $this->upgrade_0010();
+    $this->upgrade_0011();
+    $this->upgrade_0012();
 
     return TRUE;
   }
@@ -28,7 +39,7 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
    */
   public function uninstall()
   {
-    $this->deleteScheduledJob();
+    $this->deleteScheduledJobs();
 
     $pivotID = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'pivotreport', 'id', 'name');
     CRM_Core_DAO::executeQuery("DELETE FROM `civicrm_navigation` WHERE parent_id = $pivotID");
@@ -66,18 +77,6 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
   }
 
   /**
-   * Creates scheduled job to build pivot report cache, checking if it exists
-   * first.
-   */
-  public function upgrade_0002() {
-    if (!$this->getScheduledJobId()) {
-      $this->createScheduledJob();
-    }
-
-    return TRUE;
-  }
-
-  /**
    * Installs Pivot Report config db table (if does not exist).
    *
    * @return TRUE
@@ -89,27 +88,10 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
   }
 
   /**
-   * Removes all existing scheduled jobs for the extension and install one
-   * new scheduled job.
+   * Executes auto_install SQL script.
    *
-   * @return bool
+   * @return boolean
    */
-  public function upgrade_0004() {
-    $jobs = civicrm_api3('Job', 'get', array(
-      'sequential' => 1,
-      'api_entity' => 'PivotReport',
-      'api_action' => 'rebuildcache',
-    ));
-
-    foreach ($jobs['values'] as $job) {
-      $this->deleteScheduledJob($job['id']);
-    }
-
-    $this->createScheduledJob();
-
-    return TRUE;
-  }
-
   public function upgrade_0005() {
     $this->executeSqlFile('sql/auto_install.sql');
 
@@ -235,6 +217,31 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
   }
 
   /**
+   * Updates 'source' field's comment and deletes 'cron_job_status' entry.
+   * 'cron_job_status' is now named 'chunk_status'.
+   *
+   * @return boolean
+   */
+  public function upgrade_0011() {
+    $this->executeSqlFile('sql/civicrm_pivotreportcache_source_comment.sql');
+    $this->executeSqlFile('sql/delete_cron_job_status_entry.sql');
+
+    return TRUE;
+  }
+
+  /**
+   * Recreates scheduled jobs.
+   *
+   * @return boolean
+   */
+  public function upgrade_0012() {
+    $this->deleteScheduledJob('rebuildcache');
+    $this->createScheduledJobs();
+
+    return TRUE;
+  }
+
+  /**
    * Creates new menu item using provided parameters.
    *
    * @param array $params
@@ -251,7 +258,7 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
    * @return boolean
    */
   public function onEnable() {
-    $this->setScheduledJobIsActive(TRUE);
+    $this->setScheduledJobsIsActive(TRUE);
 
     $pivotID = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'pivotreport', 'id', 'name');
     CRM_Core_DAO::executeQuery("
@@ -271,7 +278,7 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
    * @return boolean
    */
   public function onDisable() {
-    $this->setScheduledJobIsActive(FALSE);
+    $this->setScheduledJobsIsActive(FALSE);
 
     $pivotID = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'pivotreport', 'id', 'name');
     CRM_Core_DAO::executeQuery("
@@ -286,15 +293,18 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
   }
 
   /**
-   * Returns an ID of schedule job or NULL if the job does not exist.
+   * Returns an ID of schedule job with specified action.
+   * Returns NULL if the job does not exist.
+   *
+   * @param string $action
    *
    * @return int|NULL
    */
-  private function getScheduledJobId() {
+  private function getScheduledJobId($action) {
     $result = civicrm_api3('Job', 'get', array(
       'sequential' => 1,
       'api_entity' => 'PivotReport',
-      'api_action' => 'rebuildcache',
+      'api_action' => $action,
       'limit' => 1,
     ));
 
@@ -308,10 +318,12 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
   /**
    * Sets schedule job active state.
    *
+   * @param string $action
+   *
    * @param bool $isActive
    */
-  private function setScheduledJobIsActive($isActive) {
-    $id = $this->getScheduledJobId();
+  private function setScheduledJobIsActive($action, $isActive) {
+    $id = $this->getScheduledJobId($action);
     if (!$id) {
       return NULL;
     }
@@ -323,27 +335,39 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
   }
 
   /**
-   * Creates a scheduled job entry.
+   * Sets all scheduled jobs as active.
+   *
+   * @param bool $isActive
    */
-  private function createScheduledJob() {
-    civicrm_api3('Job', 'create', array(
-      'run_frequency' => 'Daily',
-      'name' => 'Pivot Report Cache Build',
-      'description' => 'Job to rebuild the cache that is used to build pivot tble reports.',
-      'api_entity' => 'PivotReport',
-      'api_action' => 'rebuildcache',
-    ));
+  private function setScheduledJobsIsActive($isActive) {
+    foreach ($this->scheduledJobs as $job) {
+      $this->setScheduledJobIsActive($job, $isActive);
+    }
   }
 
   /**
-   * Deletes schedule job.
-   *
-   * @param int $id
+   * Creates a scheduled job entries.
    */
-  private function deleteScheduledJob($id = NULL) {
-    if (!$id) {
-      $id = $this->getScheduledJobId();
+  private function createScheduledJobs() {
+    if (!$this->getScheduledJobId('rebuildcachechunk')) {
+      civicrm_api3('Job', 'create', array(
+        'run_frequency' => 'Hourly',
+        'name' => 'Pivot Report Cache Build (chunk)',
+        'description' => 'Job to create Pivot Report cache partials. Depending on the amount of records, it might take numbers of runs to complete a new report cache.',
+        'api_entity' => 'PivotReport',
+        'api_action' => 'rebuildcachechunk',
+        'is_active' => 0,
+      ));
     }
+  }
+
+  /**
+   * Deletes schedule job by specified action.
+   *
+   * @param string $action
+   */
+  private function deleteScheduledJob($action) {
+    $id = $this->getScheduledJobId($action);
     if (!$id) {
       return NULL;
     }
@@ -351,5 +375,14 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
     civicrm_api3('Job', 'delete', array(
       'id' => $id,
     ));
+  }
+
+  /**
+   * Deletes scheduled jobs.
+   */
+  private function deleteScheduledJobs() {
+    foreach ($this->scheduledJobs as $job) {
+      $this->deleteScheduledJob($job);
+    }
   }
 }

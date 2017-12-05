@@ -86,7 +86,7 @@
     <title>Source of the cache row</title>
     <type>int unsigned</type>
     <required>false</required>
-    <comment>Source of the cache row (1 - Drush rebuildcache, 2 - Drush rebuildcachecronjob, 3 - PivotReport Admin UI)</comment>
+    <comment>Source of the cache row (1 - rebuildcache, 2 - rebuildcachechunk, 3 - PivotReport Admin UI)</comment>
     <add>4.7</add>
   </field>
 

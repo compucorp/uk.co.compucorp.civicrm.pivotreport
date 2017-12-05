@@ -4,10 +4,10 @@ use CRM_PivotReport_Entity as Entity;
 use CRM_PivotReport_BAO_PivotReportCache as PivotReportCache;
 
 /**
- * Reflects Cron Job Status values used to process cache building with
+ * Reflects Chunk Status values used to process cache building with
  * continous calls.
  */
-class CRM_PivotCache_PivotReportCronJobStatus {
+class CRM_PivotCache_PivotReportChunkStatus {
 
   /**
    * Entity value.
@@ -50,13 +50,14 @@ class CRM_PivotCache_PivotReportCronJobStatus {
   private $pivotCount;
 
   /**
-   * Initializes Cron Job Status object with latest values from cache
-   * or with defaults if cache values don't esist.
+   * Initializes Chunk Status object with latest values from cache
+   * or with defaults if cache values don't exist.
    */
   public function __construct() {
-    $values = PivotReportCache::getItem('admin', 'cron_job_status');
+    $values = PivotReportCache::getItem('admin', 'chunk_status');
 
-    $defaultEntity = array_shift(Entity::getSupportedEntities());
+    $supportedEntities = Entity::getSupportedEntities();
+    $defaultEntity = array_shift($supportedEntities);
 
     $this->entity = !empty($values['entity']) ? $values['entity'] : $defaultEntity;
     $this->offset = !empty($values['offset']) ? $values['offset'] : 0;
@@ -67,7 +68,7 @@ class CRM_PivotCache_PivotReportCronJobStatus {
   }
 
   /**
-   * Updates Cron Job Status cached values.
+   * Updates Chunk Status cached values.
    */
   public function update() {
     $statusValues = array(
@@ -82,13 +83,13 @@ class CRM_PivotCache_PivotReportCronJobStatus {
     PivotReportCache::setItem(
       $statusValues,
       'admin',
-      'cron_job_status'
+      'chunk_status'
     );
   }
 
   /**
    * Sets entity property on the next available entity (or NULL)
-   * and resets other Cron Job Status properties.
+   * and resets other Chunk Status properties.
    */
   public function setupNextEntity() {
     $this->entity = $this->getNextEntity();

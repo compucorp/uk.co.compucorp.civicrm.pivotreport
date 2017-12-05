@@ -86,14 +86,14 @@ function civicrm_api3_pivot_report_rebuildcache($params) {
 }
 
 /**
- * PivotReport.rebuildcachecronjob API
+ * PivotReport.rebuildcachechunk API
  *
  * @param array $params
  * @return array API result descriptor
  * @throws API_Exception
  */
-function civicrm_api3_pivot_report_rebuildcachecronjob($params) {
-  $result = CRM_PivotReport_BAO_PivotReportCache::rebuildCacheCronJob();
+function civicrm_api3_pivot_report_rebuildcachechunk($params) {
+  $result = CRM_PivotReport_BAO_PivotReportCache::rebuildCacheChunk();
 
   return civicrm_api3_create_success(
     array($result),
