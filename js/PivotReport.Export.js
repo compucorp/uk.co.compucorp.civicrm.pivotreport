@@ -164,7 +164,7 @@ CRM.PivotReport.Export = (function($) {
     var total = $('td.pvtGrandTotal', $tr).text();
     var row = new Array(colSpan - 1);
 
-    row.push(label);
+    row.push('"' + label + '"');
     row.push(total);
 
     return row;
@@ -252,7 +252,7 @@ CRM.PivotReport.Export = (function($) {
     }
 
     if (colKeys.length === 1 && colKeys[0].length === 0) {
-      row.push(aggregatorName);
+      row.push('"' + aggregatorName + '"');
     } else {
       for (i = 0; i < colKeys.length; i++) {
         row.push('"' + colKeys[i].join(' - ') + '"');
