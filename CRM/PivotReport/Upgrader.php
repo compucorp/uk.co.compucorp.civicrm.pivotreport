@@ -353,7 +353,7 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
       civicrm_api3('Job', 'create', array(
         'run_frequency' => 'Hourly',
         'name' => 'Pivot Report Cache Build (chunk)',
-        'description' => 'Job to rebuild Pivot Report cache chunk.',
+        'description' => 'Job to create Pivot Report cache partials. Depending on the amount of records, it might take numbers of runs to complete a new report cache.',
         'api_entity' => 'PivotReport',
         'api_action' => 'rebuildcachechunk',
         'is_active' => 0,
