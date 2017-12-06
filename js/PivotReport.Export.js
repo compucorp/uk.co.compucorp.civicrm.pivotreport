@@ -141,12 +141,33 @@ CRM.PivotReport.Export = (function($) {
             rowKeys[rowKeysIndex]
           ),
           rowKeys[rowKeysIndex],
-          colKeys
+          colKeys,
+          rowKeysIndex
         )
       );
     }
 
+    result.push(this.getTotals());
+
     return result;
+  }
+
+  /**
+   * Builds Totals row.
+   *
+   * @returns {Array}
+   */
+  Export.prototype.getTotals = function() {
+    var $tr = $('table.pvtTable tbody tr:last');
+    var colSpan = $('th.pvtTotalLabel', $tr).attr('colspan');
+    var label = $('th.pvtTotalLabel', $tr).text();
+    var total = $('td.pvtGrandTotal', $tr).text();
+    var row = new Array(colSpan - 1);
+
+    row.push('"' + label + '"');
+    row.push(total);
+
+    return row;
   }
 
   /**
@@ -186,21 +207,21 @@ CRM.PivotReport.Export = (function($) {
    *   Keys for the row
    * @param colKeys
    *   Keys for each column
+   * @param index
+   *   Row index
    *
    * @returns {Array}
    *   Complete row for the report
    */
-  Export.prototype.buildPivotColData = function (pivotData, row, rowKey, colKeys) {
-    var colKey = null;
-    var aggregator = null;
+  Export.prototype.buildPivotColData = function (pivotData, row, rowKey, colKeys, index) {
+    var aggregatorValue = null;
     var i;
+    var $tr = $('table.pvtTable tbody tr')[index];
 
     for (i = 0; i < colKeys.length; i++) {
-      colKey = colKeys[i];
-      aggregator = pivotData.getAggregator(rowKey, colKey);
-
-      if (aggregator.value() !== null) {
-        row.push(aggregator.value());
+      aggregatorValue = $('td.rowTotal', $tr).text();
+      if (aggregatorValue !== null) {
+        row.push(aggregatorValue);
       } else {
         row.push("");
       }
@@ -231,7 +252,7 @@ CRM.PivotReport.Export = (function($) {
     }
 
     if (colKeys.length === 1 && colKeys[0].length === 0) {
-      row.push(aggregatorName);
+      row.push('"' + aggregatorName + '"');
     } else {
       for (i = 0; i < colKeys.length; i++) {
         row.push('"' + colKeys[i].join(' - ') + '"');
