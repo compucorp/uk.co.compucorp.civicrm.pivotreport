@@ -661,7 +661,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
       return $valueArray;
     }
 
-    if (!empty($this->formattedValues[$key][$value])) {
+    if (!is_array($value) && !empty($this->formattedValues[$key][$value])) {
       return $this->formattedValues[$key][$value];
     }
 
@@ -690,7 +690,15 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
 
       // Handle files
       case $dataType == 'File':
-        $result = CRM_Utils_System::formatWikiURL($value['fileURL'] . ' ' . $value['fileName']);
+        if (is_array($value)) {
+          if (isset($value['fileURL']) && isset($value['fileName'])) {
+            $result = CRM_Utils_System::formatWikiURL($value['fileURL'] . ' ' . $value['fileName']);
+          } else {
+            $result = CRM_Utils_System::formatWikiURL(implode(' ', $value));
+          }
+        } else {
+          $result = $value;
+        }
         break;
 
       // For few field types we can use 'displayValue()' core method.
@@ -709,7 +717,10 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
         break;
     }
 
-    $this->formattedValues[$key][$value] = $result;
+    if (!is_array($value)) {
+      $this->formattedValues[$key][$value] = $result;
+    }
+
     return $result;
   }
 
