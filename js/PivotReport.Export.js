@@ -28,7 +28,7 @@ CRM.PivotReport.Export = (function($) {
    */
   Export.prototype.export = function (type) {
     var separator = this.getSeparatorFromType(type);
-    var content = this.getContent(this.data, this.config, separator);
+    var content = this.getContent(separator);
     this.sendContent(content, type);
   }
 
@@ -60,16 +60,15 @@ CRM.PivotReport.Export = (function($) {
    * @returns {string}
    *   Content of the export file
    */
-  Export.prototype.getContent = function (data, config, separator) {
-    var pivotResult = this.getPivotResult(data, config);
-
+  Export.prototype.getContent = function (separator) {
+    var pivotResult = this.getPivotResult();
     var content = "";
     var i = pivotResult.length;
     var row = null;
     var n;
 
     for (n = 0; n < i; n++) {
-      row = pivotResult[n];
+      row = this.wrapRowValues(pivotResult[n]);
       content += row.join(separator) + "\n";
     }
 
@@ -77,206 +76,126 @@ CRM.PivotReport.Export = (function($) {
   }
 
   /**
-   * Builds a matrix with the data of the pivot report, given it's current
-   * configuration.
+   * Returns array containing values wrapped with '"'.
    *
-   * @param object data
-   *   Object holding the pivot report's data
-   * @param object config
-   *   Object with the current configuration of the pivot report
+   * @param {Array} row
    *
    * @returns {Array}
-   *   Matrix holding the pivot report's data in the current configuration
    */
-  Export.prototype.getPivotResult = function (data, config) {
-    var header = this.getResultHeader(data.rowAttrs, this.getColKeys(data), data.aggregatorName);
-    return this.getResultArray(data, header, this.getRowKeys(data), this.getColKeys(data));
-  }
-
-  /**
-   * Returns the keys for rows.
-   *
-   * @param object data
-   *   Object holding the pivot report's data
-   *
-   * @returns {array}
-   *   List of keys for rows
-   */
-  Export.prototype.getRowKeys = function (data) {
-    var rowKeys = data.getRowKeys();
-
-    if (rowKeys.length === 0) {
-      rowKeys.push([]);
-    }
-
-    return rowKeys;
-  }
-
-  /**
-   * Builds a matrix with the report's data, given a header and the report's row
-   * and column keys.
-   *
-   * @param object pivotData
-   *   Object holding the pivot report's data
-   * @param Array header
-   *   Array with the report's first row
-   * @param Array rowKeys
-   *   Array with the report's row keys
-   * @param Array colKeys
-   *   Array with the report's column keys
-   *
-   * @returns {Array}
-   *   Matrix holding the pivot report's data with the given row and column keys
-   */
-  Export.prototype.getResultArray = function (pivotData, header, rowKeys, colKeys) {
+  Export.prototype.wrapRowValues = function(row) {
     var result = [];
-    result.push(header);
 
-    for (var rowKeysIndex = 0; rowKeysIndex < rowKeys.length; rowKeysIndex++) {
-      result.push(
-        this.buildPivotColData(
-          pivotData,
-          this.buildPivotRowData(
-            [],
-            rowKeys[rowKeysIndex]
-          ),
-          rowKeys[rowKeysIndex],
-          colKeys,
-          rowKeysIndex
-        )
-      );
+    for (var i = 0; i < row.length; i++) {
+      result[i] = '"' + row[i] + '"';
     }
-
-    result.push(this.getTotals());
 
     return result;
   }
 
   /**
-   * Builds Totals row.
+   * Builds a matrix with the data of the pivot report basing on current
+   * Pivot Report table structure.
    *
    * @returns {Array}
+   *   Matrix holding the pivot report's data in the current configuration
    */
-  Export.prototype.getTotals = function() {
-    var $tr = $('table.pvtTable tbody tr:last');
-    var colSpan = $('th.pvtTotalLabel', $tr).attr('colspan');
-    var label = $('th.pvtTotalLabel', $tr).text();
-    var total = $('td.pvtGrandTotal', $tr).text();
-    var row = new Array(colSpan - 1);
+  Export.prototype.getPivotResult = function () {
+    var result = [];
+    var $table = $('div#pivot-report-table table.pvtTable');
 
-    row.push('"' + label + '"');
-    row.push(total);
+    result = result.concat(this.getTableResult($($table)));
 
-    return row;
+    return result;
   }
 
   /**
-   * Pushes into  row the given row keys.
+   * Returns array with Pivot Table data created from Table report.
    *
-   * @param Array row
-   *   Row being built
-   * @param Array rowKey
-   *   Keys for the row
+   * @param Pivot Report jQuery table $container
    *
    * @returns {Array}
    */
-  Export.prototype.buildPivotRowData = function (row, rowKey) {
-    var i;
-    var value;
+  Export.prototype.getTableResult = function($container) {
+    var result = [];
+    var rowInfo = [];
+    var $rows = $('tr', $container).toArray();
 
-    for (i = 0; i < rowKey.length; i++) {
-      value = rowKey[i];
+    for (var index = 0; index < $rows.length; index++) {
+      var value = $rows[index];
+      var $row = $('th, td', value).toArray();
 
-      if (isNaN(rowKey[i])) {
-        value = '"' + rowKey[i] + '"';
+      if (!rowInfo.length) {
+        for (var rowIndex = 0; rowIndex < $row.length; rowIndex++) {
+          var cellInfo = this.getCellInfo($row[rowIndex]);
+          var cellArray = new Array(cellInfo.colspan);
+
+          for (var i = 0; i < cellArray.length; i++) {
+            cellArray[i] = $.extend(true, {}, cellInfo);
+          }
+
+          rowInfo = rowInfo.concat(cellArray);
+        }
       }
-      row.push(value);
-    }
 
-    return row;
-  }
+      var resultRow = [];
 
-  /**
-   * Adds the aggregated values for the given row for each dolumn in the report.
-   *
-   * @param pivotData
-   *   Object holding the pivot report's data
-   * @param row
-   *   Current row being built
-   * @param rowKey
-   *   Keys for the row
-   * @param colKeys
-   *   Keys for each column
-   * @param index
-   *   Row index
-   *
-   * @returns {Array}
-   *   Complete row for the report
-   */
-  Export.prototype.buildPivotColData = function (pivotData, row, rowKey, colKeys, index) {
-    var aggregatorValue = null;
-    var i;
-    var $tr = $('table.pvtTable tbody tr')[index];
+      for (var i = 0; i < rowInfo.length; i++) {
+        var newCell = false;
 
-    for (i = 0; i < colKeys.length; i++) {
-      aggregatorValue = $('td.rowTotal', $tr).text();
-      if (aggregatorValue !== null) {
-        row.push(aggregatorValue);
-      } else {
-        row.push("");
+        if (!rowInfo[i].rowspan) {
+          rowInfo[i] = this.getCellInfo($row.shift());
+          newCell = true;
+        }
+
+        resultRow.push(rowInfo[i].value);
+
+        if (index === 0) {
+          rowInfo[i].value = '';
+        }
+        rowInfo[i].rowspan--;
+
+        if (newCell) {
+          if (rowInfo[i].colspan > 1) {
+            var colspanValue = rowInfo[i].value;
+            if (index === $rows.length - 1) {
+              colspanValue = '';
+            }
+
+            var cellArray = new Array(rowInfo[i].colspan - 1).fill(colspanValue);
+            resultRow = resultRow.concat(cellArray);
+            i += rowInfo[i].colspan - 1;
+          }
+        }
       }
+
+      result.push(resultRow);
     }
 
-    return row;
+    return result;
   }
 
   /**
-   * Builds the first row for the report.
+   * Returns object with colspan, rowspan and value of specified Pivot Report
+   * table cell.
    *
-   * @param Array rowAttrs
-   *   First columns of the report, basically the fields added to rows
-   * @param Array colKeys
-   *   Keys for each column
-   * @param string aggregatorName
-   *   Name of the aggregator being used
+   * @param {type} $cell
    *
-   * @returns {Array}
-   *   First row of the report
+   * @returns {PivotReport.ExportExport.Export.prototype.getCellInfo.cellInfo}
    */
-  Export.prototype.getResultHeader = function (rowAttrs, colKeys, aggregatorName) {
-    var row = [];
-    var i;
+  Export.prototype.getCellInfo = function($cell) {
+    var colspan = +$($cell).attr('colspan');
+    var rowspan = +$($cell).attr('rowspan');
 
-    for (i = 0; i < rowAttrs.length; i++) {
-      row.push('"' + rowAttrs[i] + '"');
-    }
+    colspan = !isNaN(colspan) ? colspan : 1;
+    rowspan = !isNaN(rowspan) ? rowspan : 1;
 
-    if (colKeys.length === 1 && colKeys[0].length === 0) {
-      row.push('"' + aggregatorName + '"');
-    } else {
-      for (i = 0; i < colKeys.length; i++) {
-        row.push('"' + colKeys[i].join(' - ') + '"');
-      }
-    }
+    var cellInfo = {
+      'colspan': colspan,
+      'rowspan': rowspan,
+      'value': $($cell).text()
+    };
 
-    return row;
-  }
-
-  /**
-   * Returns list of column keys for the report.
-   *
-   * @param data
-   *   Object holding the pivot report's data
-   * @returns {Array}
-   */
-  Export.prototype.getColKeys = function (data) {
-    var colKeys = data.getColKeys();
-
-    if (colKeys.length === 0) {
-      colKeys.push([]);
-    }
-
-    return colKeys;
+    return cellInfo;
   }
 
   /**
