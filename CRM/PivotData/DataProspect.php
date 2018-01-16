@@ -21,7 +21,7 @@ class CRM_PivotData_DataProspect extends CRM_PivotData_DataCase {
       'is_deleted' => 0,
       'api.Contact.get' => array('id' => '$value.client_id', 'return' => array('id', 'contact_type', 'contact_sub_type', 'display_name')),
       'api.ProspectConverted.get' => array('prospect_case_id' => '$value.id'),
-      'return' => array_merge($this->getCaseFields(), array('contacts', 'contact_id')),
+      'return' => array_merge($this->getCaseFields(), array('subject', 'contacts', 'contact_id')),
       'options' => array(
         'sort' => 'id ASC',
         'limit' => self::ROWS_API_LIMIT,
@@ -97,7 +97,7 @@ class CRM_PivotData_DataProspect extends CRM_PivotData_DataCase {
       );
 
       // Get standard Fields of Case entity.
-      $includeCaseFields = array('case_id', 'case_status_id', 'case_start_date', 'case_end_date');
+      $includeCaseFields = array('case_id', 'case_subject', 'case_status_id', 'case_start_date', 'case_end_date');
       $caseFields = CRM_Case_DAO_Case::fields();
 
       foreach ($includeCaseFields as $includeField) {
