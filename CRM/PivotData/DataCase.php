@@ -20,7 +20,7 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
       'sequential' => 1,
       'is_deleted' => 0,
       'api.Contact.get' => array('id' => '$value.client_id', 'return' => array('id', 'contact_type', 'contact_sub_type', 'display_name')),
-      'return' => array_merge($this->getCaseFields(), array('contacts', 'contact_id')),
+      'return' => array_merge($this->getCaseFields(), array('subject', 'contacts', 'contact_id')),
       'options' => array(
         'sort' => 'start_date ASC, id ASC',
         'limit' => self::ROWS_API_LIMIT,
@@ -102,7 +102,7 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
   protected function getCaseValues($data) {
     $result = array();
     $fields = $this->getFields();
-    $include = array('id', 'case_type_id', 'status_id', 'start_date', 'end_date');
+    $include = array('id', 'subject', 'case_type_id', 'status_id', 'start_date', 'end_date');
 
     foreach ($data as $key => $value) {
       $resultKey = 'case.' . $key;
@@ -187,7 +187,7 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
       $groups = array('case', 'client', 'manager');
 
       // Get standard Fields of Case entity.
-      $includeCaseFields = array('case_id', 'case_type_id', 'case_status_id', 'case_start_date', 'case_end_date');
+      $includeCaseFields = array('case_id', 'case_subject', 'case_type_id', 'case_status_id', 'case_start_date', 'case_end_date');
       $caseFields = CRM_Case_DAO_Case::fields();
 
       foreach ($includeCaseFields as $includeField) {
