@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
-<extension key="uk.co.compucorp.civicrm.activityreport" type="module">
-  <file>activityreport</file>
-  <name>Activity Report</name>
-  <description>Report page with Pivot Table containing Activity data.</description>
+<extension key="uk.co.compucorp.civicrm.pivotreport" type="module">
+  <file>pivotreport</file>
+  <name>Pivot Report</name>
+  <description>Report page with Pivot Table containing data of various CiviCRM entities.</description>
   <license>AGPL-3.0</license>
   <maintainer>
     <author>Compucorp</author>
@@ -19,6 +19,6 @@
   </compatibility>
   <comments></comments>
   <civix>
-    <namespace>CRM/Activityreport</namespace>
+    <namespace>CRM/PivotReport</namespace>
   </civix>
 </extension>

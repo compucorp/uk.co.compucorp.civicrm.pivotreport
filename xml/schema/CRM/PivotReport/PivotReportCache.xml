@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<table>
+  <base>CRM/PivotReport</base>
+  <class>PivotReportCache</class>
+  <name>civicrm_pivotreportcache</name>
+  <comment>Table used to build the cache for pivot reports.</comment>
+  <add>4.7</add>
+  <log>true</log>
+
+  <field>
+    <name>id</name>
+    <type>int unsigned</type>
+    <required>true</required>
+    <comment>Unique PivotReportCache ID</comment>
+    <add>4.7</add>
+  </field>
+  <primaryKey>
+    <name>id</name>
+    <autoincrement>true</autoincrement>
+  </primaryKey>
+
+  <field>
+    <name>group_name</name>
+    <type>varchar</type>
+    <length>32</length>
+    <required>true</required>
+    <comment>Group name for cache element, useful in separating each available entity cache</comment>
+    <add>4.7</add>
+  </field>
+
+  <field>
+    <name>path</name>
+    <type>varchar</type>
+    <length>255</length>
+    <comment>Unique path name for cache element</comment>
+    <add>4.7</add>
+  </field>
+  <index>
+    <name>UI_group_path</name>
+    <fieldName>group_name</fieldName>
+    <fieldName>path</fieldName>
+    <unique>true</unique>
+    <add>4.7</add>
+  </index>
+  <index>
+    <name>UI_group_path_date</name>
+    <fieldName>group_name</fieldName>
+    <fieldName>path</fieldName>
+    <fieldName>created_date</fieldName>
+    <unique>true</unique>
+    <add>4.2</add>
+  </index>
+  <field>
+    <name>data</name>
+    <type>longtext</type>
+    <comment>Data associated with this path</comment>
+    <add>4.7</add>
+  </field>
+  <field>
+    <name>created_date</name>
+    <type>timestamp</type>
+    <default>CURRENT_TIMESTAMP</default>
+    <comment>When was the cache item created</comment>
+    <add>4.7</add>
+  </field>
+  <field>
+    <name>expired_date</name>
+    <type>timestamp</type>
+    <default>NULL</default>
+    <required>false</required>
+    <comment>When should the cache item expire</comment>
+    <add>4.7</add>
+  </field>
+  <field>
+    <name>is_active</name>
+    <title>Is active?</title>
+    <type>boolean</type>
+    <default>0</default>
+    <required>false</required>
+    <comment>Is the cache entry active?</comment>
+    <add>4.7</add>
+  </field>
+  <field>
+    <name>source</name>
+    <title>Source of the cache row</title>
+    <type>int unsigned</type>
+    <required>false</required>
+    <comment>Source of the cache row (1 - rebuildcache, 2 - rebuildcachechunk, 3 - PivotReport Admin UI)</comment>
+    <add>4.7</add>
+  </field>
+
+</table>

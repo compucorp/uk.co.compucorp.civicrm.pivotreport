@@ -1,0 +1,34 @@
+/* Pivot Report cache rebuilding */
+
+div.rebuild-pivot-report-cache div.in-progress {
+  display: inline;
+}
+
+div.rebuild-pivot-report-cache div.in-progress i.fa-spin {
+  font-size: 1.5em;
+  vertical-align: middle;
+}
+
+/* Pivot Table progress bar */
+
+#pivot-report-preloader {
+  margin-top: 1em;
+}
+
+#pivot-report-preloader .progress .progress-bar {
+  -webkit-transition: none;
+  -moz-transition: none;
+  -ms-transition: none;
+  -o-transition: none;
+  transition: none;
+}
+
+#pivot-report-preloader .progress .progress-value {
+  position: absolute;
+  width: 100%;
+  text-align: center;
+}
+
+#pivot-report-admin .build-date-time {
+  margin-top: 1em;
+}
