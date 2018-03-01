@@ -28,6 +28,7 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
     $this->upgrade_0010();
     $this->upgrade_0011();
     $this->upgrade_0012();
+    $this->upgrade_0013();
 
     return TRUE;
   }
@@ -44,6 +45,9 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
     $pivotID = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'pivotreport', 'id', 'name');
     CRM_Core_DAO::executeQuery("DELETE FROM `civicrm_navigation` WHERE parent_id = $pivotID");
     CRM_Core_DAO::executeQuery("DELETE FROM `civicrm_navigation` WHERE name IN ('pivotreport', 'Pivot Report Config')");
+
+    $this->removePermissionFromMenuItem('Reports', 'access CiviCRM pivot table reports');
+
     CRM_Core_BAO_Navigation::resetNavigation();
 
     return TRUE;
@@ -242,6 +246,79 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
   }
 
   /**
+   * Updates permission of Reports Menu item so it is shown for users with
+   * 'access CiviCRM pivot table reports' permission.
+   *
+   * @return boolean
+   */
+  public function upgrade_0013() {
+    $this->addPermissionForMenuItem('Reports', 'access CiviCRM pivot table reports', 'OR');
+    CRM_Core_BAO_Navigation::resetNavigation();
+
+    return TRUE;
+  }
+
+  /**
+   * Updates permission for the given Menu Item.
+   *
+   * @param string $menuItemName
+   *   Name of the menu item
+   * @param $newPermission
+   *   Permission that is to be used for the menu item
+   * @param $permissionOperator
+   *   Operator logic to use if several permissions are given
+   */
+  private function addPermissionForMenuItem($menuItemName, $newPermission, $permissionOperator) {
+    $reportsNavId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', $menuItemName, 'id', 'name');
+
+    if ($reportsNavId) {
+      $navigation = new CRM_Core_DAO_Navigation();
+      $navigation->id = $reportsNavId;
+      $navigation->find(TRUE);
+
+      $permissions = explode(',', $navigation->permission);
+
+      if (!in_array($newPermission, $permissions)) {
+        $permissions[] = $newPermission;
+
+        $navigation->permission = implode(',', $permissions);
+        $navigation->permission_operator = $permissionOperator;
+        $navigation->save();
+      }
+    }
+  }
+
+  /**
+   * Removes the given permission from the given menu item.
+   *
+   * @param $menuItemName
+   * @param $removedPermission
+   */
+  private function removePermissionFromMenuItem($menuItemName, $removedPermission) {
+    $reportsNavId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', $menuItemName, 'id', 'name');
+
+    if ($reportsNavId) {
+      $navigation = new CRM_Core_DAO_Navigation();
+      $navigation->id = $reportsNavId;
+      $navigation->find(TRUE);
+
+      $permissions = explode(',', $navigation->permission);
+
+      foreach (array_keys($permissions, $removedPermission) as $key) {
+        unset($permissions[$key]);
+      }
+
+      $navigation->permission = implode(',', $permissions);
+
+      if (count($permissions) < 2) {
+        $navigation->permission_operator = '';
+      }
+
+      $navigation->save();
+    }
+  }
+
+  /**
    * Creates new menu item using provided parameters.
    *
    * @param array $params
@@ -267,6 +344,8 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
       WHERE name IN ('pivotreport', 'Pivot Report Config')
       OR parent_id = $pivotID
     ");
+
+    $this->addPermissionForMenuItem('Reports', 'access CiviCRM pivot table reports', 'OR');
     CRM_Core_BAO_Navigation::resetNavigation();
 
     return TRUE;
@@ -287,6 +366,9 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
       WHERE name IN ('pivotreport', 'Pivot Report Config')
       OR parent_id = $pivotID
     ");
+
+    $this->removePermissionFromMenuItem('Reports', 'access CiviCRM pivot table reports');
+
     CRM_Core_BAO_Navigation::resetNavigation();
 
     return TRUE;
