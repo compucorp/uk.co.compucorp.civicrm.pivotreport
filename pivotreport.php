@@ -188,3 +188,29 @@ function pivotreport_civicrm_entityTypes(&$entityTypes) {
     'table' => 'civicrm_pivotreport_config',
   ];
 }
+
+/**
+ * Implements hook_civicrm_alterAPIPermissions()
+ */
+function pivotreport_civicrm_alterAPIPermissions($entity, $action, &$params, &$permissions) {
+  switch (true) {
+    case $entity == 'setting' && $action == 'get':
+      $return = $params['return'];
+
+      if (in_array('weekBegins', $return) || in_array('fiscalYearStart', $return)) {
+        $permissions[$entity][$action] = array('access CiviCRM pivot table reports');
+      }
+      break;
+
+    case $entity == 'pivot_report':
+    case $entity == 'pivot_report_config':
+      $permissions[$entity][$action] = array('access CiviCRM pivot table reports');
+      break;
+
+    case $entity == 'optionvalue' && $action == 'get':
+      if ($params['option_group_id'] == 'relative_date_filters') {
+        $permissions[$entity][$action][] = 'access CiviCRM pivot table reports';
+      }
+      break;
+  }
+}
