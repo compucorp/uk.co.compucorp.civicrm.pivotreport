@@ -269,19 +269,19 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
    *   Operator logic to use if several permissions are given
    */
   private function addPermissionForMenuItem($menuItemName, $newPermission, $permissionOperator) {
-    $reportsNavId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', $menuItemName, 'id', 'name');
+    $menuItemID = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', $menuItemName, 'id', 'name');
 
-    if ($reportsNavId) {
+    if ($menuItemID) {
       $navigation = new CRM_Core_DAO_Navigation();
-      $navigation->id = $reportsNavId;
+      $navigation->id = $menuItemID;
       $navigation->find(TRUE);
 
-      $permissions = explode(',', $navigation->permission);
+      $currentPermissions = explode(',', $navigation->permission);
 
-      if (!in_array($newPermission, $permissions)) {
-        $permissions[] = $newPermission;
+      if (!in_array($newPermission, $currentPermissions)) {
+        $currentPermissions[] = $newPermission;
 
-        $navigation->permission = implode(',', $permissions);
+        $navigation->permission = implode(',', $currentPermissions);
         $navigation->permission_operator = $permissionOperator;
         $navigation->save();
       }
@@ -295,22 +295,22 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
    * @param $removedPermission
    */
   private function removePermissionFromMenuItem($menuItemName, $removedPermission) {
-    $reportsNavId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', $menuItemName, 'id', 'name');
+    $menuItemID = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', $menuItemName, 'id', 'name');
 
-    if ($reportsNavId) {
+    if ($menuItemID) {
       $navigation = new CRM_Core_DAO_Navigation();
-      $navigation->id = $reportsNavId;
+      $navigation->id = $menuItemID;
       $navigation->find(TRUE);
 
-      $permissions = explode(',', $navigation->permission);
+      $currentPermissions = explode(',', $navigation->permission);
 
-      foreach (array_keys($permissions, $removedPermission) as $key) {
-        unset($permissions[$key]);
+      foreach (array_keys($currentPermissions, $removedPermission) as $key) {
+        unset($currentPermissions[$key]);
       }
 
-      $navigation->permission = implode(',', $permissions);
+      $navigation->permission = implode(',', $currentPermissions);
 
-      if (count($permissions) < 2) {
+      if (count($currentPermissions) < 2) {
         $navigation->permission_operator = '';
       }
 
