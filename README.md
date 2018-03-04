@@ -26,7 +26,7 @@ Pivot Report extensions supports following CiviCRM entities:
 Usage
 ------
 
-After installing the new page is available from the top CiviCRM menu:
+After installing (and setting Permissions via your CMS permissions interface) the new page is available from the top CiviCRM menu:
 - Reports -> Pivot Report
 
 About Pivot Table
