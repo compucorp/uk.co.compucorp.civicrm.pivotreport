@@ -42,7 +42,7 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
   {
     $this->deleteScheduledJobs();
 
-    $pivotID = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'pivotreport', 'id', 'name');
+    $pivotID = $this->getMenuItemID('pivotreport');
     CRM_Core_DAO::executeQuery("DELETE FROM `civicrm_navigation` WHERE parent_id = $pivotID");
     CRM_Core_DAO::executeQuery("DELETE FROM `civicrm_navigation` WHERE name IN ('pivotreport', 'Pivot Report Config')");
 
@@ -60,7 +60,8 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
    */
   public function upgrade_0001() {
     CRM_Core_DAO::executeQuery("DELETE FROM `civicrm_navigation` WHERE name = 'pivotreport' and parent_id IS NULL");
-    $reportsNavId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'Reports', 'id', 'name');
+
+    $reportsNavId = $this->getMenuItemID('Reports');
     $navigation = new CRM_Core_DAO_Navigation();
     $params = array (
         'domain_id'  => CRM_Core_Config::domainID(),
@@ -108,8 +109,7 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
    * @return bool
    */
   public function upgrade_0006() {
-    $administerNavId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'Administer', 'id', 'name');
-
+    $administerNavId = $this->getMenuItemID('Administer');
     $navigation = new CRM_Core_DAO_Navigation();
     $params = array (
         'domain_id'  => CRM_Core_Config::domainID(),
@@ -135,7 +135,7 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
    * @return bool
    */
   public function upgrade_0007() {
-    $reportsNavId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'Reports', 'id', 'name');
+    $reportsNavId = $this->getMenuItemID('Reports');
 
     CRM_Core_DAO::executeQuery("DELETE FROM `civicrm_navigation` WHERE name = 'pivotreport'");
     $this->createNavigationItem(array(
@@ -151,7 +151,8 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
     ));
 
     $entities = CRM_PivotReport_Entity::getSupportedEntities();
-    $pivotID = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'pivotreport', 'id', 'name');
+    $pivotID = $this->getMenuItemID('pivotreport');
+
     $weight = 0;
 
     foreach ($entities as $currentItem) {
@@ -269,21 +270,19 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
    *   Operator logic to use if several permissions are given
    */
   private function addPermissionForMenuItem($menuItemName, $newPermission, $permissionOperator) {
-    $menuItemID = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', $menuItemName, 'id', 'name');
+    $menuItem = $this->getMenuItemFromName($menuItemName);
 
-    if ($menuItemID) {
-      $navigation = new CRM_Core_DAO_Navigation();
-      $navigation->id = $menuItemID;
-      $navigation->find(TRUE);
-
-      $currentPermissions = explode(',', $navigation->permission);
+    if (CRM_Utils_Array::value('id', $menuItem, 0)) {
+      $currentPermissions = explode(',', $menuItem['permission']);
 
       if (!in_array($newPermission, $currentPermissions)) {
         $currentPermissions[] = $newPermission;
 
-        $navigation->permission = implode(',', $currentPermissions);
-        $navigation->permission_operator = $permissionOperator;
-        $navigation->save();
+        civicrm_api3('Navigation', 'create', array(
+          'id' => CRM_Utils_Array::value('id', $menuItem),
+          'permission' => implode(',', $currentPermissions),
+          'permission_operator' => $permissionOperator,
+        ));
       }
     }
   }
@@ -295,27 +294,60 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
    * @param $removedPermission
    */
   private function removePermissionFromMenuItem($menuItemName, $removedPermission) {
-    $menuItemID = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', $menuItemName, 'id', 'name');
+    $menuItem = $this->getMenuItemFromName($menuItemName);
 
-    if ($menuItemID) {
-      $navigation = new CRM_Core_DAO_Navigation();
-      $navigation->id = $menuItemID;
-      $navigation->find(TRUE);
-
-      $currentPermissions = explode(',', $navigation->permission);
+    if (CRM_Utils_Array::value('id', $menuItem, 0)) {
+      $currentPermissions = explode(',', $menuItem['permission']);
 
       foreach (array_keys($currentPermissions, $removedPermission) as $key) {
         unset($currentPermissions[$key]);
       }
 
-      $navigation->permission = implode(',', $currentPermissions);
+      // If total amount of permissions is less or equal to one, no need to use operator
+      $permissionOperator = count($currentPermissions) <= 1 ? '' : $menuItem['permission_operator'];
 
-      if (count($currentPermissions) < 2) {
-        $navigation->permission_operator = '';
-      }
-
-      $navigation->save();
+      civicrm_api3('Navigation', 'create', array(
+        'id' => CRM_Utils_Array::value('id', $menuItem),
+        'permission' => implode(',', $currentPermissions),
+        'permission_operator' => $permissionOperator,
+      ));
     }
+  }
+
+  /**
+   * Obtains menu item ID from menu item name.
+   *
+   * @param string $menuItemName
+   *   Name of the menu item
+   *
+   * @return int
+   */
+  private function getMenuItemID($menuItemName) {
+    $menuItem = $this->getMenuItemFromName($menuItemName);
+
+    return CRM_Utils_Array::value('id', $menuItem, 0);
+  }
+
+  /**
+   * Obtains menu item data from given name.
+   *
+   * @param string $menuItemName
+   *   Name of the menu item
+   *
+   * @return array
+   */
+  private function getMenuItemFromName($menuItemName) {
+    $result = civicrm_api3('Navigation', 'get', array(
+      'name' => $menuItemName,
+    ));
+
+    if ($result['count'] > 0) {
+      $menuItem = array_shift($result['values']);
+
+      return $menuItem;
+    }
+
+    return array();
   }
 
   /**
@@ -337,7 +369,8 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
   public function onEnable() {
     $this->setScheduledJobsIsActive(TRUE);
 
-    $pivotID = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'pivotreport', 'id', 'name');
+    $pivotID = $this->getMenuItemID('pivotreport');
+
     CRM_Core_DAO::executeQuery("
       UPDATE civicrm_navigation 
       SET is_active = 1 
@@ -359,7 +392,8 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
   public function onDisable() {
     $this->setScheduledJobsIsActive(FALSE);
 
-    $pivotID = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'pivotreport', 'id', 'name');
+    $pivotID = $this->getMenuItemID('pivotreport');
+
     CRM_Core_DAO::executeQuery("
       UPDATE civicrm_navigation 
       SET is_active = 0 
