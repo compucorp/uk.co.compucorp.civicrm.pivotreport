@@ -161,6 +161,7 @@ class CRM_PivotData_DataProspect extends CRM_PivotData_DataCase {
       foreach ($includeFields['contribution'] as $fieldKey) {
         $fields['contribution'][$fieldKey] = $contributionFields[$fieldKey];
       }
+      $fields['contribution']['total_amount']['title'] = ts('Total Contribution Amount');
       $fields['contribution']['contribution_status'] = ts('Contribution Status');
 
       // Include Pledge fields.
