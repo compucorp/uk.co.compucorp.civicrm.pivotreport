@@ -7,7 +7,6 @@ Installation
 ------
 
 Go to
-- Administer -> System Settings -> Manage Extensions (for CiviCRM < 4.7)
 - Administer -> System Settings -> Extensions (for CiviCRM >= 4.7)
 
 and install Pivot Report (uk.co.compucorp.civicrm.pivotreport) extension.
