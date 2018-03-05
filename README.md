@@ -6,7 +6,7 @@ This extension provides a CiviCRM report page with Pivot Table containing variou
 Installation
 ------
 
-Go to 
+Go to
 - Administer -> System Settings -> Manage Extensions (for CiviCRM < 4.7)
 - Administer -> System Settings -> Extensions (for CiviCRM >= 4.7)
 
@@ -26,7 +26,7 @@ Pivot Report extensions supports following CiviCRM entities:
 Usage
 ------
 
-After installing the new page is available from the top CiviCRM menu:
+After installing (and setting Permissions via your CMS permissions interface) the new page is available from the top CiviCRM menu:
 - Reports -> Pivot Report
 
 About Pivot Table
@@ -43,7 +43,7 @@ Pivot Table User Interface
 
 Pivot Table (PivotTable.js library) implements a pivot table drag'n'drop UI similar to that found in popular spreadsheet programs. You can drag attributes into/out of the row/column areas, and specify rendering, aggregation and filtering options. There is a [step-by-step tutorial](https://github.com/nicolaskruchten/pivottable/wiki/UI-Tutorial) in the wiki.
 
-Pivot Report data
+Pivot Report Data
 ------
 
 The Pivot Table contains entity fields including any custom fields with various data types such as:
@@ -61,3 +61,27 @@ The Pivot Table contains entity fields including any custom fields with various 
 - Contact Reference
 
 If a Custom Field relates to Option Group then its value is automatically picked from relevant Option Value so Pivot Table shows human readable values / labels instead of relational ID.
+
+
+Save and Load Report Configurations
+------
+
+If you spent some time creating a fairly lengthy report and you are likely to do this regularly, you can now save your configuration with pivot report!
+
+Just click on "Save As New" button when you are done or "Save Report" button if you improved any existing configuration, by simply select the configuration from the dropdown list you will be able to reproduce any complicated report in no time.
+
+
+CSV/ TSV Export
+------
+
+On the table view, users will be able to export the current report as CSV file or TSV file via the export buttons on the top of the report
+
+Large Dateset Handling
+------
+
+We have also recently added an automated solution for handling dataset with size that is too large to be processed instantly.
+
+A "Pivot Report Cache Build (chunk)" scheduled job is now available once the extension is installed. Each time the job is executed, it will build cache for all data records or a part of the data records if necessary. It might take a few executions to complete the cache building for your entire dataset depending on your dataset size but this will allow the entire cache building process to be handled in the background without bringing any performance impact to the normal usage of the system.
+
+
+Also, with "CiviCRM Reports: Admin Pivot Report" permission, admins will be able to view the last cache refresh time via "Administer -> Pivot Report Configuration" and manually refresh the entire cache when needed.
