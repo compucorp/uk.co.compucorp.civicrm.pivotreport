@@ -16,6 +16,7 @@ class CRM_PivotReport_Entity {
       ),
     ),
     'Membership' => array(),
+    'Contact' => array(),
     'Prospect' => array(
       'extensions' => array(
         'uk.co.compucorp.civicrm.prospect',
