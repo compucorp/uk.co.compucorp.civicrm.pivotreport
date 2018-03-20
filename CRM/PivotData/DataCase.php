@@ -174,7 +174,7 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
    * @inheritdoc
    */
   protected function getEntityIndex(array $row) {
-    return substr($row[ts('Case Start Date')], 0, 10);
+    return substr($row[ts('Case Start Date')], 0, 10).'_'.$row[ts('Case ID')];
   }
 
   /**

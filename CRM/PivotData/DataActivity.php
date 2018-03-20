@@ -116,7 +116,7 @@ class CRM_PivotData_DataActivity extends CRM_PivotData_AbstractData {
    * @inheritdoc
    */
   protected function getEntityIndex(array $row) {
-    return substr($row['Activity Date Time'], 0, 10);
+    return substr($row['Activity Date Time'], 0, 10).'_'.$row['Activity ID'];
   }
 
   /**
