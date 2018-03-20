@@ -164,7 +164,7 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
    * @return string
    */
   protected function getPath($index, $page = NULL) {
-    return 'data_' . $index . '_' . str_pad($page, 6, '0', STR_PAD_LEFT);
+    return 'data_' . $index . '_' . str_pad($page, 6, '0', STR_PAD_LEFT).'_'.rand(10000, 99999);;
   }
 
 
