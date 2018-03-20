@@ -73,7 +73,7 @@ class CRM_PivotData_DataMembership extends CRM_PivotData_AbstractData {
    * @inheritdoc
    */
   protected function getEntityIndex(array $row) {
-    return substr($row['Member Since'], 0, 10).'_'.$row['Membership ID'];
+    return substr($row['Member Since'], 0, 10);
   }
 
   /**

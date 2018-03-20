@@ -99,7 +99,7 @@ class CRM_PivotData_DataContribution extends CRM_PivotData_AbstractData {
    * @inheritdoc
    */
   protected function getEntityIndex(array $row) {
-    return substr($row['Date Received'], 0, 10).'_'.$row['Contribution ID'];
+    return substr($row['Date Received'], 0, 10);
   }
 
   /**
