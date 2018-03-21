@@ -364,6 +364,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
     $apiParams['options']['offset'] = $offset;
     $entities = civicrm_api3($this->apiEntityName, 'get', $apiParams);
     $formattedEntities = $this->formatResult($entities['values']);
+    $indexes = array();
 
     unset($entities);
 
@@ -375,9 +376,12 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
         break;
       }
 
-      if ($split['info']['index'] !== $index) {
+      if (!in_array($split['info']['index'], array_keys($indexes))) {
         $page = 0;
         $index = $split['info']['index'];
+      }
+      else {
+        $page = $indexes[$index];
       }
 
       $result[] = new CRM_PivotData_DataPage($split['data'], $index, $page++, $split['info']['nextOffset'], $split['info']['multiValuesOffset']);
@@ -388,6 +392,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
 
       $offset = $split['info']['nextOffset'];
       $multiValuesOffset =  $split['info']['multiValuesOffset'];
+      $indexes[$index] = $page;
     }
 
     return $result;
