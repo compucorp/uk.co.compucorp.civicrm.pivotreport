@@ -13,9 +13,9 @@ class CRM_PivotData_DataContact extends CRM_PivotData_AbstractData {
   }
 
   /**
-   * @inheritdoc
+   * {@inheritdoc}
    */
-  protected function getEntityApiParams(array $inputParams) {
+  protected function getData(array $inputParams, $offset = 0) {
     $jobContractFields = $this->getEntityFields('jobcontract');
     $idKey = array_search('id', $jobContractFields);
     //adding the ID as part of the return field gives unpredictable results with mismatched jobroles
@@ -35,10 +35,11 @@ class CRM_PivotData_DataContact extends CRM_PivotData_AbstractData {
       ],
       'options' => [
         'limit' => self::ROWS_API_LIMIT,
+        'offset' => $offset
       ],
     ];
 
-    return $params;
+    return civicrm_api3('Contact', 'get', $params)['values'];
   }
 
   /**
@@ -203,5 +204,4 @@ class CRM_PivotData_DataContact extends CRM_PivotData_AbstractData {
 
     return civicrm_api3('Contact', 'getcount', $apiParams);
   }
-
 }

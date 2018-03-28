@@ -37,7 +37,7 @@ class CRM_PivotData_DataActivity extends CRM_PivotData_AbstractData {
   /**
    * @inheritdoc
    */
-  protected function getEntityApiParams(array $inputParams) {
+  protected function getData(array $inputParams, $offset = 0) {
     $params = array(
       'sequential' => 1,
       'is_current_revision' => 1,
@@ -47,6 +47,7 @@ class CRM_PivotData_DataActivity extends CRM_PivotData_AbstractData {
       'options' => array(
         'sort' => 'activity_date_time ASC, id ASC',
         'limit' => self::ROWS_API_LIMIT,
+        'offset' => $offset
       ),
     );
 
@@ -58,7 +59,7 @@ class CRM_PivotData_DataActivity extends CRM_PivotData_AbstractData {
       $params['activity_date_time'] = $activityDateFilter;
     }
 
-    return $params;
+    return civicrm_api3('Activity', 'get', $params)['values'];
   }
 
   /**

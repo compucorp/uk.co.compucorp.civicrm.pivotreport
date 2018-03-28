@@ -15,7 +15,7 @@ class CRM_PivotData_DataProspect extends CRM_PivotData_DataCase {
   /**
    * @inheritdoc
    */
-  protected function getEntityApiParams(array $inputParams) {
+  protected function getData(array $inputParams, $offset = 0) {
     $params = array(
       'sequential' => 1,
       'is_deleted' => 0,
@@ -25,10 +25,11 @@ class CRM_PivotData_DataProspect extends CRM_PivotData_DataCase {
       'options' => array(
         'sort' => 'id ASC',
         'limit' => self::ROWS_API_LIMIT,
+        'offset' => $offset
       ),
     );
 
-    return $params;
+    return civicrm_api3('Prospect', 'get', $params)['values'];
   }
 
   /**

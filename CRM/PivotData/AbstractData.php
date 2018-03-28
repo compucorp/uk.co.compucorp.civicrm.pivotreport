@@ -275,11 +275,10 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
       }
     }
 
-    $apiParams = $this->getEntityApiParams($params);
     $count = 0;
 
     while ($offset < $total) {
-      $pages = $this->getPaginatedResults($apiParams, $offset, $multiValuesOffset, $page, $index);
+      $pages = $this->getPaginatedResults($params, $offset, $multiValuesOffset, $page, $index);
       $count += $this->cachePages($cacheGroup, $pages);
 
       $lastPageIndex = count($pages) - 1;
@@ -350,7 +349,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
   /**
    * Returns an array of entity data pages.
    *
-   * @param array $apiParams
+   * @param array $inputParams
    * @param int $offset
    * @param int $multiValuesOffset
    * @param int $page
@@ -358,12 +357,11 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
    *
    * @return int
    */
-  protected function getPaginatedResults(array $apiParams, $offset = 0, $multiValuesOffset = 0, $page = 0, $index = NULL) {
+  protected function getPaginatedResults($inputParams, $offset = 0, $multiValuesOffset = 0, $page = 0, $index = NULL) {
     $result = array();
     $rowsCount = 0;
-    $apiParams['options']['offset'] = $offset;
-    $entities = civicrm_api3($this->apiEntityName, 'get', $apiParams);
-    $formattedEntities = $this->formatResult($entities['values']);
+    $entities = $this->getData($inputParams, $offset);
+    $formattedEntities = $this->formatResult($entities);
 
     unset($entities);
 
@@ -896,4 +894,16 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
    * @return int
    */
   abstract public function getCount(array $params = array());
+
+  /**
+   * Returns the data to be cached for the Report.
+   * The data can be from API or Sql queries.
+   *
+   * @param array $inputParams
+   *  Additional parameters needed to get the Data.
+   * @param int $offset
+   *
+   * @return array
+   */
+  abstract protected function getData(array $inputParams, $offset);
 }
