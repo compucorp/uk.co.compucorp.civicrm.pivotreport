@@ -3,7 +3,9 @@
 class CRM_PivotReport_Entity {
 
   /**
-   * Entities which may be supported by the extension.
+   * Report Entities which may be supported by the extension.
+   * The namespace key for a report entity allows the report
+   * files to reside in another extension
    *
    * @var array
    */
@@ -16,7 +18,9 @@ class CRM_PivotReport_Entity {
       ),
     ),
     'Membership' => array(),
-    'Contact' => array(),
+    'Contact' => array(
+      'namespace' => ''
+    ),
     'Prospect' => array(
       'extensions' => array(
         'uk.co.compucorp.civicrm.prospect',
@@ -29,7 +33,7 @@ class CRM_PivotReport_Entity {
   );
 
   /**
-   * Entities supported by the extension.
+   * Report Entities supported by the extension.
    *
    * @var array
    */
@@ -43,7 +47,7 @@ class CRM_PivotReport_Entity {
   private static $enabledComponents = NULL;
 
   /**
-   * Entity name.
+   * Report Entity name.
    *
    * @var string
    */
@@ -218,7 +222,12 @@ class CRM_PivotReport_Entity {
    * @throws Exception
    */
   public function getDataInstance() {
+    $reportEntityData = self::$entities[$this->entityName];
     $className = 'CRM_PivotData_Data' . $this->entityName;
+
+    if (!empty($reportEntityData['namespace'])) {
+      $className = 'CRM_' . $reportEntityData['namespace'] . '_PivotData_Data' . $this->entityName;
+    }
 
     if (!class_exists($className)) {
       throw new Exception("Class '{$className}' does not exist. It should exist and extend CRM_PivotData_AbstractData class.");
@@ -237,7 +246,13 @@ class CRM_PivotReport_Entity {
    * @throws Exception
    */
   public function getGroupInstance($source = NULL) {
+    $reportEntityData = self::$entities[$this->entityName];
     $className = 'CRM_PivotCache_Group' . $this->entityName;
+
+    if (!empty($reportEntityData['namespace'])) {
+      $className = 'CRM_' . $reportEntityData['namespace'] . '_PivotCache_Group' . $this->entityName;
+    }
+
     if (!class_exists($className)) {
       throw new Exception("Class '{$className}' does not exist. It should exist and extend CRM_PivotCache_AbstractGroup class.");
     }
