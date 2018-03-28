@@ -81,28 +81,15 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
   protected $name = NULL;
 
   /**
-   * Name of API Entity.
-   *
-   * @var string
-   */
-  protected $apiEntityName = NULL;
-
-  /**
    * CRM_PivotData_AbstractData constructor.
    *
    * Some entities may have different API name than data group name. In this case
-   * we can specify $apiEntityName value to define Entity name used with API
-   * calls.
-   *
-   * If Entity name is the same as data group name then $apiEntityName
-   * parameter can be empty.
    *
    * @param string $name
-   * @param string $apiEntityName
+   *  Report Entity Name
    */
-  public function __construct($name, $apiEntityName = NULL) {
+  public function __construct($name) {
     $this->name = $name;
-    $this->apiEntityName = $apiEntityName ? $apiEntityName : $name;
 
     $dateFields = $this->getDateFields();
 
@@ -835,15 +822,6 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
    */
   public function getName() {
     return $this->name;
-  }
-
-  /**
-   * Returns apiEntityName property value.
-   *
-   * @return string
-   */
-  public function getApiEntityName() {
-    return $this->apiEntityName;
   }
 
   /**
