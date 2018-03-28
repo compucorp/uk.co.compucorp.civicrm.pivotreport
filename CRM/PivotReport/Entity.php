@@ -18,7 +18,7 @@ class CRM_PivotReport_Entity {
       ),
     ),
     'Membership' => array(),
-    'Contact' => array(
+    'People' => array(
       'namespace' => ''
     ),
     'Prospect' => array(
@@ -102,14 +102,6 @@ class CRM_PivotReport_Entity {
           continue;
         }
 
-        // Check main Pivot Report entity itself.
-        $entity = new self($key, FALSE);
-        $dataInstance = $entity->getDataInstance();
-        $apiEntityName = $dataInstance->getApiEntityName();
-        if (!self::checkApiEntities(array($apiEntityName))) {
-          continue;
-        }
-
         self::$supportedEntities[] = $key;
       }
     }
@@ -177,36 +169,6 @@ class CRM_PivotReport_Entity {
       );
 
       if (!$isEnabled) {
-        return FALSE;
-      }
-    }
-
-    return TRUE;
-  }
-
-  /**
-   * Returns TRUE if all given entities are accessible via API 'get' call.
-   * Otherwise returns FALSE.
-   *
-   * @param array $entities
-   *
-   * @return boolean
-   */
-  private static function checkApiEntities(array $entities) {
-    foreach ($entities as $entity) {
-      $result = TRUE;
-
-      try {
-        $response = civicrm_api3($entity, 'get');
-
-        if (!empty($response['is_error']) && (int) $response['is_error']) {
-          $result = FALSE;
-        }
-      } catch (Exception $e) {
-        $result = FALSE;
-      }
-
-      if (!$result) {
         return FALSE;
       }
     }

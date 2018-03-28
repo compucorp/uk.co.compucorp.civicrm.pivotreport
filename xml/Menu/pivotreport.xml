@@ -36,9 +36,9 @@
     <access_arguments>access CiviCRM pivot table reports</access_arguments>
   </item>
   <item>
-    <path>civicrm/contact-report</path>
+    <path>civicrm/people-report</path>
     <page_callback>CRM_PivotReport_Page_PivotReport</page_callback>
-    <page_arguments>entity=Contact</page_arguments>
+    <page_arguments>entity=People</page_arguments>
     <access_arguments>access CiviCRM pivot table reports</access_arguments>
   </item>
 </menu>
