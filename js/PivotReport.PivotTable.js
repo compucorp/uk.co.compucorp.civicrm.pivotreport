@@ -267,13 +267,15 @@ CRM.PivotReport.PivotTable = (function($) {
    */
   PivotTable.prototype.initPivotDataLoading = function() {
     var that = this;
+    var countParams = that.config.getCountParams();
+    countParams.entity = this.config.entityName;
     var apiCalls = {
       'getConfig': ['Setting', 'get', {
         'sequential': 1,
         'return': ['weekBegins', 'fiscalYearStart']
       }],
       'getHeader': ['PivotReport', 'getheader', {'entity': this.config.entityName}],
-      'getCount': [this.config.entityName, 'getcount', that.config.getCountParams()],
+      'getCount': ['PivotReport', 'getcount', countParams],
       'getPivotCount': ['PivotReport', 'getpivotcount', {'entity': this.config.entityName}],
       'dateFields': ['PivotReport', 'getdatefields', {entity: this.config.entityName}],
       'relativeFilters': ['OptionValue', 'get', {
