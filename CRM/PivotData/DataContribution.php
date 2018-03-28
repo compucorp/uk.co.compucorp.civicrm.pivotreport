@@ -156,7 +156,7 @@ class CRM_PivotData_DataContribution extends CRM_PivotData_AbstractData {
           $result[$group . '.' . $key] = $value;
 
           if (is_array($value)) {
-            $result[$group . '.' . $key]['optionValues'] = $this->getOptionValues($value);
+            $result[$group . '.' . $key]['optionValues'] = $this->getOptionValues($value, 'Contribution');
           }
         }
       }

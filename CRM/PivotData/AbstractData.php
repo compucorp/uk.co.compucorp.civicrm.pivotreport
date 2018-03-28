@@ -812,20 +812,16 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
    *
    * @param array $field
    *   Field key
-   * @param string $entity
+   * @param string $apiEntity
    *
    * @return array
    */
-  protected function getOptionValues($field, $entity = NULL) {
+  protected function getOptionValues($field, $apiEntity) {
     if (empty($field['pseudoconstant']['optionGroupName']) && empty($field['pseudoconstant']['table'])) {
       return NULL;
     }
 
-    if (!$entity) {
-      $entity = $this->apiEntityName;
-    }
-
-    $result = civicrm_api3($entity, 'getoptions', array(
+    $result = civicrm_api3($apiEntity, 'getoptions', array(
       'field' => $field['name'],
     ));
 

@@ -241,7 +241,7 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
           $result[$group . '.' . $key] = $value;
 
           if (is_array($value)) {
-            $result[$group . '.' . $key]['optionValues'] = $this->getOptionValues($value);
+            $result[$group . '.' . $key]['optionValues'] = $this->getOptionValues($value, 'Case');
           }
         }
       }

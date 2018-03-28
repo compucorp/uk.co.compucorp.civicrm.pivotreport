@@ -187,7 +187,7 @@ class CRM_PivotData_DataActivity extends CRM_PivotData_AbstractData {
           $key = $value['name'];
         }
         $result[$key] = $value;
-        $result[$key]['optionValues'] = $this->getOptionValues($value);
+        $result[$key]['optionValues'] = $this->getOptionValues($value, 'Activity');
       }
 
       $this->fields = $result;
