@@ -9,12 +9,13 @@ class CRM_PivotReport_Page_PivotReport extends CRM_Core_Page {
     $entity = !empty($args[1]['entity']) ? $args[1]['entity'] : NULL;
     $entityInstance = new CRM_PivotReport_Entity($entity);
     $supportedEntities = CRM_PivotReport_Entity::getSupportedEntities();
+    $entityGroupInstance = $entityInstance->getGroupInstance();
 
-    CRM_Utils_System::setTitle(ts($entity . ' Pivot Report'));
+    CRM_Utils_System::setTitle($entityGroupInstance->getTitle($entity));
 
     $this->assign('options_array', array_combine($supportedEntities, $supportedEntities));
     $this->assign('CRMDataType', $entity);
-    $this->assign('cacheBuilt', $entityInstance->getGroupInstance()->isCacheBuilt());
+    $this->assign('cacheBuilt', $entityGroupInstance->isCacheBuilt());
 
     // PivotReport configuration.
     $this->assign('configList', CRM_PivotReport_BAO_PivotReportConfig::getConfigList($entity));

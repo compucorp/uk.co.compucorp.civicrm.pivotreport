@@ -188,4 +188,17 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
 
     return false;
   }
+
+  /**
+   * Gets the title for this report group, this can 
+   * also be used as the page title for the report.
+   * 
+   * @param string $entityName
+   *  The Report entity name.
+   * 
+   * @return string
+   */
+  public function getTitle($entityName) {
+    return ts($entityName . ' Pivot Report');
+  }
 }

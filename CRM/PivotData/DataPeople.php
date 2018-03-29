@@ -6,7 +6,7 @@
 class CRM_PivotData_DataPeople extends CRM_PivotData_AbstractData {
 
   /**
-   * CRM_PivotData_DataContact constructor.
+   * CRM_PivotData_DataPeople constructor.
    */
   public function __construct() {
     parent::__construct('People');

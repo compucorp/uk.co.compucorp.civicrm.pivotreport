@@ -37,4 +37,11 @@ class CRM_PivotCache_GroupPeople extends CRM_PivotCache_AbstractGroup {
       $queryObject->whereAdd($whereEndDate);
     }
   }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getTitle($entityName) {
+    return ts('People Report');
+  }
 }
