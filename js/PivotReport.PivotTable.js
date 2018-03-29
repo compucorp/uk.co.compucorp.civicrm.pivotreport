@@ -288,7 +288,7 @@ CRM.PivotReport.PivotTable = (function($) {
       that.dateFields = result.dateFields.values;
       that.relativeFilters = result.relativeFilters.values;
       that.header = result.getHeader.values;
-      that.total = parseInt(result.getCount, 10);
+      that.total = parseInt(result.getCount.values, 10);
       that.pivotCount = parseInt(result.getPivotCount.values, 10);
       that.crmConfig = result.getConfig.values[0];
 
