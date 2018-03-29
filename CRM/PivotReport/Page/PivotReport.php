@@ -10,6 +10,7 @@ class CRM_PivotReport_Page_PivotReport extends CRM_Core_Page {
     $entityInstance = new CRM_PivotReport_Entity($entity);
     $supportedEntities = CRM_PivotReport_Entity::getSupportedEntities();
     $entityGroupInstance = $entityInstance->getGroupInstance();
+    $hookableData = CRM_PivotReport_Entity::getHookableData($entity);
 
     CRM_Utils_System::setTitle($entityGroupInstance->getTitle($entity));
 
@@ -20,6 +21,13 @@ class CRM_PivotReport_Page_PivotReport extends CRM_Core_Page {
     // PivotReport configuration.
     $this->assign('configList', CRM_PivotReport_BAO_PivotReportConfig::getConfigList($entity));
     $this->assign('canManagePivotReportConfig', true);
+
+    if ($hookableData) {
+      if(!empty($hookableData['extension']) && !empty($hookableData['template_path'])) {
+        $templatePath = CRM_Core_Resources::singleton()->getPath($hookableData['extension'],$hookableData['template_path']);
+        $this->assign('templatePath', $templatePath);
+      }
+    }
 
     parent::run();
   }

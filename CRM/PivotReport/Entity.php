@@ -18,8 +18,14 @@ class CRM_PivotReport_Entity {
       ),
     ),
     'Membership' => array(),
-    'People' => array(
-      'namespace' => ''
+    'People' => array(),
+    'Sample' => array(
+      'hookable' => [
+        'namespace' => 'HRLeaveAndAbsences',
+        'extension' => 'uk.co.compucorp.civicrm.hrleaveandabsences',
+        'template_path' => 'templates/CRM/HRLeaveAndAbsences/Page/SampleReport.tpl'
+      ]
+
     ),
     'Prospect' => array(
       'extensions' => array(
@@ -77,6 +83,26 @@ class CRM_PivotReport_Entity {
    */
   private function isSupported() {
     return in_array($this->entityName, self::getSupportedEntities());
+  }
+
+  /**
+   * Returns the data for a report entity that allows
+   * the data/files needed for the report entity to be
+   * supplied by another extension rather than the pivot
+   * report extension itself.
+   *
+   * @param string $entityName
+   *
+   * @return array
+   */
+  public static function getHookableData($entityName) {
+    $reportEntityData = self::$entities[$entityName];
+
+    if(!empty($reportEntityData['hookable'])) {
+      return $reportEntityData['hookable'];
+    }
+
+    return [];
   }
 
   /**
@@ -187,8 +213,8 @@ class CRM_PivotReport_Entity {
     $reportEntityData = self::$entities[$this->entityName];
     $className = 'CRM_PivotData_Data' . $this->entityName;
 
-    if (!empty($reportEntityData['namespace'])) {
-      $className = 'CRM_' . $reportEntityData['namespace'] . '_PivotData_Data' . $this->entityName;
+    if (!empty($reportEntityData['hookable']['namespace'])) {
+      $className = 'CRM_' . $reportEntityData['hookable']['namespace'] . '_PivotData_Data' . $this->entityName;
     }
 
     if (!class_exists($className)) {
@@ -211,8 +237,8 @@ class CRM_PivotReport_Entity {
     $reportEntityData = self::$entities[$this->entityName];
     $className = 'CRM_PivotCache_Group' . $this->entityName;
 
-    if (!empty($reportEntityData['namespace'])) {
-      $className = 'CRM_' . $reportEntityData['namespace'] . '_PivotCache_Group' . $this->entityName;
+    if (!empty($reportEntityData['hookable']['namespace'])) {
+      $className = 'CRM_' . $reportEntityData['hookable']['namespace'] . '_PivotCache_Group' . $this->entityName;
     }
 
     if (!class_exists($className)) {
