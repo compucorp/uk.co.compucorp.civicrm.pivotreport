@@ -106,13 +106,13 @@ class CRM_PivotData_DataLeave extends CRM_PivotData_AbstractData {
         foreach($contractData as $contract) {
           if ($leaveDate['date'] >= $contract['period_start_date'] && (empty($contract['period_end_date']) || $leaveDate['date'] <= $contract['period_end_date'])) {
             $hasContract = true;
-            $revisionID = $contract['jobcontract_revision_id'];
+            $currentRevision = $this->getAPIEntityData('HRJobContractRevision', ['jobcontract_id' => $contract['id']], 'getcurrentrevision');
             $contractRow = $this->getRowValues($contract, 'HRJobContract');
             $jobRolesRow = $this->getRowValues(array_shift($contract['api.HrJobRoles.get']['values']), 'HrJobRoles');
 
-            $jobPayData = $this->getAPIEntityData('HRJobPay', ['jobcontract_revision_id' => $revisionID]);
-            $jobHourData = $this->getAPIEntityData('HRJobHour', ['jobcontract_revision_id' => $revisionID]);
-            $jobPensionData = $this->getAPIEntityData('HRJobPension', ['jobcontract_revision_id' => $revisionID]);
+            $jobPayData = $this->getAPIEntityData('HRJobPay', ['jobcontract_revision_id' => $currentRevision['pay_revision_id']]);
+            $jobHourData = $this->getAPIEntityData('HRJobHour', ['jobcontract_revision_id' => $currentRevision['hour_revision_id']]);
+            $jobPensionData = $this->getAPIEntityData('HRJobPension', ['jobcontract_revision_id' => $currentRevision['pension_revision_id']]);
             $jobPayRow = $this->getRowValues(array_shift($jobPayData), 'HRJobPay');
             $jobHourRow = $this->getRowValues(array_shift($jobHourData), 'HRJobHour');
             $jobPensionRow = $this->getRowValues(array_shift($jobPensionData), 'HRJobPension');
@@ -157,14 +157,23 @@ class CRM_PivotData_DataLeave extends CRM_PivotData_AbstractData {
     return substr($row['Absence Date'], 0, 10);
   }
 
-  private function getAPIEntityData($apiEntityName, $params = []) {
+  /**
+   * Gets Data from an API.
+   *
+   * @param string $apiEntityName
+   * @param array $params
+   * @param string $action
+   * @return mixed
+   */
+  private function getAPIEntityData($apiEntityName, $params = [], $action = '') {
     $defaultParams = [
       'sequential' => 1,
       'return' => $this->getEntityFields($apiEntityName)
     ];
 
     $params = array_merge($defaultParams, $params);
-    $result = civicrm_api3($apiEntityName, 'get', $params);
+    $action = $action ? $action : 'get';
+    $result = civicrm_api3($apiEntityName, $action, $params);
 
     return $result['values'];
   }
