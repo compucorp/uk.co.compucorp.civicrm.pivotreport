@@ -153,6 +153,12 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
         $resultKey = $fields[$fieldsKey];
       }
 
+      if(isset($fields[$resultKey]['handler'])) {
+        if(method_exists($this, $fields[$resultKey]['handler'])) {
+          $value = call_user_func([$this, $fields[$resultKey]['handler']], $value);
+        }
+      }
+
       $result[$resultKey] = $value;
     }
 
@@ -627,7 +633,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
    * @return string
    */
   protected function formatValue($key, $value, $level = 0) {
-    if (empty($value) || $level > 1) {
+    if (trim($value) == '' || $level > 1) {
       return '';
     }
 
