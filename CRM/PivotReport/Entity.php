@@ -19,6 +19,7 @@ class CRM_PivotReport_Entity {
     ),
     'Membership' => array(),
     'People' => array(),
+    'Leave' => array(),
     'Sample' => array(
       'hookable' => [
         'namespace' => 'HRLeaveAndAbsences',
