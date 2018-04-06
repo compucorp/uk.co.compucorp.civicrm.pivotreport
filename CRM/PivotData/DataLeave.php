@@ -6,9 +6,15 @@
 class CRM_PivotData_DataLeave extends CRM_PivotData_AbstractData {
 
   /**
+   * @var
+   */
+  private $standardHoursOptions;
+
+  /**
    * CRM_PivotData_DataLeave constructor.
    */
   public function __construct() {
+    $this->initData();
     parent::__construct('Leave');
   }
 
@@ -235,7 +241,11 @@ class CRM_PivotData_DataLeave extends CRM_PivotData_AbstractData {
       $fields['HRJobContract']['jobcontract_revision_id'] = ['name' => 'jobcontract_revision_id', 'title' => ts('Contract Revision ID')];
 
       //Job Hour fields
-      $fields['HRJobHour']['location_standard_hours'] = ['name' => 'location_standard_hours', 'title' => ts('Contract Location Standard Hours')];
+      $fields['HRJobHour']['location_standard_hours'] = [
+        'name' => 'location_standard_hours',
+        'title' => ts('Contract Location Standard Hours'),
+        'handler' => 'locationStandardHoursHandler'
+      ];
       $fields['HRJobHour']['hours_type'] = ['name' => 'hours_type', 'title' => ts('Contract Hours Type')];
       $fields['HRJobHour']['hours_fte'] = ['name' => 'hours_fte', 'title' => ts('Contract Hours FTE')];
 
@@ -247,7 +257,11 @@ class CRM_PivotData_DataLeave extends CRM_PivotData_AbstractData {
           'optionGroupName' => 'hrjc_pay_grade',
         ],
       ];
-      $fields['HRJobPay']['pay_scale'] = ['name' => 'pay_scale', 'title' => ts('Contract Pay Scale')];
+      $fields['HRJobPay']['pay_scale'] = [
+        'name' => 'pay_scale',
+        'title' => ts('Contract Pay Scale'),
+        'optionValues' => $this->getPayScales()
+      ];
       $fields['HRJobPay']['pay_amount'] = ['name' => 'pay_amount', 'title' => ts('Contract Pay Amount')];
       $fields['HRJobPay']['pay_currency'] = ['name' => 'pay_currency', 'title' => ts('Contract Pay Currency')];
       $fields['HRJobPay']['pay_unit'] = ['name' => 'pay_unit', 'title' => ts('Contract Pay Unit')];
@@ -261,7 +275,13 @@ class CRM_PivotData_DataLeave extends CRM_PivotData_AbstractData {
       $fields['HrJobRoles']['end_date'] = ['name' => 'end_date', 'title' => ts('Role End Date')];
       $fields['HrJobRoles']['title'] = ['name' => 'title', 'title' => ts('Role Title')];
       $fields['HrJobRoles']['description'] = ['name' => 'description', 'title' => ts('Role Description')];
-      $fields['HrJobRoles']['location'] = ['name' => 'location', 'title' => ts('Role Location')];
+      $fields['HrJobRoles']['location'] = [
+        'name' => 'location',
+        'title' => ts('Role Location'),
+        'pseudoconstant' => [
+          'optionGroupName' => 'hrjc_location',
+        ],
+      ];
       $fields['HrJobRoles']['funder'] = ['name' => 'funder', 'title' => ts('Role Funder')];
       $fields['HrJobRoles']['percent_pay_funder'] = ['name' => 'percent_pay_funder', 'title' => ts('Role Percent Pay Funder')];
       $fields['HrJobRoles']['cost_center'] = ['name' => 'cost_center', 'title' => ts('Role Cost Center')];
@@ -274,12 +294,11 @@ class CRM_PivotData_DataLeave extends CRM_PivotData_AbstractData {
       $fields['HrJobRoles']['organization'] = ['name' => 'organization', 'title' => ts('Role Organization')];
       $fields['HrJobRoles']['region'] = ['name' => 'region', 'title' => ts('Role Region')];
 
-
       foreach ($groups as $group) {
         foreach ($fields[$group] as $key => $value) {
           $result[$group . '.' . $key] = $value;
 
-          if (is_array($value)) {
+          if (isset($value['pseudoconstant'])) {
             if($value['name'] == 'location') {
               $result[$group . '.' . $key]['optionValues'] = $this->getOptionValues($value, 'HRJobDetails');
             }
@@ -294,6 +313,54 @@ class CRM_PivotData_DataLeave extends CRM_PivotData_AbstractData {
     }
 
     return $this->fields;
+  }
+
+  /**
+   * Handler for the location_standard_hours field.
+   *
+   * @param int $locationHoursID
+   *
+   * @return string
+   */
+  protected function locationStandardHoursHandler($locationHoursID) {
+    return !empty($this->standardHoursOptions[$locationHoursID]) ?
+      $this->standardHoursOptions[$locationHoursID] : '';
+  }
+
+  /**
+   * Function to load some data on instantiation of this class.
+   */
+  private function initData() {
+    $this->standardHoursOptions = $this->getStandardHoursOptions();
+  }
+
+  /**
+   * Gets options for the location_standard_hours handler.
+   *
+   * @return array
+   */
+  private function getStandardHoursOptions() {
+    $result = civicrm_api3('HRHoursLocation', 'get');
+    $options = [];
+
+    foreach($result['values'] as $value) {
+      $options[$value['id']] = $value['location'] .
+        ' (' . $value['standard_hours'] .
+        ' / ' . $value['periodicity'] . ')';
+    }
+
+    return $options;
+  }
+
+  /**
+   * Get Pay Scale options needed for the pay_scale field.
+   *
+   * @return array
+   */
+  private function getPayScales() {
+    $result = civicrm_api3('HRPayScale', 'get');
+
+    return array_column($result['values'], 'pay_scale', 'id');
   }
 
   /**
