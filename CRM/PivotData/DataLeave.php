@@ -191,7 +191,7 @@ class CRM_PivotData_DataLeave extends CRM_PivotData_AbstractData {
       //Add Leave Fields
       $fields['LeaveRequest']['id'] = ['name' => 'id', 'title' => 'Absence ID'];
       $fields['LeaveRequest']['type_id'] = ['name' => 'type_id', 'title' => 'Absence Type ID'];
-      $fields['LeaveRequest']['contact_id'] = ['name' => 'contact_id', 'title' => 'Contact ID'];
+      $fields['LeaveRequest']['contact_id'] = ['name' => 'contact_id', 'title' => 'Employee ID'];
       $fields['LeaveRequest']['from_date'] = ['name' => 'from_date', 'title' => 'Absence Start Date'];
       $fields['LeaveRequest']['to_date'] = ['name' => 'to_date', 'title' => 'Absence End Date'];
       $fields['LeaveRequest']['sickness_reason'] = [
@@ -265,7 +265,13 @@ class CRM_PivotData_DataLeave extends CRM_PivotData_AbstractData {
           'optionGroupName' => 'hrjc_location',
         ],
       ];
-      $fields['HRJobContract']['end_reason'] = ['name' => 'end_reason', 'title' => ts('Contract End Reason')];
+      $fields['HRJobContract']['end_reason'] = [
+        'name' => 'end_reason',
+        'title' => ts('Contract End Reason'),
+        'pseudoconstant' => [
+          'optionGroupName' => 'hrjc_contract_end_reason',
+        ],
+      ];
       $fields['HRJobContract']['is_current'] = ['name' => 'is_current', 'title' => ts('Current Contract')];
       $fields['HRJobContract']['jobcontract_revision_id'] = ['name' => 'jobcontract_revision_id', 'title' => ts('Contract Revision ID')];
 
@@ -275,7 +281,13 @@ class CRM_PivotData_DataLeave extends CRM_PivotData_AbstractData {
         'title' => ts('Contract Location Standard Hours'),
         'handler' => 'locationStandardHoursHandler'
       ];
-      $fields['HRJobHour']['hours_type'] = ['name' => 'hours_type', 'title' => ts('Contract Hours Type')];
+      $fields['HRJobHour']['hours_type'] = [
+        'name' => 'hours_type',
+        'title' => ts('Contract Hours Type'),
+        'pseudoconstant' => [
+          'optionGroupName' => 'hrjc_hours_type',
+        ],
+      ];
       $fields['HRJobHour']['hours_fte'] = ['name' => 'hours_fte', 'title' => ts('Contract Hours FTE')];
 
       //Job Pay fields
@@ -292,11 +304,25 @@ class CRM_PivotData_DataLeave extends CRM_PivotData_AbstractData {
         'optionValues' => $this->getPayScales()
       ];
       $fields['HRJobPay']['pay_amount'] = ['name' => 'pay_amount', 'title' => ts('Contract Pay Amount')];
-      $fields['HRJobPay']['pay_currency'] = ['name' => 'pay_currency', 'title' => ts('Contract Pay Currency')];
+      $fields['HRJobPay']['pay_currency'] = [
+        'name' => 'pay_currency',
+        'title' => ts('Contract Pay Currency'),
+        'pseudoconstant' => [
+          'optionGroupName' => 'currencies_enabled',
+        ],
+      ];
       $fields['HRJobPay']['pay_unit'] = ['name' => 'pay_unit', 'title' => ts('Contract Pay Unit')];
 
       //Job Pension Fields
-      $fields['HRJobPension']['is_enrolled'] = ['name' => 'is_enrolled', 'title' => ts('Contract Pension Is Enrolled')];
+      $fields['HRJobPension']['is_enrolled'] = [
+        'name' => 'is_enrolled',
+        'title' => ts('Contract Pension Is Enrolled'),
+        'optionValues' => [
+          0 => t('No'),
+          1 => t('Yes'),
+          2 => t('Opted out'),
+        ]
+      ];
 
       //Job Roles fields
       $fields['HrJobRoles']['id'] = ['name' => 'id', 'title' => ts('Role ID')];
@@ -315,20 +341,39 @@ class CRM_PivotData_DataLeave extends CRM_PivotData_AbstractData {
       $fields['HrJobRoles']['percent_pay_funder'] = ['name' => 'percent_pay_funder', 'title' => ts('Role Percent Pay Funder')];
       $fields['HrJobRoles']['cost_center'] = ['name' => 'cost_center', 'title' => ts('Role Cost Center')];
       $fields['HrJobRoles']['percent_pay_cost_center'] = ['name' => 'percent_pay_cost_center', 'title' => ts('Role Percent Pay Cost Center')];
-      $fields['HrJobRoles']['department'] = ['name' => 'department', 'title' => ts('Role Department')];
+      $fields['HrJobRoles']['department'] = [
+        'name' => 'department',
+        'title' => ts('Role Department'),
+        'pseudoconstant' => [
+          'optionGroupName' => 'hrjc_department',
+        ],
+      ];
       $fields['HrJobRoles']['functional_area'] = ['name' => 'functional_area', 'title' => ts('Role Functional Area')];
       $fields['HrJobRoles']['hours'] = ['name' => 'hours', 'title' => ts('Role Hours')];
       $fields['HrJobRoles']['role_hours_unit'] = ['name' => 'role_hours_unit', 'title' => ts('Role Hours Unit')];
-      $fields['HrJobRoles']['level_type'] = ['name' => 'level_type', 'title' => ts('Role Level Type')];
+      $fields['HrJobRoles']['level_type'] = [
+        'name' => 'level_type',
+        'title' => ts('Role Level Type'),
+        'pseudoconstant' => [
+          'optionGroupName' => 'hrjc_level_type',
+        ],
+      ];
       $fields['HrJobRoles']['organization'] = ['name' => 'organization', 'title' => ts('Role Organization')];
-      $fields['HrJobRoles']['region'] = ['name' => 'region', 'title' => ts('Role Region')];
+      $fields['HrJobRoles']['region'] = [
+        'name' => 'region',
+        'title' => ts('Role Region'),
+        'pseudoconstant' => [
+          'optionGroupName' => 'hrjc_region',
+        ],
+      ];
 
       foreach ($groups as $group) {
         foreach ($fields[$group] as $key => $value) {
           $result[$group . '.' . $key] = $value;
 
           if (isset($value['pseudoconstant'])) {
-            if($value['name'] == 'location') {
+
+            if(in_array($value['name'], ['location', 'end_reason'])) {
               $result[$group . '.' . $key]['optionValues'] = $this->getOptionValues($value, 'HRJobDetails');
             }
             else{
