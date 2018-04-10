@@ -886,4 +886,29 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
    * @return array
    */
   abstract protected function getData(array $inputParams, $offset);
+
+  /**
+   * Returns an array containing API date filter conditions basing on specified
+   * dates.
+   *
+   * @param string $startDate
+   * @param string $endDate
+   *
+   * @return array|NULL
+   */
+  protected function getAPIDateFilter($startDate, $endDate) {
+    $apiFilter = null;
+
+    if (!empty($startDate) && !empty($endDate)) {
+      $apiFilter = ['BETWEEN' => [$startDate, $endDate]];
+    }
+    else if (!empty($startDate) && empty($endDate)) {
+      $apiFilter = ['>=' => $startDate];
+    }
+    else if (empty($startDate) && !empty($endDate)) {
+      $apiFilter = ['<=' => $endDate];
+    }
+
+    return $apiFilter;
+  }
 }

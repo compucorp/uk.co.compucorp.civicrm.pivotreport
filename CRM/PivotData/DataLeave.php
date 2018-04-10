@@ -536,7 +536,31 @@ class CRM_PivotData_DataLeave extends CRM_PivotData_AbstractData {
   /**
    * @inheritdoc
    */
-  public function getCount(array $params = []) {
-    return civicrm_api3('LeaveRequest', 'getcount', $params);
+  public function getCount(array $params = array()) {
+    $apiParams = [
+      'return' => ['id'],
+      'api.LeaveRequestDate.get' => [
+        'leave_request_id' => "\$value.id",
+      ],
+    ];
+
+    $startDate = !empty($params['start_date']) ? $params['start_date'] : NULL;
+    $endDate = !empty($params['end_date']) ? $params['end_date'] : NULL;
+
+    $activityDateFilter = $this->getAPIDateFilter($startDate, $endDate);
+
+    if (!empty($activityDateFilter)) {
+      $apiParams['api.LeaveRequestDate.get']['date'] = $activityDateFilter;
+      $apiParams['from_date'] = $activityDateFilter;
+    }
+
+    $results = civicrm_api3('LeaveRequest', 'get', $apiParams)['values'];
+    $count = 0;
+
+    foreach($results as $result) {
+      $count += count($result['api.LeaveRequestDate.get']['values']);
+    }
+
+    return $count;
   }
 }

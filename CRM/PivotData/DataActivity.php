@@ -63,31 +63,6 @@ class CRM_PivotData_DataActivity extends CRM_PivotData_AbstractData {
   }
 
   /**
-   * Returns an array containing API date filter conditions basing on specified
-   * dates.
-   *
-   * @param string $startDate
-   * @param string $endDate
-   *
-   * @return array|NULL
-   */
-  private function getAPIDateFilter($startDate, $endDate) {
-    $apiFilter = null;
-
-    if (!empty($startDate) && !empty($endDate)) {
-      $apiFilter = array('BETWEEN' => array($startDate, $endDate));
-    }
-    else if (!empty($startDate) && empty($endDate)) {
-      $apiFilter = array('>=' => $startDate);
-    }
-    else if (empty($startDate) && !empty($endDate)) {
-      $apiFilter = array('<=' => $endDate);
-    }
-
-    return $apiFilter;
-  }
-
-  /**
    * @inheritdoc
    */
   protected function setCustomValue($key, $value) {
