@@ -18,16 +18,25 @@ class CRM_PivotReport_Entity {
       ),
     ),
     'Membership' => array(),
-    'People' => array(),
-    'Leave' => array(),
-    'Sample' => array(
-      'hookable' => [
-        'namespace' => 'HRLeaveAndAbsences',
-        'extension' => 'uk.co.compucorp.civicrm.hrleaveandabsences',
-        'template_path' => 'templates/CRM/HRLeaveAndAbsences/Page/SampleReport.tpl'
-      ]
-
+    'People' => array(
+      'extensions' => array(
+        'org.civicrm.hrjobcontract'
+      ),
     ),
+    'Leave' => array(
+      'extensions' => array(
+        'uk.co.compucorp.civicrm.hrleaveandabsences',
+        'org.civicrm.hrjobcontract'
+      ),
+    ),
+//    'Sample' => array(
+//      'hookable' => [
+//        'namespace' => 'HRLeaveAndAbsences',
+//        'extension' => 'uk.co.compucorp.civicrm.hrleaveandabsences',
+//        'template_path' => 'templates/CRM/HRLeaveAndAbsences/Page/SampleReport.tpl'
+//      ]
+//
+//    ),
     'Prospect' => array(
       'extensions' => array(
         'uk.co.compucorp.civicrm.prospect',
