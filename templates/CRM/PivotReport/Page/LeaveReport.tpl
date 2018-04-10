@@ -44,6 +44,55 @@
                     time: false
                 });
             },
+            'derivedAttributes': {
+                'Absence Start Month': $.pivotUtilities.derivers.dateFormat('Absence Start Date', '%y-%m'),
+                'Absence End Month': $.pivotUtilities.derivers.dateFormat('Absence End Date', '%y-%m'),
+                'Group By Month': $.pivotUtilities.derivers.dateFormat('Absence Date', '%y-%m'),
+                'Absence Day of Week': $.pivotUtilities.derivers.dateFormat('Absence Date', '%w'),
+                'Contract Start Date (Grouped by month)': $.pivotUtilities.derivers.dateFormat('Contract Start Date', '%y-%m'),
+                'Contract End Date (Grouped by month)': $.pivotUtilities.derivers.dateFormat('Contract End Date', '%y-%m'),
+                'Role Start Date (Grouped by month)': $.pivotUtilities.derivers.dateFormat('Role Start Date', '%y-%m'),
+                'Role End Date (Grouped by month)': $.pivotUtilities.derivers.dateFormat('Role End Date', '%y-%m'),
+                'Activity Duration In Days': function(row) {
+                    if (row['Absence Calculation Unit'] === 'Days') {
+                        return Math.abs(row['Absence Amount']).toFixed(2);
+                    }
+
+                    return '';
+                },
+                'Activity Duration In Hours': function(row) {
+                    if (row['Absence Calculation Unit'] === 'Hours') {
+                        return Math.abs(row['Absence Amount']).toFixed(2);
+                    }
+
+                    return '';
+                },
+                'Absence Amount Taken': function(row) {
+                    if (!row['Is TOIL']) {
+                        return Math.abs(row['Absence Amount']).toFixed(2);
+                    }
+
+                    return '';
+                },
+                'Absence Amount Accrued': function(row) {
+                    if (row['Is TOIL']) {
+                        return Math.abs(row['Absence Amount']).toFixed(2);
+                    }
+
+                    return '';
+                },
+                'Absence Absolute Amount': function(row) {
+                    return Math.abs(row['Absence Amount']).toFixed(2);
+                },
+                'Absence Is Credit': function(row) {
+                    if (row['Is TOIL']) {
+                        return 'Yes';
+                    }
+
+                    return 'No';
+                }
+            },
+            'hiddenAttributes': ['Test', 'Expire Date']
         });
     });
 </script>
