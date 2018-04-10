@@ -3,7 +3,7 @@
         <fieldset>
             <legend>Working Dataset Filter</legend>
             <p>
-                The total number of items exceeds 1000. Only last 30 days loaded.
+                The total number of items exceeds 50000. Only last 30 days loaded.
                 Use this form to change the date range for which data needs to be
                 visualized.
             </p>
@@ -26,7 +26,7 @@
             'filter': true,
             'filterField': 'Absence Date',
             'initialLoad': {
-                'limit': 1000,
+                'limit': 50000,
                 'message': 'There are more than 1000 items, getting only items from last 30 days.',
                 'getFilter': function() {
                     var startDateFilterValue = new Date();
@@ -35,6 +35,14 @@
 
                     return new CRM.PivotReport.Filter(startDateFilterValue.toISOString().substring(0, 10), endDateFilterValue.toISOString().substring(0, 10));
                 }
+            },
+            'getCountParams': function(startDate, endDate) {
+                var params = {
+                    'start_date': startDate,
+                    'end_date': endDate
+                };
+
+                return params;
             },
             'initFilterForm': function(keyValueFromField, keyValueToField) {
                 keyValueFromField.crmDatepicker({

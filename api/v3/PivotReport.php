@@ -214,7 +214,7 @@ function civicrm_api3_pivot_report_getcount($params) {
   $entityInstance = new CRM_PivotReport_Entity($entity);
 
   return civicrm_api3_create_success(
-    (int) $entityInstance->getDataInstance()->getCount(),
+    (int) $entityInstance->getDataInstance()->getCount($params),
     $params
   );
 }
