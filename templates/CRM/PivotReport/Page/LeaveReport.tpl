@@ -92,7 +92,7 @@
                     return 'No';
                 }
             },
-            'hiddenAttributes': ['Test', 'Expire Date']
+            'hiddenAttributes': ['Is TOIL', 'Absence Amount', 'Absence Calculation Unit', 'Is TOIL']
         });
     });
 </script>
