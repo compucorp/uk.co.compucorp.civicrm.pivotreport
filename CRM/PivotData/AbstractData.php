@@ -155,7 +155,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
 
       if(isset($fields[$resultKey]['handler'])) {
         if(method_exists($this, $fields[$resultKey]['handler'])) {
-          $value = call_user_func([$this, $fields[$resultKey]['handler']], $value);
+          $value = call_user_func([$this, $fields[$resultKey]['handler']], $value, $data);
         }
       }
 
