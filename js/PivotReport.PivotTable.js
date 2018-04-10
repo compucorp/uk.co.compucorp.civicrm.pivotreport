@@ -514,9 +514,10 @@ CRM.PivotReport.PivotTable = (function($) {
     this.Preloader.reset();
     this.Preloader.setTitle('Loading filtered data');
     this.Preloader.show();
-
-    CRM.api3(this.config.entityName, 'getcount', this.config.getCountParams(filterValueFrom, filterValueTo)).done(function(result) {
-      var totalFiltered = parseInt(result.result, 10);
+    var countParams = this.config.getCountParams(filterValueFrom, filterValueTo);
+    countParams.entity = this.config.entityName;
+    CRM.api3('PivotReport', 'getcount', countParams).done(function(result) {
+      var totalFiltered = parseInt(result.values, 10);
 
       if (!totalFiltered) {
         that.Preloader.hide();

@@ -38,27 +38,9 @@
         },
         'getCountParams': function(startDate, endDate) {
           var params = {
-            'sequential': 1,
-            'is_current_revision': 1,
-            'is_deleted': 0,
-            'is_test': 0
+            'start_date': startDate,
+            'end_date': endDate
           };
-
-          var apiFilter = null;
-
-          if (startDate && endDate) {
-            apiFilter = {'BETWEEN': [startDate, endDate]};
-          }
-          else if (startDate && !endDate) {
-            apiFilter = {'>=': startDate};
-          }
-          else if (!startDate && endDate) {
-            apiFilter = {'<=': endDate};
-          }
-
-          if (apiFilter) {
-            params.activity_date_time = apiFilter;
-          }
 
           return params;
         },
