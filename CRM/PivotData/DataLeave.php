@@ -228,8 +228,28 @@ class CRM_PivotData_DataLeave extends CRM_PivotData_AbstractData {
 
       //Add Contact fields
       $fields['Contact']['display_name'] = ['name' => 'display_name', 'title' => ts('Employee display name')];
-      $fields['Contact']['birth_date'] = ['name' => 'birth_date', 'title' => ts('Employee age')];
-      $fields['Contact']['gender_id'] = ['name' => 'gender_id', 'title' => ts('Employee gender')];
+      $fields['Contact']['birth_date'] = [
+        'name' => 'birth_date',
+        'title' => ts('Employee age'),
+        'handler' => 'birthDateHandler'
+      ];
+
+      $fields['Contact']['gender_id'] = [
+        'name' => 'gender_id',
+        'title' => ts('Employee gender'),
+        'pseudoconstant' => [
+          'optionGroupName' => 'gender',
+        ],
+      ];
+
+      $lengthOfServiceID = $this->getCustomFieldID('Length_Of_Service', 'Contact_Length_Of_Service');
+      if ($lengthOfServiceID) {
+        $fields['Contact']['custom_' . $lengthOfServiceID] = [
+          'name' => 'custom_' . $lengthOfServiceID,
+          'title' => ts('Employee Length Of Service'),
+          'handler' => 'lengthOfServiceHandler'
+          ];
+      }
 
       //Add Contract fields
       $fields['HRJobContract']['id'] = ['name' => 'id', 'title' => ts('Contract ID')];
@@ -328,10 +348,12 @@ class CRM_PivotData_DataLeave extends CRM_PivotData_AbstractData {
    * Handler for the location_standard_hours field.
    *
    * @param int $locationHoursID
+   * @param array $rowData
+   *   Data for other fields belonging to same row as this field value.
    *
    * @return string
    */
-  protected function locationStandardHoursHandler($locationHoursID) {
+  protected function locationStandardHoursHandler($locationHoursID, $rowData) {
     return !empty($this->standardHoursOptions[$locationHoursID]) ?
       $this->standardHoursOptions[$locationHoursID] : '';
   }
@@ -370,6 +392,100 @@ class CRM_PivotData_DataLeave extends CRM_PivotData_AbstractData {
     $result = civicrm_api3('HRPayScale', 'get');
 
     return array_column($result['values'], 'pay_scale', 'id');
+  }
+
+  /**
+   * Gets the Age from the given birth date.
+   *
+   * @param \DateTime $birthDate
+   *
+   * @return int
+   */
+  private function getAge(DateTime $birthDate) {
+    $age = 0;
+    if ($birthDate < new DateTime('today')) {
+      $ageData = CRM_Utils_Date::calculateAge($birthDate->format('Y-m-d'));
+      $ageInYears = CRM_Utils_Array::value('years', $ageData);
+
+      if (isset($ageInYears)) {
+        $age = $ageInYears;
+      }
+    }
+
+    return $age;
+  }
+
+  /**
+   * Handler for the location_standard_hours field.
+   *
+   * @param string $birthDate
+   * @param array $rowData
+   *   Data for other fields belonging to same row as this field value.
+   *
+   * @return string
+   */
+  protected function birthDateHandler($birthDate, $rowData) {
+    if ($birthDate) {
+      return 'Not Set';
+    }
+
+    return $this->getAge(new DateTime($birthDate));
+  }
+
+
+  /**
+   * Handler for the length_of_service Contact custom field.
+   *
+   * @param int $lengthOfService
+   * @param array $rowData
+   *   Data for other fields belonging to same row as this field value.
+   *
+   * @return string
+   */
+  protected function lengthOfServiceHandler($lengthOfService, $rowData) {
+    if (empty($lengthOfService)) {
+      return 'Not Set';
+    }
+
+    $length = [];
+    $today = new DateTime();
+    $past = (new DateTime())->sub(new DateInterval('P' . $lengthOfService . 'D'));
+    $interval = $today->diff($past);
+
+    $years = intval($interval->format('%y'));
+    $months = intval($interval->format('%m'));
+    $days = intval($interval->format('%d'));
+
+    if ($years > 0) {
+      $length[] = $years > 1 ? "$years years" : "$years year";
+    }
+    if ($months > 0) {
+      $length[] = $months > 1 ? "$months months" : "$months month";
+    }
+    if ($days > 0) {
+      $length[] = $days > 1 ? "$days days" : "$days day";
+    }
+
+    return implode(' ', $length);
+  }
+
+
+  /**
+   * Gets the ID of a Custom field given the custom field name and the
+   * Custom group name it belongs to.
+   *
+   * @param string $name
+   * @param string $groupName
+   *
+   * @return mixed
+   */
+  private function getCustomFieldID($name, $groupName) {
+    $result = civicrm_api3('CustomField', 'get', [
+      'name' => $name,
+      'custom_group_id' => $groupName,
+    ]);
+
+    return !empty($result['id']) ? $result['id'] : null;
   }
 
   /**
