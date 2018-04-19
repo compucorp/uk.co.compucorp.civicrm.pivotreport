@@ -23,9 +23,8 @@ class CRM_PivotReport_Page_PivotReport extends CRM_Core_Page {
     $this->assign('canManagePivotReportConfig', true);
 
     if ($hookableData) {
-      if(!empty($hookableData['extension']) && !empty($hookableData['template_path'])) {
-        $templatePath = CRM_Core_Resources::singleton()->getPath($hookableData['extension'],$hookableData['template_path']);
-        $this->assign('templatePath', $templatePath);
+      if(!empty($hookableData['template_path'])) {
+        $this->assign('templatePath', $hookableData['template_path']);
       }
     }
 

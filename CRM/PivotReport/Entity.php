@@ -31,11 +31,10 @@ class CRM_PivotReport_Entity {
     ),
 //    'Sample' => array(
 //      'hookable' => [
-//        'namespace' => 'HRLeaveAndAbsences',
-//        'extension' => 'uk.co.compucorp.civicrm.hrleaveandabsences',
-//        'template_path' => 'templates/CRM/HRLeaveAndAbsences/Page/SampleReport.tpl'
+//        'data_class' => 'CRM_HRLeaveAndAbsences_PivotData_DataSample',
+//        'group_class' => 'CRM_HRLeaveAndAbsences_PivotCache_GroupSample',
+//        'template_path' => 'CRM/HRLeaveAndAbsences/Page/SampleReport.tpl'
 //      ]
-//
 //    ),
     'Prospect' => array(
       'extensions' => array(
@@ -223,8 +222,8 @@ class CRM_PivotReport_Entity {
     $reportEntityData = self::$entities[$this->entityName];
     $className = 'CRM_PivotData_Data' . $this->entityName;
 
-    if (!empty($reportEntityData['hookable']['namespace'])) {
-      $className = 'CRM_' . $reportEntityData['hookable']['namespace'] . '_PivotData_Data' . $this->entityName;
+    if (!empty($reportEntityData['hookable']['data_class'])) {
+      $className = $reportEntityData['hookable']['data_class'];
     }
 
     if (!class_exists($className)) {
@@ -247,8 +246,8 @@ class CRM_PivotReport_Entity {
     $reportEntityData = self::$entities[$this->entityName];
     $className = 'CRM_PivotCache_Group' . $this->entityName;
 
-    if (!empty($reportEntityData['hookable']['namespace'])) {
-      $className = 'CRM_' . $reportEntityData['hookable']['namespace'] . '_PivotCache_Group' . $this->entityName;
+    if (!empty($reportEntityData['hookable']['group_class'])) {
+     $className = $reportEntityData['hookable']['group_class'];
     }
 
     if (!class_exists($className)) {
