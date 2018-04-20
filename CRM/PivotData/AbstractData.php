@@ -76,7 +76,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
   /**
    * Name of data group.
    *
-   * @var string 
+   * @var string
    */
   protected $name = NULL;
 
@@ -353,8 +353,8 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
   protected function getPaginatedResults($inputParams, $offset = 0, $multiValuesOffset = 0, $page = 0, $index = NULL) {
     $result = array();
     $rowsCount = 0;
-    $entities = $this->getData($inputParams, $offset);
-    $formattedEntities = $this->formatResult($entities);
+    $rows = $this->getData($inputParams, $offset);
+    $formattedEntities = $this->formatResult($rows);
 
     unset($entities);
 

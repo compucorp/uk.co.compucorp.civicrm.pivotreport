@@ -6,7 +6,7 @@
 class CRM_PivotData_DataLeave extends CRM_PivotData_AbstractData {
 
   /**
-   * @var
+   * @var array
    */
   private $standardHoursOptions;
 
@@ -69,6 +69,8 @@ class CRM_PivotData_DataLeave extends CRM_PivotData_AbstractData {
 
   /**
    * Returns an array containing Entity fields.
+   *
+   * @param string $entityName
    *
    * @return array
    */
@@ -172,11 +174,12 @@ class CRM_PivotData_DataLeave extends CRM_PivotData_AbstractData {
     ];
 
     $params = array_merge($defaultParams, $params);
-    $action = $action ? $action : 'get';
+    $action = $action ?: 'get';
     $result = civicrm_api3($apiEntityName, $action, $params);
 
     return $result['values'];
   }
+
   /**
    * @inheritdoc
    */
@@ -440,13 +443,13 @@ class CRM_PivotData_DataLeave extends CRM_PivotData_AbstractData {
   }
 
   /**
-   * Gets the Age from the given birth date.
+   * Gets the Age from the given birth date in years.
    *
    * @param \DateTime $birthDate
    *
    * @return int
    */
-  private function getAge(DateTime $birthDate) {
+  private function getAgeInYears(DateTime $birthDate) {
     $age = 0;
     if ($birthDate < new DateTime('today')) {
       $ageData = CRM_Utils_Date::calculateAge($birthDate->format('Y-m-d'));
@@ -461,7 +464,7 @@ class CRM_PivotData_DataLeave extends CRM_PivotData_AbstractData {
   }
 
   /**
-   * Handler for the location_standard_hours field.
+   * Handler for the birth_date field.
    *
    * @param string $birthDate
    * @param array $rowData
@@ -474,7 +477,7 @@ class CRM_PivotData_DataLeave extends CRM_PivotData_AbstractData {
       return 'Not Set';
     }
 
-    return $this->getAge(new DateTime($birthDate));
+    return $this->getAgeInYears(new DateTime($birthDate));
   }
 
 
