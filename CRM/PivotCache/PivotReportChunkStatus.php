@@ -56,7 +56,7 @@ class CRM_PivotCache_PivotReportChunkStatus {
   public function __construct() {
     $values = PivotReportCache::getItem('admin', 'chunk_status');
 
-    $supportedEntities = Entity::getSupportedEntities();
+    $supportedEntities = array_keys(Entity::getSupportedEntities());
     $defaultEntity = array_shift($supportedEntities);
 
     $this->entity = !empty($values['entity']) ? $values['entity'] : $defaultEntity;
@@ -106,7 +106,7 @@ class CRM_PivotCache_PivotReportChunkStatus {
    * @return string
    */
   private function getNextEntity() {
-    $supportedEntities = Entity::getSupportedEntities();
+    $supportedEntities = array_keys(Entity::getSupportedEntities());
     $index = array_search($this->entity, $supportedEntities) + 1;
 
     if ($index === count($supportedEntities)) {

@@ -16,7 +16,7 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
 
   /**
    * Installation logic.
-   * 
+   *
    * @return boolean
    */
   public function install() {
@@ -34,7 +34,7 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
 
   /**
    * Uninstallation logic.
-   * 
+   *
    * @return boolean
    */
   public function uninstall()
@@ -51,7 +51,7 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
 
   /**
    * Install Pivot Report link under Reports menu.
-   * 
+   *
    * @return boolean
    */
   public function upgrade_0001() {
@@ -146,7 +146,7 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
       'is_active'  => 1
     ));
 
-    $entities = CRM_PivotReport_Entity::getSupportedEntities();
+    $entities = array_keys(CRM_PivotReport_Entity::getSupportedEntities());
     $pivotID = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'pivotreport', 'id', 'name');
     $weight = 0;
 
@@ -254,7 +254,7 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
 
   /**
    * Logic which is executing when enabling extension.
-   * 
+   *
    * @return boolean
    */
   public function onEnable() {
@@ -274,7 +274,7 @@ class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
 
   /**
    * Logic which is executing when disabling extension.
-   * 
+   *
    * @return boolean
    */
   public function onDisable() {

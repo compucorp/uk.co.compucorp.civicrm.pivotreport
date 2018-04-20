@@ -66,7 +66,7 @@ function civicrm_api3_pivot_report_rebuildcache($params) {
   if (!empty($params['entity'])) {
     $entities = array($params['entity']);
   } else {
-    $entities = CRM_PivotReport_Entity::getSupportedEntities();
+    $entities = array_keys(CRM_PivotReport_Entity::getSupportedEntities());
   }
 
   foreach ($entities as $entity) {
@@ -152,7 +152,7 @@ function civicrm_api3_pivot_report_getdatefields($params) {
  */
 function civicrm_api3_pivot_report_getsupportedentities($params) {
   return civicrm_api3_create_success(
-    CRM_PivotReport_Entity::getSupportedEntities(),
+    array_keys(CRM_PivotReport_Entity::getSupportedEntities()),
     $params
   );
 }
@@ -165,7 +165,7 @@ function civicrm_api3_pivot_report_getsupportedentities($params) {
  * @throws API_Exception
  */
 function civicrm_api3_pivot_report_getsupportedentitiescount($params) {
-  $entities = CRM_PivotReport_Entity::getSupportedEntities();
+  $entities = array_keys(CRM_PivotReport_Entity::getSupportedEntities());
   $result = array();
 
   foreach ($entities as $entity) {
@@ -187,7 +187,7 @@ function civicrm_api3_pivot_report_getsupportedentitiescount($params) {
  * @throws API_Exception
  */
 function civicrm_api3_pivot_report_gettotalcount($params) {
-  $entities = CRM_PivotReport_Entity::getSupportedEntities();
+  $entities = array_keys(CRM_PivotReport_Entity::getSupportedEntities());
   $totalCount = 0;
 
   foreach ($entities as $entity) {

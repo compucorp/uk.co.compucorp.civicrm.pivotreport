@@ -1,5 +1,7 @@
 <?php
 
+use CRM_PivotReport_Hook_AddPivotReportEntities as AddPivotReportEntitiesHook;
+
 class CRM_PivotReport_Entity {
 
   /**
@@ -91,7 +93,7 @@ class CRM_PivotReport_Entity {
    * @return bool
    */
   private function isSupported() {
-    return in_array($this->entityName, self::getSupportedEntities());
+    return array_key_exists($this->entityName, self::getSupportedEntities());
   }
 
   /**
@@ -105,7 +107,7 @@ class CRM_PivotReport_Entity {
    * @return array
    */
   public static function getHookableData($entityName) {
-    $reportEntityData = self::$entities[$entityName];
+    $reportEntityData = self::getSupportedEntities()[$entityName];
 
     if(!empty($reportEntityData['hookable'])) {
       return $reportEntityData['hookable'];
@@ -121,7 +123,9 @@ class CRM_PivotReport_Entity {
    */
   public static function getSupportedEntities() {
     if (empty(self::$supportedEntities)) {
-      foreach (self::$entities as $key => $value) {
+      $additionalEntities = AddPivotReportEntitiesHook::invoke();
+      $entities = array_merge($additionalEntities, self::$entities);
+      foreach ($entities as $key => $value) {
         // Check all required components.
         if (!empty($value['components']) && !self::checkComponents($value['components'])) {
           continue;
@@ -137,7 +141,7 @@ class CRM_PivotReport_Entity {
           continue;
         }
 
-        self::$supportedEntities[] = $key;
+        self::$supportedEntities[$key] = $value;
       }
     }
 
@@ -219,7 +223,7 @@ class CRM_PivotReport_Entity {
    * @throws Exception
    */
   public function getDataInstance() {
-    $reportEntityData = self::$entities[$this->entityName];
+    $reportEntityData = self::getSupportedEntities()[$this->entityName];
     $className = 'CRM_PivotData_Data' . $this->entityName;
 
     if (!empty($reportEntityData['hookable']['data_class'])) {
@@ -243,7 +247,7 @@ class CRM_PivotReport_Entity {
    * @throws Exception
    */
   public function getGroupInstance($source = NULL) {
-    $reportEntityData = self::$entities[$this->entityName];
+    $reportEntityData = self::getSupportedEntities()[$this->entityName];
     $className = 'CRM_PivotCache_Group' . $this->entityName;
 
     if (!empty($reportEntityData['hookable']['group_class'])) {

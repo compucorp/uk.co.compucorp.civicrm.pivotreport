@@ -8,7 +8,7 @@ class CRM_PivotReport_Page_PivotReport extends CRM_Core_Page {
 
     $entity = !empty($args[1]['entity']) ? $args[1]['entity'] : NULL;
     $entityInstance = new CRM_PivotReport_Entity($entity);
-    $supportedEntities = CRM_PivotReport_Entity::getSupportedEntities();
+    $supportedEntities = array_keys(CRM_PivotReport_Entity::getSupportedEntities());
     $entityGroupInstance = $entityInstance->getGroupInstance();
     $hookableData = CRM_PivotReport_Entity::getHookableData($entity);
 
