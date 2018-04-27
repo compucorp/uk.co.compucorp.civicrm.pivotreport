@@ -88,6 +88,13 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
   protected $apiEntityName = NULL;
 
   /**
+   * Array with customized labels to be used for current installation.
+   *
+   * @var array
+   */
+  protected $customLabels = array();
+
+  /**
    * CRM_PivotData_AbstractData constructor.
    *
    * Some entities may have different API name than data group name. In this case
@@ -104,11 +111,70 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
     $this->name = $name;
     $this->apiEntityName = $apiEntityName ? $apiEntityName : $name;
 
+    $this->loadLabelCustomizations();
     $dateFields = $this->getDateFields();
 
     foreach ($dateFields as $field) {
       $this->additionalHeaderFields[$field . ' (' . ts('per month') . ')'] = '';
     }
+  }
+
+  /**
+   * Loads customized labels from json configuration files.
+   */
+  private function loadLabelCustomizations() {
+    $className = strtr(get_class($this), array('CRM_PivotData_' => ''));
+    $customLabelsFileName = $this->getDefaultResourcesPath() . 'custom_labels/' . $className . '.json';
+
+    if(file_exists($customLabelsFileName)) {
+      $jsonData = file_get_contents($customLabelsFileName);
+      $this->customLabels = json_decode($jsonData, true);
+    }
+  }
+
+  /**
+   * Returns default resources path of the extension.
+   *
+   * @return string
+   */
+  private function getDefaultResourcesPath() {
+    return realpath(__DIR__ . '/../../') . '/resources/';
+  }
+
+  /**
+   * Replaces fields' titles with customized labels.
+   *
+   * @param array $fields
+   *
+   * @return array
+   */
+  protected function replaceCustomLabelsForFieldTitles(&$fields) {
+    foreach ($fields as $key => $field) {
+      if (is_array($field)) {
+        $title = CRM_Utils_Array::value('title', $field, '');
+        $fields[$key]['title'] = $this->replaceCustomLabels($title);
+      } else {
+        $fields[$key] = $this->replaceCustomLabels($field);
+      }
+    }
+  }
+
+  /**
+   * Searches label in customized labels array and returns mapped string value
+   * if it is found. Otherwise returns same label.
+   *
+   * @param string $label
+   *
+   * @return string
+   */
+  protected function replaceCustomLabels($label) {
+    $translatedLabel = CRM_Utils_Array::value($label, $this->customLabels, '');
+
+    if (!empty($translatedLabel)) {
+      return $this->customLabels[$label];
+    }
+
+    return $label;
   }
 
   /**
@@ -189,7 +255,6 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
       if (!empty($fields[$key]['title'])) {
         $label = $fields[$key]['title'];
       }
-      $label = ts($label);
 
       $formattedValue = $this->formatValue($key, $value);
       $result[$label] = $formattedValue;
@@ -342,6 +407,9 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
    * Returns pivot count cache value.
    *
    * @param \CRM_PivotCache_AbstractGroup $cacheGroup
+   *
+   * @return object
+   *   The data if present in cache, else null
    */
   public function getPivotCount(AbstractGroup $cacheGroup) {
     return $cacheGroup->getCacheValue('pivotCount');

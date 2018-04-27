@@ -1,0 +1,2 @@
+resources/custom_labels/*
+!resources/custom_labels/.gitkeep

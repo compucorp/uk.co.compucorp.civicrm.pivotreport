@@ -69,8 +69,9 @@ class CRM_PivotData_DataProspect extends CRM_PivotData_DataCase {
             )
           );
 
+          $label = $this->replaceCustomLabels(ts('Pledge Balance'));
           $paymentValues = $this->getRowValues($pledge['values'][0], 'pledge');
-          $paymentValues[ts('Pledge Balance')] = CRM_Utils_Money::format((float) $paymentValues['pledge.pledge_amount'] - (float) $paymentValues[$fields['pledge.pledge_total_paid']], NULL, NULL, TRUE);
+          $paymentValues[$label] = CRM_Utils_Money::format((float) $paymentValues['pledge.pledge_amount'] - (float) $paymentValues[$fields['pledge.pledge_total_paid']], NULL, NULL, TRUE);
         }
       }
 
@@ -105,7 +106,6 @@ class CRM_PivotData_DataProspect extends CRM_PivotData_DataCase {
       }
 
       $keys['case'] = CRM_Case_DAO_Case::fieldKeys();
-      $result = array();
 
       // Now get Custom Fields of Case entity.
       $customFieldsResult = CRM_Core_DAO::executeQuery(
@@ -170,6 +170,7 @@ class CRM_PivotData_DataProspect extends CRM_PivotData_DataCase {
         $fields['pledge'][$fieldKey] = $pledgeFields[$fieldKey];
       }
 
+      $result = array();
       foreach ($groups as $group => $entity) {
         foreach ($fields[$group] as $key => $value) {
           if (!empty($value['name']) && !empty($keys[$group][$value['name']])) {
@@ -183,9 +184,11 @@ class CRM_PivotData_DataProspect extends CRM_PivotData_DataCase {
         }
       }
 
+      $this->replaceCustomLabelsForFieldTitles($result);
       $this->fields = $result;
     }
 
     return $this->fields;
   }
+
 }

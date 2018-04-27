@@ -63,7 +63,7 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
   }
 
   /**
-   * Builds an array with client's data impleded for each field, to handle cases
+   * Builds an array with client's data imploded for each field, to handle cases
    * with multiple clients.
    *
    * @param array $clients
@@ -157,16 +157,18 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
    * @return array
    */
   protected function getManager($contacts) {
+    $caseManagerLabel = $this->replaceCustomLabels(ts('Case Manager Display Name'));
+
     foreach ($contacts as $contact) {
       if (!empty($contact['manager']) && (int) $contact['manager'] === 1) {
         return array(
-          ts('Case Manager Display Name') => $contact['display_name'],
+          $caseManagerLabel => $contact['display_name'],
         );
       }
     }
 
     return array(
-      ts('Case Manager Display Name') => '',
+      $caseManagerLabel => '',
     );
   }
 
@@ -245,6 +247,7 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
         }
       }
 
+      $this->replaceCustomLabelsForFieldTitles($result);
       $this->fields = $result;
     }
 
