@@ -189,7 +189,7 @@ class CRM_PivotData_DataActivity extends CRM_PivotData_AbstractData {
         $result[$key]['optionValues'] = $this->getOptionValues($value);
       }
 
-      $this->replaceCustomLabelsForFieldTitles($result);
+      $this->replaceFieldTitlesWithCustomLabels($result);
       $this->fields = $result;
     }
 

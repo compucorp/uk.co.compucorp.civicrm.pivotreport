@@ -19,7 +19,10 @@ class CRM_PivotData_DataProspect extends CRM_PivotData_DataCase {
     $params = array(
       'sequential' => 1,
       'is_deleted' => 0,
-      'api.Contact.get' => array('id' => '$value.client_id', 'return' => array('id', 'contact_type', 'contact_sub_type', 'display_name')),
+      'api.Contact.get' => array(
+        'id' => '$value.client_id',
+        'return' => $this->getClientFields(),
+      ),
       'api.ProspectConverted.get' => array('prospect_case_id' => '$value.id'),
       'return' => array_merge($this->getCaseFields(), array('subject', 'contacts', 'contact_id')),
       'options' => array(
@@ -29,6 +32,29 @@ class CRM_PivotData_DataProspect extends CRM_PivotData_DataCase {
     );
 
     return $params;
+  }
+
+  /**
+   * Builds array of fields to be returned in API call to get client data.
+   */
+  private function getClientFields() {
+    $result = array(
+      'id',
+      'contact_type',
+      'contact_sub_type',
+      'display_name',
+    );
+    $fields = array_keys($this->getFields());
+
+    foreach ($fields as $currentField) {
+      $fieldParts = explode('.', $currentField);
+
+      if ($fieldParts[0] === 'client' && !in_array($fieldParts[1], $result)) {
+        $result[] = $fieldParts[1];
+      }
+    }
+
+    return $result;
   }
 
   /**
@@ -170,6 +196,9 @@ class CRM_PivotData_DataProspect extends CRM_PivotData_DataCase {
         $fields['pledge'][$fieldKey] = $pledgeFields[$fieldKey];
       }
 
+      // Include Additional Custom Fields
+      $this->loadAdditionalCustomFields($fields);
+
       $result = array();
       foreach ($groups as $group => $entity) {
         foreach ($fields[$group] as $key => $value) {
@@ -179,16 +208,32 @@ class CRM_PivotData_DataProspect extends CRM_PivotData_DataCase {
           $result[$group . '.' . $key] = $value;
 
           if (is_array($value)) {
-            $result[$group . '.' . $key]['optionValues'] = $this->getOptionValues($value, $entity);
+            $fieldEntity = empty($value['entity']) ? $entity : $value['entity'];
+            $result[$group . '.' . $key]['optionValues'] = $this->getOptionValues($value, $fieldEntity);
           }
         }
       }
 
-      $this->replaceCustomLabelsForFieldTitles($result);
+      $this->replaceFieldTitlesWithCustomLabels($result);
       $this->fields = $result;
     }
 
     return $this->fields;
+  }
+
+  /**
+   * Loads additional fields to be added to report, as set in customization
+   * files, into the given array.
+   *
+   * @param array $fields
+   */
+  protected function loadAdditionalCustomFields(&$fields) {
+    foreach ($this->customFields as $group => $customFields) {
+      foreach ($customFields as $fieldData) {
+        $field = $this->loadCustomFieldData($fieldData);
+        $fields[$group][$field['name']] = $field;
+      }
+    }
   }
 
 }

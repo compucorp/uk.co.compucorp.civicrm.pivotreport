@@ -95,6 +95,13 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
   protected $customLabels = array();
 
   /**
+   * Extra custom fields to be added to the report.
+   *
+   * @var array
+   */
+  protected $customFields = array();
+
+  /**
    * CRM_PivotData_AbstractData constructor.
    *
    * Some entities may have different API name than data group name. In this case
@@ -111,7 +118,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
     $this->name = $name;
     $this->apiEntityName = $apiEntityName ? $apiEntityName : $name;
 
-    $this->loadLabelCustomizations();
+    $this->loadCustomizations();
     $dateFields = $this->getDateFields();
 
     foreach ($dateFields as $field) {
@@ -120,15 +127,18 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
   }
 
   /**
-   * Loads customized labels from json configuration files.
+   * Loads customizations from json configuration files.
    */
-  private function loadLabelCustomizations() {
+  private function loadCustomizations() {
     $className = strtr(get_class($this), array('CRM_PivotData_' => ''));
-    $customLabelsFileName = $this->getDefaultResourcesPath() . 'custom_labels/' . $className . '.json';
+    $customizationsFile = $this->getDefaultResourcesPath() . 'customizations/' . $className . '.json';
 
-    if(file_exists($customLabelsFileName)) {
-      $jsonData = file_get_contents($customLabelsFileName);
-      $this->customLabels = json_decode($jsonData, true);
+    if(file_exists($customizationsFile)) {
+      $jsonData = file_get_contents($customizationsFile);
+      $customizations = json_decode($jsonData, true);
+
+      $this->customLabels = $customizations['field_labels'];
+      $this->customFields = $customizations['custom_fields'];
     }
   }
 
@@ -148,7 +158,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
    *
    * @return array
    */
-  protected function replaceCustomLabelsForFieldTitles(&$fields) {
+  protected function replaceFieldTitlesWithCustomLabels(&$fields) {
     foreach ($fields as $key => $field) {
       if (is_array($field)) {
         $title = CRM_Utils_Array::value('title', $field, '');
@@ -175,6 +185,51 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
     }
 
     return $label;
+  }
+
+  /**
+   * Loads data for the given custom field.
+   *
+   * @param array $field
+   *   Array with the field's data, with the field's name and the field's group
+   *
+   * @return array
+   */
+  protected function loadCustomFieldData($field) {
+    if (empty($field['name']) || empty($field['group'])) {
+      return array();
+    }
+
+    $sql = '
+      SELECT g.id AS group_id, f.id AS id, f.label AS label, f.data_type AS data_type, 
+             f.html_type AS html_type, f.date_format AS date_format, 
+             og.name AS option_group_name 
+        FROM `civicrm_custom_group` g 
+   LEFT JOIN `civicrm_custom_field` f ON f.custom_group_id = g.id 
+   LEFT JOIN `civicrm_option_group` og ON og.id = f.option_group_id 
+       WHERE f.name = %1
+         AND g.name = %2
+    ';
+    $customFieldsResult = CRM_Core_DAO::executeQuery($sql, array(
+      1 => array($field['name'], 'String'),
+      2 => array($field['group'], 'String'),
+    ));
+    $customFieldsResult->fetch();
+
+    $customField = new CRM_Core_BAO_CustomField();
+    $customField->id = $customFieldsResult->id;
+    $customField->find(true);
+
+    $field = array(
+      'name' => 'custom_' . $customFieldsResult->id,
+      'title' => $customFieldsResult->label,
+      'pseudoconstant' => array(
+        'optionGroupName' => $customFieldsResult->option_group_name,
+      ),
+      'customField' => (array)$customField,
+    );
+
+    return $field;
   }
 
   /**

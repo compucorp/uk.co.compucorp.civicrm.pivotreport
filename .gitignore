@@ -1,2 +1,2 @@
-resources/custom_labels/*
-!resources/custom_labels/.gitkeep
+resources/customizations/*
+!resources/customizations/.gitkeep
