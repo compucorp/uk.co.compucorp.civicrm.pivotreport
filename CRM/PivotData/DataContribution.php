@@ -160,6 +160,7 @@ class CRM_PivotData_DataContribution extends CRM_PivotData_AbstractData {
         }
       }
 
+      $this->replaceCustomizedFieldLabels($result);
       $this->fields = $result;
     }
 

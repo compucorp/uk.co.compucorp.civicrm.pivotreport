@@ -1,0 +1,2 @@
+resources/customizations/*
+!resources/customizations/.gitkeep

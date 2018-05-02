@@ -88,6 +88,20 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
   protected $apiEntityName = NULL;
 
   /**
+   * Array with customized labels to be used for current installation.
+   *
+   * @var array
+   */
+  protected $customLabels = array();
+
+  /**
+   * Extra custom fields to be added to the report.
+   *
+   * @var array
+   */
+  protected $customFields = array();
+
+  /**
    * CRM_PivotData_AbstractData constructor.
    *
    * Some entities may have different API name than data group name. In this case
@@ -104,11 +118,107 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
     $this->name = $name;
     $this->apiEntityName = $apiEntityName ? $apiEntityName : $name;
 
+    $this->loadCustomizations();
     $dateFields = $this->getDateFields();
 
     foreach ($dateFields as $field) {
       $this->additionalHeaderFields[$field . ' (' . ts('per month') . ')'] = '';
     }
+  }
+
+  /**
+   * Loads customizations from json configuration files.
+   */
+  private function loadCustomizations() {
+    $className = strtr(get_class($this), array('CRM_PivotData_' => ''));
+    $extensionPath = CRM_Core_Resources::singleton()->getPath('uk.co.compucorp.civicrm.pivotreport');
+    $customizationsFile = $extensionPath . '/resources/customizations/' . $className . '.json';
+
+    if(file_exists($customizationsFile)) {
+      $jsonData = file_get_contents($customizationsFile);
+      $customizations = json_decode($jsonData, true);
+
+      $this->customLabels = $customizations['field_labels'];
+      $this->customFields = $customizations['custom_fields'];
+    }
+  }
+
+  /**
+   * Replaces fields' titles with customized labels.
+   *
+   * @param array $fields
+   *
+   * @return array
+   */
+  protected function replaceCustomizedFieldLabels(&$fields) {
+    foreach ($fields as $key => $field) {
+      if (is_array($field)) {
+        $title = CRM_Utils_Array::value('title', $field, '');
+        $fields[$key]['title'] = $this->replaceCustomLabel($title);
+      } else {
+        $fields[$key] = $this->replaceCustomLabel($field);
+      }
+    }
+  }
+
+  /**
+   * Searches label in customized labels array and returns mapped string value
+   * if it is found. Otherwise returns same label.
+   *
+   * @param string $label
+   *
+   * @return string
+   */
+  protected function replaceCustomLabel($label) {
+    $translatedLabel = CRM_Utils_Array::value($label, $this->customLabels, '');
+
+    if (!empty($translatedLabel)) {
+      return $this->customLabels[$label];
+    }
+
+    return $label;
+  }
+
+  /**
+   * Loads data for the given custom field.
+   *
+   * @param string $fieldName
+   * @param string $customGroupName
+   *
+   * @return array
+   */
+  protected function loadCustomFieldData($fieldName, $customGroupName) {
+    if (empty($fieldName) || empty($customGroupName)) {
+      return array();
+    }
+
+    try {
+      $apiResult = civicrm_api3('CustomField', 'get', array(
+        'sequential' => 1,
+        'custom_group_id' => $customGroupName,
+        'name' => $fieldName,
+        'api.OptionGroup.getsingle' => array('id' => '$value.option_group_id'),
+      ));
+    } catch (Exception $e) {
+      return array();
+    }
+
+    if ($apiResult['count'] <= 0) {
+      return array();
+    }
+
+    $customField = $apiResult['values'][0];
+
+    $field = array(
+      'name' => 'custom_' . $customField['id'],
+      'title' => $customField['label'],
+      'pseudoconstant' => array(
+        'optionGroupName' => $customField['api.OptionGroup.getsingle']['name'],
+      ),
+      'customField' => $customField,
+    );
+
+    return $field;
   }
 
   /**
@@ -189,7 +299,6 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
       if (!empty($fields[$key]['title'])) {
         $label = $fields[$key]['title'];
       }
-      $label = ts($label);
 
       $formattedValue = $this->formatValue($key, $value);
       $result[$label] = $formattedValue;
@@ -342,6 +451,9 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
    * Returns pivot count cache value.
    *
    * @param \CRM_PivotCache_AbstractGroup $cacheGroup
+   *
+   * @return object
+   *   The data if present in cache, else null
    */
   public function getPivotCount(AbstractGroup $cacheGroup) {
     return $cacheGroup->getCacheValue('pivotCount');
