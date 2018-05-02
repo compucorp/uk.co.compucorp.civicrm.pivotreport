@@ -95,9 +95,9 @@ class CRM_PivotData_DataProspect extends CRM_PivotData_DataCase {
             )
           );
 
-          $label = $this->replaceCustomLabels(ts('Pledge Balance'));
+          $pledgeBalanceLabel = $this->replaceCustomLabel(ts('Pledge Balance'));
           $paymentValues = $this->getRowValues($pledge['values'][0], 'pledge');
-          $paymentValues[$label] = CRM_Utils_Money::format((float) $paymentValues['pledge.pledge_amount'] - (float) $paymentValues[$fields['pledge.pledge_total_paid']], NULL, NULL, TRUE);
+          $paymentValues[$pledgeBalanceLabel] = CRM_Utils_Money::format((float) $paymentValues['pledge.pledge_amount'] - (float) $paymentValues[$fields['pledge.pledge_total_paid']], NULL, NULL, TRUE);
         }
       }
 
@@ -214,7 +214,7 @@ class CRM_PivotData_DataProspect extends CRM_PivotData_DataCase {
         }
       }
 
-      $this->replaceFieldTitlesWithCustomLabels($result);
+      $this->replaceCustomizedFieldLabels($result);
       $this->fields = $result;
     }
 
@@ -230,8 +230,14 @@ class CRM_PivotData_DataProspect extends CRM_PivotData_DataCase {
   protected function loadAdditionalCustomFields(&$fields) {
     foreach ($this->customFields as $group => $customFields) {
       foreach ($customFields as $fieldData) {
-        $field = $this->loadCustomFieldData($fieldData);
-        $fields[$group][$field['name']] = $field;
+        $fieldName = CRM_Utils_Array::value('name', $fieldData);
+        $groupName = CRM_Utils_Array::value('group', $fieldData);
+
+        $field = $this->loadCustomFieldData($fieldName, $groupName);
+
+        if (!empty($field)) {
+          $fields[$group][$field['name']] = $field;
+        }
       }
     }
   }

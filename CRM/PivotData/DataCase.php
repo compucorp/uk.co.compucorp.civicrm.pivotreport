@@ -157,7 +157,7 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
    * @return array
    */
   protected function getManager($contacts) {
-    $caseManagerLabel = $this->replaceCustomLabels(ts('Case Manager Display Name'));
+    $caseManagerLabel = $this->replaceCustomLabel(ts('Case Manager Display Name'));
 
     foreach ($contacts as $contact) {
       if (!empty($contact['manager']) && (int) $contact['manager'] === 1) {
@@ -247,7 +247,7 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
         }
       }
 
-      $this->replaceFieldTitlesWithCustomLabels($result);
+      $this->replaceCustomizedFieldLabels($result);
       $this->fields = $result;
     }
 

@@ -131,7 +131,8 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
    */
   private function loadCustomizations() {
     $className = strtr(get_class($this), array('CRM_PivotData_' => ''));
-    $customizationsFile = $this->getDefaultResourcesPath() . 'customizations/' . $className . '.json';
+    $extensionPath = CRM_Core_Resources::singleton()->getPath('uk.co.compucorp.civicrm.pivotreport');
+    $customizationsFile = $extensionPath . '/resources/customizations/' . $className . '.json';
 
     if(file_exists($customizationsFile)) {
       $jsonData = file_get_contents($customizationsFile);
@@ -143,28 +144,19 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
   }
 
   /**
-   * Returns default resources path of the extension.
-   *
-   * @return string
-   */
-  private function getDefaultResourcesPath() {
-    return realpath(__DIR__ . '/../../') . '/resources/';
-  }
-
-  /**
    * Replaces fields' titles with customized labels.
    *
    * @param array $fields
    *
    * @return array
    */
-  protected function replaceFieldTitlesWithCustomLabels(&$fields) {
+  protected function replaceCustomizedFieldLabels(&$fields) {
     foreach ($fields as $key => $field) {
       if (is_array($field)) {
         $title = CRM_Utils_Array::value('title', $field, '');
-        $fields[$key]['title'] = $this->replaceCustomLabels($title);
+        $fields[$key]['title'] = $this->replaceCustomLabel($title);
       } else {
-        $fields[$key] = $this->replaceCustomLabels($field);
+        $fields[$key] = $this->replaceCustomLabel($field);
       }
     }
   }
@@ -177,7 +169,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
    *
    * @return string
    */
-  protected function replaceCustomLabels($label) {
+  protected function replaceCustomLabel($label) {
     $translatedLabel = CRM_Utils_Array::value($label, $this->customLabels, '');
 
     if (!empty($translatedLabel)) {
@@ -190,43 +182,40 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
   /**
    * Loads data for the given custom field.
    *
-   * @param array $field
-   *   Array with the field's data, with the field's name and the field's group
+   * @param string $fieldName
+   * @param string $customGroupName
    *
    * @return array
    */
-  protected function loadCustomFieldData($field) {
-    if (empty($field['name']) || empty($field['group'])) {
+  protected function loadCustomFieldData($fieldName, $customGroupName) {
+    if (empty($fieldName) || empty($customGroupName)) {
       return array();
     }
 
-    $sql = '
-      SELECT g.id AS group_id, f.id AS id, f.label AS label, f.data_type AS data_type, 
-             f.html_type AS html_type, f.date_format AS date_format, 
-             og.name AS option_group_name 
-        FROM `civicrm_custom_group` g 
-   LEFT JOIN `civicrm_custom_field` f ON f.custom_group_id = g.id 
-   LEFT JOIN `civicrm_option_group` og ON og.id = f.option_group_id 
-       WHERE f.name = %1
-         AND g.name = %2
-    ';
-    $customFieldsResult = CRM_Core_DAO::executeQuery($sql, array(
-      1 => array($field['name'], 'String'),
-      2 => array($field['group'], 'String'),
-    ));
-    $customFieldsResult->fetch();
+    try {
+      $apiResult = civicrm_api3('CustomField', 'get', array(
+        'sequential' => 1,
+        'custom_group_id' => $customGroupName,
+        'name' => $fieldName,
+        'api.OptionGroup.getsingle' => array('id' => '$value.option_group_id'),
+      ));
+    } catch (Exception $e) {
+      return array();
+    }
 
-    $customField = new CRM_Core_BAO_CustomField();
-    $customField->id = $customFieldsResult->id;
-    $customField->find(true);
+    if ($apiResult['count'] <= 0) {
+      return array();
+    }
+
+    $customField = $apiResult['values'][0];
 
     $field = array(
-      'name' => 'custom_' . $customFieldsResult->id,
-      'title' => $customFieldsResult->label,
+      'name' => 'custom_' . $customField['id'],
+      'title' => $customField['label'],
       'pseudoconstant' => array(
-        'optionGroupName' => $customFieldsResult->option_group_name,
+        'optionGroupName' => $customField['api.OptionGroup.getsingle']['name'],
       ),
-      'customField' => (array)$customField,
+      'customField' => $customField,
     );
 
     return $field;

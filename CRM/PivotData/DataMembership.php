@@ -137,7 +137,7 @@ class CRM_PivotData_DataMembership extends CRM_PivotData_AbstractData {
         }
       }
 
-      $this->replaceFieldTitlesWithCustomLabels($result);
+      $this->replaceCustomizedFieldLabels($result);
       $this->fields = $result;
     }
 

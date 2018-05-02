@@ -189,7 +189,7 @@ class CRM_PivotData_DataActivity extends CRM_PivotData_AbstractData {
         $result[$key]['optionValues'] = $this->getOptionValues($value);
       }
 
-      $this->replaceFieldTitlesWithCustomLabels($result);
+      $this->replaceCustomizedFieldLabels($result);
       $this->fields = $result;
     }
 
@@ -224,8 +224,8 @@ class CRM_PivotData_DataActivity extends CRM_PivotData_AbstractData {
   public function getDateFields() {
     $result = parent::getDateFields();
 
-    $result[] = $this->replaceCustomLabels(ts('Activity Date'));
-    $result[] = $this->replaceCustomLabels(ts('Activity Expire Date'));
+    $result[] = $this->replaceCustomLabel(ts('Activity Date'));
+    $result[] = $this->replaceCustomLabel(ts('Activity Expire Date'));
 
     return $result;
   }
