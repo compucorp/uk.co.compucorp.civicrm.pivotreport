@@ -16,7 +16,16 @@
     </fieldset>
   </form>
 </div>
-
+<div id="pivot-report-record-filter-form" class="hidden">
+  <form>
+    <label>Headcount on date:</label><br />
+    <input name="headCountOnDate" class="crm-ui-datepicker" />
+    <hr />
+    <button class"btn btn-primary" type="submit">
+      Filter
+    </button>
+  </form>
+</div>
 {literal}
 <script type="text/javascript">
   CRM.$(function ($) {
@@ -25,6 +34,25 @@
       'cacheBuilt': {/literal}{$cacheBuilt|var_export:true}{literal},
       'filter': true,
       'filterField': 'Contract Start Date',
+      'recordFilter': function (record) {
+        var endsAfterDate, hasValidStartDates, startsBeforeDate;
+        var date = moment(this.recordFilterValues.headCountOnDate);
+        var contract = {
+          start: moment(record['Contract Start Date']),
+          end: moment(record['Contract End Date'])
+        };
+        var role = {
+          start: moment(record['Role Start Date']),
+          end: moment(record['Role End Date'])
+        };
+
+        hasValidStartDates = contract.start.isValid() && role.start.isValid();
+        startsBeforeDate = contract.start.isSameOrBefore(date) && role.start.isSameOrBefore(date);
+        endsAfterDate = (!contract.end.isValid() || date.isBetween(contract.start, contract.end, null, '[]'))
+          && (!role.end.isValid() || date.isBetween(role.start, role.end, null, '[]'));
+
+        return hasValidStartDates && startsBeforeDate && endsAfterDate;
+      },
       'initialLoad': {
         'limit': 1000,
         'message': 'There are more than 1000 items, getting only items from last 30 days.',
