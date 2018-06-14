@@ -55,37 +55,24 @@ CRM.PivotReport.PivotTable = (function ($) {
   }
 
   /**
-   * Sets the default values for the record filter form. For dates, the default
-   * value is today's date.
+   * Applies specified config for current Pivot Table data.
+   *
+   * @param {array} data
    */
-  PivotTable.prototype.initRecordFilterDefaultValues = function () {
-    var today = moment().format('YYYY-MM-DD');
+  PivotTable.prototype.applyConfig = function (config) {
+    var data = this.data;
+    this.lastPivotConfig = config;
 
-    this.recordFilterForm.find('.crm-ui-datepicker')
-      .filter(function () {
-        return _.isEmpty($(this).val());
-      })
-      .val(today)
-      .change();
-  };
+    this.storeRecordFilterValues();
 
-  /**
-   * Stores the values of the record filter form in a map object.
-   */
-  PivotTable.prototype.storeRecordFilterValues = function () {
-    this.recordFilterValues = {};
-
-    this.recordFilterForm.find('form').serializeArray()
-      .forEach(function (field) {
-        this.recordFilterValues[field.name] = field.value;
+    if (this.config.recordFilter) {
+      data = _.filter(this.data, function (record) {
+        return this.config.recordFilter.call(this, record);
       }.bind(this));
-  };
+    }
 
-  /**
-   * Removes standard Print CiviCRM icon on Pivot Report pages.
-   */
-  PivotTable.prototype.removePrintIcon = function () {
-    $('div#printer-friendly').remove();
+    this.pivotTableContainer.pivotUI(data, config, true);
+    this.postRender();
   };
 
   PivotTable.prototype.checkCacheBuilt = function () {
@@ -94,6 +81,68 @@ CRM.PivotReport.PivotTable = (function ($) {
     } else {
       $('#pivot-report-config, #pivot-report-filters, #pivot-report-table').addClass('hidden');
     }
+  };
+
+  /**
+   * Given a fieldname, uses start and end dates set on inputs to filter values.
+   *
+   * @param string fieldName
+   *   Name of the field to be filtered
+   * @param bool applyOnly
+   *   Do we want to use filter values for apply only?
+   *   If so, then we don't change checkboxes status but only show/hide
+   *   checkboxes basing on date filter values.
+   */
+  PivotTable.prototype.filterDateValues = function (fieldName, applyOnly) {
+    var that = this;
+    var startDateValue = $('#fld_' + fieldName + '_start').val();
+    var endDateValue = $('#fld_' + fieldName + '_end').val();
+
+    $('input.' + fieldName).each(function () {
+      var checkDateValue = $('span.value', $(this).parent()).text();
+      var checked = false;
+      var dateChecker = new CRM.PivotReport.Dates(that.crmConfig);
+
+      if (dateChecker.dateInRange(checkDateValue, startDateValue, endDateValue)) {
+        checked = true;
+      }
+
+      if (!applyOnly) {
+        if (checked && !$(this).is(':checked')) {
+          $(this).prop('checked', true).toggleClass('changed');
+        } else if (!checked && $(this).is(':checked')) {
+          $(this).prop('checked', false).toggleClass('changed');
+        }
+      }
+
+      if (checked) {
+        $(this).parent().parent().show();
+      } else {
+        $(this).parent().parent().hide();
+      }
+    });
+  };
+
+  /**
+   * Returns current date in YYYYMMDD_HHII format.
+   *
+   * @returns {String}
+   */
+  PivotTable.prototype.getCurrentTimestamp = function () {
+    var now = new Date();
+    var month = now.getMonth() + 1;
+    var day = now.getDate();
+    var date = [now.getFullYear(), ('0' + month).substring(month.length), ('0' + day).substring(day.length)];
+    var time = [now.getHours(), now.getMinutes()];
+
+    return date.join('') + '_' + time.join('');
+  };
+
+  /**
+   * Gets entity name.
+   */
+  PivotTable.prototype.getEntityName = function () {
+    return this.config.entityName;
   };
 
   /**
@@ -170,123 +219,6 @@ CRM.PivotReport.PivotTable = (function ($) {
         time: false
       });
     });
-  };
-
-  /**
-   * Initializes the record filter form when avaible. This includes moving it
-   * inside the pivot table, initializing date pickers, and refreshing the pivot
-   * table when the form is submmited.
-   */
-  PivotTable.prototype.initRecordFilterForm = function () {
-    // skip if there are no record filter forms defined:
-    if (this.recordFilterForm.length === 0) {
-      return;
-    }
-
-    // moves the form so it's inside the pivot table:
-    this.recordFilterForm.detach()
-      .appendTo(this.pivotTableContainer.find('tr:first td:first'))
-      .removeClass('hidden')
-      .show();
-
-    // initializes the form's date pickers:
-    this.recordFilterForm.find('.crm-ui-datepicker')
-      .crmDatepicker({ time: false, allowClear: false });
-
-    // when the form is submitted it refreshes the pivot table:
-    this.recordFilterForm.on('submit', function (event) {
-      event.preventDefault();
-
-      this.applyConfig(this.lastPivotConfig);
-    }.bind(this));
-  };
-
-  /**
-   * Given a fieldname, uses start and end dates set on inputs to filter values.
-   *
-   * @param string fieldName
-   *   Name of the field to be filtered
-   * @param bool applyOnly
-   *   Do we want to use filter values for apply only?
-   *   If so, then we don't change checkboxes status but only show/hide
-   *   checkboxes basing on date filter values.
-   */
-  PivotTable.prototype.filterDateValues = function (fieldName, applyOnly) {
-    var that = this;
-    var startDateValue = $('#fld_' + fieldName + '_start').val();
-    var endDateValue = $('#fld_' + fieldName + '_end').val();
-
-    $('input.' + fieldName).each(function () {
-      var checkDateValue = $('span.value', $(this).parent()).text();
-      var checked = false;
-      var dateChecker = new CRM.PivotReport.Dates(that.crmConfig);
-
-      if (dateChecker.dateInRange(checkDateValue, startDateValue, endDateValue)) {
-        checked = true;
-      }
-
-      if (!applyOnly) {
-        if (checked && !$(this).is(':checked')) {
-          $(this).prop('checked', true).toggleClass('changed');
-        } else if (!checked && $(this).is(':checked')) {
-          $(this).prop('checked', false).toggleClass('changed');
-        }
-      }
-
-      if (checked) {
-        $(this).parent().parent().show();
-      } else {
-        $(this).parent().parent().hide();
-      }
-    });
-  };
-
-  /**
-   * Updates start and end dates according to selected relative date.
-   *
-   * @param object select
-   *   jQuery object referencing the select combo that holds the relative date
-   *   value.
-   */
-  PivotTable.prototype.changeFilterDates = function (select) {
-    var fieldInfo = select.attr('name').split('_');
-    var fieldName = fieldInfo[1];
-
-    var startValue = '';
-    var endValue = '';
-    var displayStart = '';
-    var displayEnd = '';
-
-    if (select.val() !== '') {
-      var relativeDateInfo = select.val().split('.');
-      var unit = relativeDateInfo[1];
-      var relativeTerm = relativeDateInfo[0];
-
-      var dateCalculator = new CRM.PivotReport.Dates(this.crmConfig);
-      var dates = dateCalculator.getRelativeStartAndEndDates(relativeTerm, unit);
-
-      startValue = dates.startDate.toUTCString();
-      endValue = dates.endDate.toUTCString();
-      displayStart = CRM.utils.formatDate(dates.startDate, CRM.config.dateInputFormat);
-      displayEnd = CRM.utils.formatDate(dates.endDate, CRM.config.dateInputFormat);
-
-      $('#inner_' + fieldName).hide();
-    } else {
-      $('#inner_' + fieldName).show();
-    }
-
-    $('input.inner_date.fld_' + fieldName + '_start.hasDatepicker').val(displayStart);
-    $('input.inner_date.fld_' + fieldName + '_end.hasDatepicker').val(displayEnd);
-    $('#fld_' + fieldName + '_start').val(startValue);
-    $('#fld_' + fieldName + '_end').val(endValue);
-    $('#fld_' + fieldName + '_end').change();
-  };
-
-  /**
-   * Gets entity name.
-   */
-  PivotTable.prototype.getEntityName = function () {
-    return this.config.entityName;
   };
 
   /**
@@ -367,15 +299,132 @@ CRM.PivotReport.PivotTable = (function ($) {
     });
   };
 
-  /**
-   * Resets data array and init empty Pivot Table.
+  /*
+   * Initializes Pivot Table with given data.
+   *
+   * @param {array} data
    */
-  PivotTable.prototype.resetData = function () {
-    this.totalLoaded = 0;
-    this.data = [];
-    this.initPivotTable([]);
+  PivotTable.prototype.initPivotTable = function (data) {
+    var that = this;
+    this.data = data;
+
+    var config = {
+      rendererName: 'Table',
+      renderers: $.extend(
+        $.pivotUtilities.renderers,
+        $.pivotUtilities.c3_renderers
+      ),
+      vals: ['Total'],
+      rows: [],
+      cols: [],
+      aggregatorName: 'Count',
+      unusedAttrsVertical: true,
+      menuLimit: 5000,
+      rendererOptions: {
+        c3: {
+          size: {
+            width: parseInt(that.pivotTableContainer.width() * 0.6, 10)
+          }
+        }
+      },
+      derivedAttributes: that.config.derivedAttributes,
+      hiddenAttributes: that.config.hiddenAttributes,
+      onRefresh: function (config) {
+        return that.pivotTableOnRefresh(config);
+      }
+    };
+
+    this.applyConfig(config);
   };
 
+  /**
+   * Sets the default values for the record filter form. For dates, the default
+   * value is today's date.
+   */
+  PivotTable.prototype.initRecordFilterDefaultValues = function () {
+    var today = moment().format('YYYY-MM-DD');
+
+    this.recordFilterForm.find('.crm-ui-datepicker')
+      .filter(function () {
+        return _.isEmpty($(this).val());
+      })
+      .val(today)
+      .change();
+  };
+
+  /**
+   * Initializes the record filter form when avaible. This includes moving it
+   * inside the pivot table, initializing date pickers, and refreshing the pivot
+   * table when the form is submmited.
+   */
+  PivotTable.prototype.initRecordFilterForm = function () {
+    // skip if there are no record filter forms defined:
+    if (this.recordFilterForm.length === 0) {
+      return;
+    }
+
+    // moves the form so it's inside the pivot table:
+    this.recordFilterForm.detach()
+      .appendTo(this.pivotTableContainer.find('tr:first td:first'))
+      .removeClass('hidden')
+      .show();
+
+    // initializes the form's date pickers:
+    this.recordFilterForm.find('.crm-ui-datepicker')
+      .crmDatepicker({ time: false, allowClear: false });
+
+    // when the form is submitted it refreshes the pivot table:
+    this.recordFilterForm.on('submit', function (event) {
+      event.preventDefault();
+
+      this.applyConfig(this.lastPivotConfig);
+    }.bind(this));
+  };
+
+  /**
+   * Runs all data loading.
+   */
+  PivotTable.prototype.loadAllData = function () {
+    var that = this;
+
+    this.resetData();
+
+    if (this.config.filter) {
+      this.pivotReportKeyValueFrom.val(null).trigger('change');
+      $('#pivot-report-filters').addClass('hidden');
+    }
+
+    this.pivotTableContainer.html('');
+    this.Preloader.reset();
+    this.Preloader.setTitle('Loading data');
+    this.Preloader.show();
+
+    CRM.api3('PivotReport', 'getpivotcount', {'entity': this.config.entityName})
+      .done(function (result) {
+        var totalCount = parseInt(result.values, 10);
+
+        that.loadData({
+          'keyvalue_from': null,
+          'keyvalue_to': null,
+          'page': 0
+        }, totalCount);
+      });
+  };
+
+  /**
+   * Hides preloader, shows filters and init Pivot Table.
+   *
+   * @param {array} data
+   */
+  PivotTable.prototype.loadComplete = function (data) {
+    this.Preloader.hide();
+
+    if (this.config.filter) {
+      $('#pivot-report-filters').removeClass('hidden');
+    }
+
+    this.initPivotTable(data);
+  };
   /**
    * Loads a pack of Pivot Report data. If there is more data to load
    * (depending on the total value and the response) then we run
@@ -409,157 +458,6 @@ CRM.PivotReport.PivotTable = (function ($) {
         }, totalCount);
       }
     });
-  };
-
-  /**
-   * Hides preloader, shows filters and init Pivot Table.
-   *
-   * @param {array} data
-   */
-  PivotTable.prototype.loadComplete = function (data) {
-    this.Preloader.hide();
-
-    if (this.config.filter) {
-      $('#pivot-report-filters').removeClass('hidden');
-    }
-
-    this.initPivotTable(data);
-  };
-
-  /**
-   * Applies specified config for current Pivot Table data.
-   *
-   * @param {array} data
-   */
-  PivotTable.prototype.applyConfig = function (config) {
-    var data = this.data;
-    this.lastPivotConfig = config;
-
-    this.storeRecordFilterValues();
-
-    if (this.config.recordFilter) {
-      data = _.filter(this.data, function (record) {
-        return this.config.recordFilter.call(this, record);
-      }.bind(this));
-    }
-
-    this.pivotTableContainer.pivotUI(data, config, true);
-    this.postRender();
-  };
-
-  /**
-   * Makes changes to the pivot report after it is rendered.
-   */
-  PivotTable.prototype.postRender = function () {
-    this.initDateFilters();
-    this.uxImprovements();
-    this.setUpExportButtons();
-    this.initRecordFilterForm();
-  };
-
-  /**
-   * Returns current date in YYYYMMDD_HHII format.
-   *
-   * @returns {String}
-   */
-  PivotTable.prototype.getCurrentTimestamp = function () {
-    var now = new Date();
-    var month = now.getMonth() + 1;
-    var day = now.getDate();
-    var date = [now.getFullYear(), ('0' + month).substring(month.length), ('0' + day).substring(day.length)];
-    var time = [now.getHours(), now.getMinutes()];
-
-    return date.join('') + '_' + time.join('');
-  };
-
-  /**
-   * Makes changes to improve UX on pivot report.
-   */
-  PivotTable.prototype.uxImprovements = function () {
-    // Move Chart Type Selection Box
-    $('#pivot-report-type').html('');
-    $('#pivot-report-type').append($('select.pvtRenderer'));
-
-    // Prepend Filter Icon to Field Labels
-    $('li.ui-sortable-handle span.pvtAttr span.pvtTriangle').each(function () {
-      $(this).prependTo($(this).parent().parent());
-    });
-
-    // Add Empty Help Message to Rows
-    $('td.pvtAxisContainer.pvtRows').append(
-      '<div id="rows_help_msg">Drag and drop a field here from the list on the left to add as a row heading in the report.</div>'
-    );
-
-    $('td.pvtAxisContainer.pvtRows').bind('DOMSubtreeModified', function () {
-      if ($('td.pvtAxisContainer.pvtRows li.ui-sortable-handle').length < 1) {
-        $('#rows_help_msg').show();
-      } else {
-        $('#rows_help_msg').hide();
-      }
-    });
-
-    // Add empty Help Messaage to Columns
-    $('td.pvtAxisContainer.pvtCols').append(
-      '<div id="cols_help_msg">Drag and drop a field here from the list on the left to add as a column heading in the report.</div>'
-    );
-
-    $('td.pvtAxisContainer.pvtCols').bind('DOMSubtreeModified', function () {
-      if ($('td.pvtAxisContainer.pvtCols li.ui-sortable-handle').length < 1) {
-        $('#cols_help_msg').show();
-      } else {
-        $('#cols_help_msg').hide();
-      }
-    });
-  };
-
-  /**
-   * Implements functionality to generate CSV and TSV export files and send their
-   * content as a download.
-   */
-  PivotTable.prototype.setUpExportButtons = function () {
-    var that = this;
-
-    $('#exportCSV').unbind().click(function () {
-      var data = new $.pivotUtilities.PivotData(that.data, that.PivotConfig.getPivotConfig());
-      var config = that.PivotConfig.getPivotConfig();
-      var downloader = new CRM.PivotReport.Export(data, config);
-      downloader.export('CSV');
-    });
-
-    $('#exportTSV').unbind().click(function () {
-      var data = new $.pivotUtilities.PivotData(that.data, that.PivotConfig.getPivotConfig());
-      var config = that.PivotConfig.getPivotConfig();
-      var downloader = new CRM.PivotReport.Export(data, config);
-      downloader.export('TSV');
-    });
-  };
-
-  /**
-   * Formats incoming data (combine header with fields values)
-   * to be compatible with Pivot library.
-   * Updates totalLoaded with number of unique rows processed.
-   *
-   * @param {array} data
-   *
-   * @returns {array}
-   */
-  PivotTable.prototype.processData = function (data) {
-    var that = this;
-    var result = [];
-    var i, j;
-
-    for (i in data) {
-      var row = {};
-      for (j in data[i]) {
-        row[that.header[j]] = data[i][j];
-      }
-
-      result.push(row);
-    }
-
-    this.totalLoaded += result.length;
-
-    return result;
   };
 
   /**
@@ -611,36 +509,6 @@ CRM.PivotReport.PivotTable = (function ($) {
   };
 
   /**
-   * Runs all data loading.
-   */
-  PivotTable.prototype.loadAllData = function () {
-    var that = this;
-
-    this.resetData();
-
-    if (this.config.filter) {
-      this.pivotReportKeyValueFrom.val(null).trigger('change');
-      $('#pivot-report-filters').addClass('hidden');
-    }
-
-    this.pivotTableContainer.html('');
-    this.Preloader.reset();
-    this.Preloader.setTitle('Loading data');
-    this.Preloader.show();
-
-    CRM.api3('PivotReport', 'getpivotcount', {'entity': this.config.entityName})
-      .done(function (result) {
-        var totalCount = parseInt(result.values, 10);
-
-        that.loadData({
-          'keyvalue_from': null,
-          'keyvalue_to': null,
-          'page': 0
-        }, totalCount);
-      });
-  };
-
-  /**
    * Handle Pivot Table refreshing.
    *
    * @param {JSON} config
@@ -659,42 +527,132 @@ CRM.PivotReport.PivotTable = (function ($) {
     this.PivotConfig.setPivotConfig(configCopy);
   };
 
-  /*
-   * Initializes Pivot Table with given data.
+  /**
+   * Makes changes to the pivot report after it is rendered.
+   */
+  PivotTable.prototype.postRender = function () {
+    this.initDateFilters();
+    this.uxImprovements();
+    this.setUpExportButtons();
+    this.initRecordFilterForm();
+  };
+
+  /**
+   * Formats incoming data (combine header with fields values)
+   * to be compatible with Pivot library.
+   * Updates totalLoaded with number of unique rows processed.
    *
    * @param {array} data
+   *
+   * @returns {array}
    */
-  PivotTable.prototype.initPivotTable = function (data) {
+  PivotTable.prototype.processData = function (data) {
     var that = this;
-    this.data = data;
+    var result = [];
+    var i, j;
 
-    var config = {
-      rendererName: 'Table',
-      renderers: $.extend(
-        $.pivotUtilities.renderers,
-        $.pivotUtilities.c3_renderers
-      ),
-      vals: ['Total'],
-      rows: [],
-      cols: [],
-      aggregatorName: 'Count',
-      unusedAttrsVertical: true,
-      menuLimit: 5000,
-      rendererOptions: {
-        c3: {
-          size: {
-            width: parseInt(that.pivotTableContainer.width() * 0.6, 10)
-          }
-        }
-      },
-      derivedAttributes: that.config.derivedAttributes,
-      hiddenAttributes: that.config.hiddenAttributes,
-      onRefresh: function (config) {
-        return that.pivotTableOnRefresh(config);
+    for (i in data) {
+      var row = {};
+      for (j in data[i]) {
+        row[that.header[j]] = data[i][j];
       }
-    };
 
-    this.applyConfig(config);
+      result.push(row);
+    }
+
+    this.totalLoaded += result.length;
+
+    return result;
+  };
+
+  /**
+   * Removes standard Print CiviCRM icon on Pivot Report pages.
+   */
+  PivotTable.prototype.removePrintIcon = function () {
+    $('div#printer-friendly').remove();
+  };
+
+  /**
+   * Resets data array and init empty Pivot Table.
+   */
+  PivotTable.prototype.resetData = function () {
+    this.totalLoaded = 0;
+    this.data = [];
+    this.initPivotTable([]);
+  };
+
+  /**
+   * Implements functionality to generate CSV and TSV export files and send their
+   * content as a download.
+   */
+  PivotTable.prototype.setUpExportButtons = function () {
+    var that = this;
+
+    $('#exportCSV').unbind().click(function () {
+      var data = new $.pivotUtilities.PivotData(that.data, that.PivotConfig.getPivotConfig());
+      var config = that.PivotConfig.getPivotConfig();
+      var downloader = new CRM.PivotReport.Export(data, config);
+      downloader.export('CSV');
+    });
+
+    $('#exportTSV').unbind().click(function () {
+      var data = new $.pivotUtilities.PivotData(that.data, that.PivotConfig.getPivotConfig());
+      var config = that.PivotConfig.getPivotConfig();
+      var downloader = new CRM.PivotReport.Export(data, config);
+      downloader.export('TSV');
+    });
+  };
+
+  /**
+   * Stores the values of the record filter form in a map object.
+   */
+  PivotTable.prototype.storeRecordFilterValues = function () {
+    this.recordFilterValues = {};
+
+    this.recordFilterForm.find('form').serializeArray()
+      .forEach(function (field) {
+        this.recordFilterValues[field.name] = field.value;
+      }.bind(this));
+  };
+
+  /**
+   * Makes changes to improve UX on pivot report.
+   */
+  PivotTable.prototype.uxImprovements = function () {
+    // Move Chart Type Selection Box
+    $('#pivot-report-type').html('');
+    $('#pivot-report-type').append($('select.pvtRenderer'));
+
+    // Prepend Filter Icon to Field Labels
+    $('li.ui-sortable-handle span.pvtAttr span.pvtTriangle').each(function () {
+      $(this).prependTo($(this).parent().parent());
+    });
+
+    // Add Empty Help Message to Rows
+    $('td.pvtAxisContainer.pvtRows').append(
+      '<div id="rows_help_msg">Drag and drop a field here from the list on the left to add as a row heading in the report.</div>'
+    );
+
+    $('td.pvtAxisContainer.pvtRows').bind('DOMSubtreeModified', function () {
+      if ($('td.pvtAxisContainer.pvtRows li.ui-sortable-handle').length < 1) {
+        $('#rows_help_msg').show();
+      } else {
+        $('#rows_help_msg').hide();
+      }
+    });
+
+    // Add empty Help Messaage to Columns
+    $('td.pvtAxisContainer.pvtCols').append(
+      '<div id="cols_help_msg">Drag and drop a field here from the list on the left to add as a column heading in the report.</div>'
+    );
+
+    $('td.pvtAxisContainer.pvtCols').bind('DOMSubtreeModified', function () {
+      if ($('td.pvtAxisContainer.pvtCols li.ui-sortable-handle').length < 1) {
+        $('#cols_help_msg').show();
+      } else {
+        $('#cols_help_msg').hide();
+      }
+    });
   };
 
   return PivotTable;
