@@ -1,13 +1,14 @@
+/* globals CRM, ts */
+
 CRM.PivotReport = CRM.PivotReport || {};
 
-CRM.PivotReport.PivotTable = (function($) {
-
+CRM.PivotReport.PivotTable = (function ($) {
   /**
    * Initializes Pivot Table.
    *
    * @param {object} config
    */
-  function PivotTable(config) {
+  function PivotTable (config) {
     var defaults = {
       'entityName': null,
       'cacheBuilt': true,
@@ -15,7 +16,7 @@ CRM.PivotReport.PivotTable = (function($) {
       'initialLoad': {
         'limit': 0,
         'message': '',
-        'getFilter': function() {
+        'getFilter': function () {
           return new CRM.PivotReport.Filter(null, null);
         }
       },
@@ -49,14 +50,14 @@ CRM.PivotReport.PivotTable = (function($) {
     this.initFilterForm();
     this.initPivotDataLoading();
     this.checkCacheBuilt();
-  };
+  }
 
   /**
    * Removes standard Print CiviCRM icon on Pivot Report pages.
    */
-  PivotTable.prototype.removePrintIcon = function() {
+  PivotTable.prototype.removePrintIcon = function () {
     $('div#printer-friendly').remove();
-  }
+  };
 
   PivotTable.prototype.checkCacheBuilt = function () {
     if (this.config.cacheBuilt) {
@@ -64,7 +65,7 @@ CRM.PivotReport.PivotTable = (function($) {
     } else {
       $('#pivot-report-config, #pivot-report-filters, #pivot-report-table').addClass('hidden');
     }
-  }
+  };
 
   /**
    * Initializes date filters for each field of Date data type.
@@ -77,8 +78,7 @@ CRM.PivotReport.PivotTable = (function($) {
       var fieldName = '';
 
       $(this).children().each(function () {
-
-        if ($(this).prop("tagName") == 'H4') {
+        if ($(this).prop('tagName') === 'H4') {
           fieldName = $(this).text().replace(/[ ()0-9?]/g, '');
 
           if ($.inArray($(this).text().replace(/[()0-9?]/g, ''), that.dateFields) >= 0) {
@@ -99,9 +99,9 @@ CRM.PivotReport.PivotTable = (function($) {
               that.changeFilterDates($(this));
             });
 
-            relativeSelect.append($("<option>").attr('value', '').text('- Any -'));
+            relativeSelect.append($('<option>').attr('value', '').text('- Any -'));
             $(that.relativeFilters).each(function () {
-              relativeSelect.append($("<option>").attr('value', this.value).text(this.label));
+              relativeSelect.append($('<option>').attr('value', this.value).text(this.label));
             });
 
             selectContainer.append(relativeSelect);
@@ -111,7 +111,7 @@ CRM.PivotReport.PivotTable = (function($) {
             $('.pvtSearch', container).hide();
 
             $(':button', container).each(function () {
-              if ($(this).text() == 'Select All') {
+              if ($(this).text() === 'Select All') {
                 $(this).addClass(fieldName + '_batchSelector');
                 $(this).off('click');
                 $(this).on('click', function () {
@@ -120,7 +120,7 @@ CRM.PivotReport.PivotTable = (function($) {
                 });
               }
 
-              if ($(this).text() == 'Apply' || $(this).text() == 'Cancel') {
+              if ($(this).text() === 'Apply' || $(this).text() === 'Cancel') {
                 $(this).on('click', function () {
                   that.filterDateValues(fieldName, true);
                 });
@@ -132,7 +132,6 @@ CRM.PivotReport.PivotTable = (function($) {
     });
 
     $('.inner_date').each(function () {
-
       $(this).change(function () {
         var fieldInfo = $(this).attr('name').split('_');
         that.filterDateValues(fieldInfo[1]);
@@ -142,7 +141,6 @@ CRM.PivotReport.PivotTable = (function($) {
         time: false
       });
     });
-
   };
 
   /**
@@ -170,20 +168,20 @@ CRM.PivotReport.PivotTable = (function($) {
       }
 
       if (!applyOnly) {
-       if (checked == true && !$(this).is(':checked')) {
+        if (checked && !$(this).is(':checked')) {
           $(this).prop('checked', true).toggleClass('changed');
-        } else if (checked == false && $(this).is(':checked')) {
+        } else if (!checked && $(this).is(':checked')) {
           $(this).prop('checked', false).toggleClass('changed');
         }
       }
 
-      if (checked === true) {
+      if (checked) {
         $(this).parent().parent().show();
       } else {
         $(this).parent().parent().hide();
       }
     });
-  }
+  };
 
   /**
    * Updates start and end dates according to selected relative date.
@@ -229,14 +227,14 @@ CRM.PivotReport.PivotTable = (function($) {
   /**
    * Gets entity name.
    */
-  PivotTable.prototype.getEntityName = function() {
+  PivotTable.prototype.getEntityName = function () {
     return this.config.entityName;
-  }
+  };
 
   /**
    * Initializes Pivot Report filter form.
    */
-  PivotTable.prototype.initFilterForm = function() {
+  PivotTable.prototype.initFilterForm = function () {
     if (!this.config.filter) {
       return;
     }
@@ -247,16 +245,17 @@ CRM.PivotReport.PivotTable = (function($) {
     this.pivotReportKeyValueFrom = $('input[name="keyvalue_from"]', this.pivotReportForm);
     this.pivotReportKeyValueTo = $('input[name="keyvalue_to"]', this.pivotReportForm);
 
-    $('input[type="button"].apply-filters-button', this.pivotReportForm).click(function(e) {
+    $('input[type="button"].apply-filters-button', this.pivotReportForm).click(function (e) {
       $('#pivot-report-filters').addClass('hidden');
 
       that.loadDataByFilter(that.pivotReportKeyValueFrom.val(), that.pivotReportKeyValueTo.val());
     });
 
-    $('input[type="button"].load-all-data-button', this.pivotReportForm).click(function(e) {
-      CRM.confirm({ message: 'This operation may take some time to load all data for big data sets. Do you really want to load all Activities data?' }).on('crmConfirm:yes', function() {
-        that.loadAllData();
-      });
+    $('input[type="button"].load-all-data-button', this.pivotReportForm).click(function (e) {
+      CRM.confirm({ message: 'This operation may take some time to load all data for big data sets. Do you really want to load all Activities data?' })
+        .on('crmConfirm:yes', function () {
+          that.loadAllData();
+        });
     });
 
     this.config.initFilterForm(this.pivotReportKeyValueFrom, this.pivotReportKeyValueTo);
@@ -265,7 +264,7 @@ CRM.PivotReport.PivotTable = (function($) {
   /**
    * Loads header, checks total number of items and then starts data fetching.
    */
-  PivotTable.prototype.initPivotDataLoading = function() {
+  PivotTable.prototype.initPivotDataLoading = function () {
     var that = this;
     var countParams = that.config.getCountParams();
     countParams.entity = this.config.entityName;
@@ -281,7 +280,7 @@ CRM.PivotReport.PivotTable = (function($) {
       'relativeFilters': ['OptionValue', 'get', {
         'sequential': 1,
         'option_group_id': 'relative_date_filters'
-      }],
+      }]
     };
 
     CRM.api3(apiCalls).done(function (result) {
@@ -293,7 +292,7 @@ CRM.PivotReport.PivotTable = (function($) {
       that.crmConfig = result.getConfig.values[0];
 
       $.each(that.dateFields, function (i, value) {
-        that.config.derivedAttributes[value + ' (' + ts('per month') + ')'] = $.pivotUtilities.derivers.dateFormat(value, '%y-%m')
+        that.config.derivedAttributes[value + ' (' + ts('per month') + ')'] = $.pivotUtilities.derivers.dateFormat(value, '%y-%m');
       });
 
       if (that.config.initialLoad.limit && that.total > that.config.initialLoad.limit) {
@@ -313,7 +312,7 @@ CRM.PivotReport.PivotTable = (function($) {
   /**
    * Resets data array and init empty Pivot Table.
    */
-  PivotTable.prototype.resetData = function() {
+  PivotTable.prototype.resetData = function () {
     this.totalLoaded = 0;
     this.data = [];
     this.initPivotTable([]);
@@ -327,14 +326,14 @@ CRM.PivotReport.PivotTable = (function($) {
    * @param {object} loadParams
    *   Object containing params for API 'get' request of Pivot Report data.
    */
-  PivotTable.prototype.loadData = function(loadParams, totalCount) {
+  PivotTable.prototype.loadData = function (loadParams, totalCount) {
     var that = this;
     var params = loadParams;
 
     params.sequential = 1;
     params.entity = this.config.entityName;
 
-    CRM.api3('PivotReport', 'get', params).done(function(result) {
+    CRM.api3('PivotReport', 'get', params).done(function (result) {
       that.data = that.data.concat(that.processData(result['values'][0].data));
       var nextKeyValue = result['values'][0].nextKeyValue;
       var nextPage = result['values'][0].nextPage;
@@ -346,9 +345,9 @@ CRM.PivotReport.PivotTable = (function($) {
         that.loadComplete(that.data);
       } else {
         that.loadData({
-          "keyvalue_from": nextKeyValue,
-          "keyvalue_to": params.keyvalue_to,
-          "page": nextPage
+          'keyvalue_from': nextKeyValue,
+          'keyvalue_to': params.keyvalue_to,
+          'page': nextPage
         }, totalCount);
       }
     });
@@ -359,7 +358,7 @@ CRM.PivotReport.PivotTable = (function($) {
    *
    * @param {array} data
    */
-  PivotTable.prototype.loadComplete = function(data) {
+  PivotTable.prototype.loadComplete = function (data) {
     this.Preloader.hide();
 
     if (this.config.filter) {
@@ -374,19 +373,19 @@ CRM.PivotReport.PivotTable = (function($) {
    *
    * @param {array} data
    */
-  PivotTable.prototype.applyConfig = function(config) {
-    this.pivotTableContainer.pivotUI(this.data, config , true);
+  PivotTable.prototype.applyConfig = function (config) {
+    this.pivotTableContainer.pivotUI(this.data, config, true);
     this.postRender();
   };
 
   /**
    * Makes changes to the pivot report after it is rendered.
    */
-  PivotTable.prototype.postRender = function() {
+  PivotTable.prototype.postRender = function () {
     this.initDateFilters();
     this.uxImprovements();
     this.setUpExportButtons();
-  }
+  };
 
   /**
    * Returns current date in YYYYMMDD_HHII format.
@@ -401,18 +400,18 @@ CRM.PivotReport.PivotTable = (function($) {
     var time = [now.getHours(), now.getMinutes()];
 
     return date.join('') + '_' + time.join('');
-  }
+  };
 
   /**
    * Makes changes to improve UX on pivot report.
    */
-  PivotTable.prototype.uxImprovements = function() {
+  PivotTable.prototype.uxImprovements = function () {
     // Move Chart Type Selection Box
     $('#pivot-report-type').html('');
     $('#pivot-report-type').append($('select.pvtRenderer'));
 
     // Prepend Filter Icon to Field Labels
-    $('li.ui-sortable-handle span.pvtAttr span.pvtTriangle').each(function() {
+    $('li.ui-sortable-handle span.pvtAttr span.pvtTriangle').each(function () {
       $(this).prependTo($(this).parent().parent());
     });
 
@@ -421,7 +420,7 @@ CRM.PivotReport.PivotTable = (function($) {
       '<div id="rows_help_msg">Drag and drop a field here from the list on the left to add as a row heading in the report.</div>'
     );
 
-    $('td.pvtAxisContainer.pvtRows').bind("DOMSubtreeModified",function(){
+    $('td.pvtAxisContainer.pvtRows').bind('DOMSubtreeModified', function () {
       if ($('td.pvtAxisContainer.pvtRows li.ui-sortable-handle').length < 1) {
         $('#rows_help_msg').show();
       } else {
@@ -434,14 +433,14 @@ CRM.PivotReport.PivotTable = (function($) {
       '<div id="cols_help_msg">Drag and drop a field here from the list on the left to add as a column heading in the report.</div>'
     );
 
-    $('td.pvtAxisContainer.pvtCols').bind("DOMSubtreeModified",function(){
+    $('td.pvtAxisContainer.pvtCols').bind('DOMSubtreeModified', function () {
       if ($('td.pvtAxisContainer.pvtCols li.ui-sortable-handle').length < 1) {
         $('#cols_help_msg').show();
       } else {
         $('#cols_help_msg').hide();
       }
     });
-  }
+  };
 
   /**
    * Implements functionality to generate CSV and TSV export files and send their
@@ -463,8 +462,7 @@ CRM.PivotReport.PivotTable = (function($) {
       var downloader = new CRM.PivotReport.Export(data, config);
       downloader.export('TSV');
     });
-
-  }
+  };
 
   /**
    * Formats incoming data (combine header with fields values)
@@ -475,7 +473,7 @@ CRM.PivotReport.PivotTable = (function($) {
    *
    * @returns {array}
    */
-  PivotTable.prototype.processData = function(data) {
+  PivotTable.prototype.processData = function (data) {
     var that = this;
     var result = [];
     var i, j;
@@ -500,7 +498,8 @@ CRM.PivotReport.PivotTable = (function($) {
    * @param {string} filterValueFrom
    * @param {string} filterValueTo
    */
-  PivotTable.prototype.loadDataByFilter = function(filterValueFrom, filterValueTo) {
+  PivotTable.prototype.loadDataByFilter = function (filterValueFrom, filterValueTo) {
+    var countParams;
     var that = this;
 
     this.resetData();
@@ -514,9 +513,11 @@ CRM.PivotReport.PivotTable = (function($) {
     this.Preloader.reset();
     this.Preloader.setTitle('Loading filtered data');
     this.Preloader.show();
-    var countParams = this.config.getCountParams(filterValueFrom, filterValueTo);
+
+    countParams = this.config.getCountParams(filterValueFrom, filterValueTo);
     countParams.entity = this.config.entityName;
-    CRM.api3('PivotReport', 'getcount', countParams).done(function(result) {
+
+    CRM.api3('PivotReport', 'getcount', countParams).done(function (result) {
       var totalFiltered = parseInt(result.values, 10);
 
       if (!totalFiltered) {
@@ -542,7 +543,7 @@ CRM.PivotReport.PivotTable = (function($) {
   /**
    * Runs all data loading.
    */
-  PivotTable.prototype.loadAllData = function() {
+  PivotTable.prototype.loadAllData = function () {
     var that = this;
 
     this.resetData();
@@ -557,15 +558,16 @@ CRM.PivotReport.PivotTable = (function($) {
     this.Preloader.setTitle('Loading data');
     this.Preloader.show();
 
-    CRM.api3('PivotReport', 'getpivotcount', {'entity': this.config.entityName}).done(function(result) {
+    CRM.api3('PivotReport', 'getpivotcount', {'entity': this.config.entityName})
+      .done(function (result) {
         var totalCount = parseInt(result.values, 10);
 
         that.loadData({
-          "keyvalue_from": null,
-          "keyvalue_to": null,
-          "page": 0
+          'keyvalue_from': null,
+          'keyvalue_to': null,
+          'page': 0
         }, totalCount);
-    });
+      });
   };
 
   /**
@@ -573,39 +575,39 @@ CRM.PivotReport.PivotTable = (function($) {
    *
    * @param {JSON} config
    */
-  PivotTable.prototype.pivotTableOnRefresh = function(config) {
+  PivotTable.prototype.pivotTableOnRefresh = function (config) {
     var configCopy = JSON.parse(JSON.stringify(config));
 
-    //delete some values which are functions
-    delete configCopy["aggregators"];
-    delete configCopy["renderers"];
+    // delete some values which are functions
+    delete configCopy['aggregators'];
+    delete configCopy['renderers'];
 
-    //delete some bulky default values
-    delete configCopy["rendererOptions"];
-    delete configCopy["localeStrings"];
+    // delete some bulky default values
+    delete configCopy['rendererOptions'];
+    delete configCopy['localeStrings'];
 
     this.PivotConfig.setPivotConfig(configCopy);
-  }
+  };
 
   /*
    * Initializes Pivot Table with given data.
    *
    * @param {array} data
    */
-  PivotTable.prototype.initPivotTable = function(data) {
+  PivotTable.prototype.initPivotTable = function (data) {
     var that = this;
     this.data = data;
 
     var config = {
-      rendererName: "Table",
+      rendererName: 'Table',
       renderers: $.extend(
         $.pivotUtilities.renderers,
         $.pivotUtilities.c3_renderers
       ),
-      vals: ["Total"],
+      vals: ['Total'],
       rows: [],
       cols: [],
-      aggregatorName: "Count",
+      aggregatorName: 'Count',
       unusedAttrsVertical: true,
       menuLimit: 5000,
       rendererOptions: {
@@ -613,7 +615,7 @@ CRM.PivotReport.PivotTable = (function($) {
           size: {
             width: parseInt(that.pivotTableContainer.width() * 0.6, 10)
           }
-        },
+        }
       },
       derivedAttributes: that.config.derivedAttributes,
       hiddenAttributes: that.config.hiddenAttributes,
