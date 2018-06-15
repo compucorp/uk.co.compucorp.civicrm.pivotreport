@@ -16,7 +16,7 @@
     </fieldset>
   </form>
 </div>
-<div id="pivot-report-record-filter-form" class="hidden">
+<div id="pivot-report-custom-filter-form" class="hidden">
   <form>
     <label>Headcount on date:</label><br />
     <input name="headCountOnDate" class="crm-ui-datepicker" />
@@ -34,9 +34,9 @@
       'cacheBuilt': {/literal}{$cacheBuilt|var_export:true}{literal},
       'filter': true,
       'filterField': 'Contract Start Date',
-      'recordFilter': function (record) {
+      'customFilter': function (record) {
         var endsAfterDate, hasValidStartDates, startsBeforeDate;
-        var date = moment(this.recordFilterValues.headCountOnDate);
+        var date = moment(this.customFilterValues.headCountOnDate);
         var contract = {
           start: moment(record['Contract Start Date']),
           end: moment(record['Contract End Date'])

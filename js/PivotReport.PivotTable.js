@@ -3,6 +3,8 @@
 CRM.PivotReport = CRM.PivotReport || {};
 
 CRM.PivotReport.PivotTable = (function ($) {
+  var DEFAULT_DATE_FORMAT = 'YYYY-MM-DD';
+
   /**
    * Initializes Pivot Table.
    *
@@ -45,13 +47,14 @@ CRM.PivotReport.PivotTable = (function ($) {
     this.crmConfig = null;
     this.PivotConfig = new CRM.PivotReport.Config(this);
     this.Preloader = new CRM.PivotReport.Preloader();
-    this.recordFilterForm = $('#pivot-report-record-filter-form');
+    this.customFilterForm = $('#pivot-report-custom-filter-form');
+    this.customFilterValues = {};
 
     this.removePrintIcon();
     this.initFilterForm();
     this.initPivotDataLoading();
     this.checkCacheBuilt();
-    this.initRecordFilterDefaultValues();
+    this.initCustomFilterDefaultDateValues();
   }
 
   /**
@@ -63,11 +66,11 @@ CRM.PivotReport.PivotTable = (function ($) {
     var data = this.data;
     this.lastPivotConfig = config;
 
-    this.storeRecordFilterValues();
+    this.storeCustomFilterValues();
 
-    if (this.config.recordFilter) {
+    if (this.config.customFilter) {
       data = _.filter(this.data, function (record) {
-        return this.config.recordFilter.call(this, record);
+        return this.config.customFilter.call(this, record);
       }.bind(this));
     }
 
@@ -338,13 +341,13 @@ CRM.PivotReport.PivotTable = (function ($) {
   };
 
   /**
-   * Sets the default values for the record filter form. For dates, the default
-   * value is today's date.
+   * Sets the default date values for the custom filter form. The default value
+   * is resolved to today's date.
    */
-  PivotTable.prototype.initRecordFilterDefaultValues = function () {
-    var today = moment().format('YYYY-MM-DD');
+  PivotTable.prototype.initCustomFilterDefaultDateValues = function () {
+    var today = moment().format(DEFAULT_DATE_FORMAT);
 
-    this.recordFilterForm.find('.crm-ui-datepicker')
+    this.customFilterForm.find('.crm-ui-datepicker')
       .filter(function () {
         return _.isEmpty($(this).val());
       })
@@ -353,28 +356,28 @@ CRM.PivotReport.PivotTable = (function ($) {
   };
 
   /**
-   * Initializes the record filter form when avaible. This includes moving it
+   * Initializes the custom filter form when available. This includes moving it
    * inside the pivot table, initializing date pickers, and refreshing the pivot
    * table when the form is submmited.
    */
-  PivotTable.prototype.initRecordFilterForm = function () {
-    // skip if there are no record filter forms defined:
-    if (this.recordFilterForm.length === 0) {
+  PivotTable.prototype.initCustomFilterForm = function () {
+    // skip if there are no custom filter forms defined:
+    if (this.customFilterForm.length === 0) {
       return;
     }
 
     // moves the form so it's inside the pivot table:
-    this.recordFilterForm.detach()
+    this.customFilterForm.detach()
       .appendTo(this.pivotTableContainer.find('tr:first td:first'))
       .removeClass('hidden')
       .show();
 
     // initializes the form's date pickers:
-    this.recordFilterForm.find('.crm-ui-datepicker')
+    this.customFilterForm.find('.crm-ui-datepicker')
       .crmDatepicker({ time: false, allowClear: false });
 
     // when the form is submitted it refreshes the pivot table:
-    this.recordFilterForm.on('submit', function (event) {
+    this.customFilterForm.on('submit', function (event) {
       event.preventDefault();
 
       this.applyConfig(this.lastPivotConfig);
@@ -534,7 +537,7 @@ CRM.PivotReport.PivotTable = (function ($) {
     this.initDateFilters();
     this.uxImprovements();
     this.setUpExportButtons();
-    this.initRecordFilterForm();
+    this.initCustomFilterForm();
   };
 
   /**
@@ -604,14 +607,14 @@ CRM.PivotReport.PivotTable = (function ($) {
   };
 
   /**
-   * Stores the values of the record filter form in a map object.
+   * Stores the values of the custom filter form in a map object.
    */
-  PivotTable.prototype.storeRecordFilterValues = function () {
-    this.recordFilterValues = {};
+  PivotTable.prototype.storeCustomFilterValues = function () {
+    this.customFilterValues = {};
 
-    this.recordFilterForm.find('form').serializeArray()
+    this.customFilterForm.find('form').serializeArray()
       .forEach(function (field) {
-        this.recordFilterValues[field.name] = field.value;
+        this.customFilterValues[field.name] = field.value;
       }.bind(this));
   };
 
