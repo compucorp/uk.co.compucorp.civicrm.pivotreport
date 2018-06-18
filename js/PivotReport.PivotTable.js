@@ -3,8 +3,6 @@
 CRM.PivotReport = CRM.PivotReport || {};
 
 CRM.PivotReport.PivotTable = (function ($) {
-  var DEFAULT_DATE_FORMAT = 'YYYY-MM-DD';
-
   /**
    * Initializes Pivot Table.
    *
@@ -32,6 +30,7 @@ CRM.PivotReport.PivotTable = (function ($) {
 
     this.config = $.extend(true, {}, defaults, config);
 
+    this.DEFAULT_DATE_FORMAT = 'YYYY-MM-DD';
     this.pivotTableContainer = $('#pivot-report-table');
     this.header = [];
     this.data = [];
@@ -54,7 +53,6 @@ CRM.PivotReport.PivotTable = (function ($) {
     this.initFilterForm();
     this.initPivotDataLoading();
     this.checkCacheBuilt();
-    this.initCustomFilterDefaultDateValues();
   }
 
   /**
@@ -139,6 +137,24 @@ CRM.PivotReport.PivotTable = (function ($) {
     var time = [now.getHours(), now.getMinutes()];
 
     return date.join('') + '_' + time.join('');
+  };
+
+  /**
+   * It returns the default values for date inputs in the custom form.
+   *
+   * @return {Object}
+   */
+  PivotTable.prototype.getDefaultValuesForDateInputs = function () {
+    var defaultValues = {};
+    var today = moment().format(this.DEFAULT_DATE_FORMAT);
+
+    this.customFilterForm.find('.crm-ui-datepicker').each(function () {
+      var inputName = $(this).attr('name');
+
+      defaultValues[inputName] = today;
+    });
+
+    return defaultValues;
   };
 
   /**
@@ -276,30 +292,36 @@ CRM.PivotReport.PivotTable = (function ($) {
       }]
     };
 
-    CRM.api3(apiCalls).done(function (result) {
-      that.dateFields = result.dateFields.values;
-      that.relativeFilters = result.relativeFilters.values;
-      that.header = result.getHeader.values;
-      that.total = parseInt(result.getCount.values, 10);
-      that.pivotCount = parseInt(result.getPivotCount.values, 10);
-      that.crmConfig = result.getConfig.values[0];
+    $.when(
+      CRM.api3(apiCalls),
+      this.resolveCustomFilterDefaultValues()
+    )
+      .done(function (results) {
+        var apiResults = results[0];
 
-      $.each(that.dateFields, function (i, value) {
-        that.config.derivedAttributes[value + ' (' + ts('per month') + ')'] = $.pivotUtilities.derivers.dateFormat(value, '%y-%m');
+        that.dateFields = apiResults.dateFields.values;
+        that.relativeFilters = apiResults.relativeFilters.values;
+        that.header = apiResults.getHeader.values;
+        that.total = parseInt(apiResults.getCount.values, 10);
+        that.pivotCount = parseInt(apiResults.getPivotCount.values, 10);
+        that.crmConfig = apiResults.getConfig.values[0];
+
+        $.each(that.dateFields, function (i, value) {
+          that.config.derivedAttributes[value + ' (' + ts('per month') + ')'] = $.pivotUtilities.derivers.dateFormat(value, '%y-%m');
+        });
+
+        if (that.config.initialLoad.limit && that.total > that.config.initialLoad.limit) {
+          CRM.alert(that.config.initialLoad.message, '', 'info');
+
+          $('input[type="button"].load-all-data-button', this.pivotReportForm).removeClass('hidden');
+          $('#pivot-report-filters').show();
+          var filter = that.config.initialLoad.getFilter();
+
+          that.loadDataByFilter(filter.getFrom(), filter.getTo());
+        } else {
+          that.loadAllData();
+        }
       });
-
-      if (that.config.initialLoad.limit && that.total > that.config.initialLoad.limit) {
-        CRM.alert(that.config.initialLoad.message, '', 'info');
-
-        $('input[type="button"].load-all-data-button', this.pivotReportForm).removeClass('hidden');
-        $('#pivot-report-filters').show();
-        var filter = that.config.initialLoad.getFilter();
-
-        that.loadDataByFilter(filter.getFrom(), filter.getTo());
-      } else {
-        that.loadAllData();
-      }
-    });
   };
 
   /*
@@ -341,18 +363,29 @@ CRM.PivotReport.PivotTable = (function ($) {
   };
 
   /**
-   * Sets the default date values for the custom filter form. The default value
-   * is resolved to today's date.
+   * Sets the default values for the custom filter form. When the input is empty,
+   * it resolves to the default value.
    */
-  PivotTable.prototype.initCustomFilterDefaultDateValues = function () {
-    var today = moment().format(DEFAULT_DATE_FORMAT);
+  PivotTable.prototype.initCustomFilterDefaultValues = function () {
+    this.customFilterForm.find('input, select, textarea')
+      .each(function (index, element) {
+        var input = $(element);
+        var inputName = input.attr('name');
+        var inputDefaultValue = this.customFilterDefaultValues[inputName];
 
-    this.customFilterForm.find('.crm-ui-datepicker')
-      .filter(function () {
-        return _.isEmpty($(this).val());
-      })
-      .val(today)
-      .change();
+        if (!inputDefaultValue) {
+          return;
+        }
+
+        input.on('change', function () {
+          var isValueEmpty = _.isEmpty(input.val());
+
+          if (isValueEmpty) {
+            input.val(inputDefaultValue).change();
+          }
+        });
+        input.change();
+      }.bind(this));
   };
 
   /**
@@ -538,6 +571,7 @@ CRM.PivotReport.PivotTable = (function ($) {
     this.uxImprovements();
     this.setUpExportButtons();
     this.initCustomFilterForm();
+    this.initCustomFilterDefaultValues();
   };
 
   /**
@@ -582,6 +616,26 @@ CRM.PivotReport.PivotTable = (function ($) {
     this.totalLoaded = 0;
     this.data = [];
     this.initPivotTable([]);
+  };
+
+  /**
+   * Resolves the default values for the different custom filter inputs.
+   * The values are stored in a map object after they are resolved.
+   *
+   * @return {Promise}
+   */
+  PivotTable.prototype.resolveCustomFilterDefaultValues = function () {
+    var dateInputsDefaultValues = this.getDefaultValuesForDateInputs();
+
+    return $.when()
+      .then(function () {
+        return this.config.resolveCustomFilterDefaultValues
+          ? this.config.resolveCustomFilterDefaultValues()
+          : {};
+      }.bind(this))
+      .then(function (defaultValues) {
+        this.customFilterDefaultValues = _.extend({}, dateInputsDefaultValues, defaultValues);
+      }.bind(this));
   };
 
   /**
