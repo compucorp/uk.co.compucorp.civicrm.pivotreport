@@ -85,6 +85,35 @@ CRM.PivotReport.PivotTable = (function ($) {
   };
 
   /**
+   * Fetched some required data from the api including the records count, date
+   * fields, headers, etc.
+   *
+   * @return {Promise} resolves to an object containing each api call result.
+   */
+  PivotTable.prototype.fetchRequiredApiData = function () {
+    var apiCalls, countParams;
+
+    countParams = this.config.getCountParams();
+    countParams.entity = this.config.entityName;
+    apiCalls = {
+      'getConfig': ['Setting', 'get', {
+        'sequential': 1,
+        'return': ['weekBegins', 'fiscalYearStart']
+      }],
+      'getHeader': ['PivotReport', 'getheader', {'entity': this.config.entityName}],
+      'getCount': ['PivotReport', 'getcount', countParams],
+      'getPivotCount': ['PivotReport', 'getpivotcount', {'entity': this.config.entityName}],
+      'dateFields': ['PivotReport', 'getdatefields', {entity: this.config.entityName}],
+      'relativeFilters': ['OptionValue', 'get', {
+        'sequential': 1,
+        'option_group_id': 'relative_date_filters'
+      }]
+    };
+
+    return CRM.api3(apiCalls);
+  };
+
+  /**
    * Given a fieldname, uses start and end dates set on inputs to filter values.
    *
    * @param string fieldName
@@ -162,6 +191,17 @@ CRM.PivotReport.PivotTable = (function ($) {
    */
   PivotTable.prototype.getEntityName = function () {
     return this.config.entityName;
+  };
+
+  /**
+   * For each field marked as a date, it will add a new field that only considers
+   * the year and month portions of the date. This helps grouping records that
+   * belong in the same month.
+   */
+  PivotTable.prototype.initDateFieldDerivedAttributes = function () {
+    $.each(this.dateFields, function (i, value) {
+      this.config.derivedAttributes[value + ' (' + ts('per month') + ')'] = $.pivotUtilities.derivers.dateFormat(value, '%y-%m');
+    }.bind(this));
   };
 
   /**
@@ -271,57 +311,20 @@ CRM.PivotReport.PivotTable = (function ($) {
   };
 
   /**
-   * Loads header, checks total number of items and then starts data fetching.
+   * Fetches and stores the required api data, resolves custom filter default values,
+   * creates date fields derived attributes, and then loads the data needed for the
+   * pivot table.
    */
   PivotTable.prototype.initPivotDataLoading = function () {
-    var that = this;
-    var countParams = that.config.getCountParams();
-    countParams.entity = this.config.entityName;
-    var apiCalls = {
-      'getConfig': ['Setting', 'get', {
-        'sequential': 1,
-        'return': ['weekBegins', 'fiscalYearStart']
-      }],
-      'getHeader': ['PivotReport', 'getheader', {'entity': this.config.entityName}],
-      'getCount': ['PivotReport', 'getcount', countParams],
-      'getPivotCount': ['PivotReport', 'getpivotcount', {'entity': this.config.entityName}],
-      'dateFields': ['PivotReport', 'getdatefields', {entity: this.config.entityName}],
-      'relativeFilters': ['OptionValue', 'get', {
-        'sequential': 1,
-        'option_group_id': 'relative_date_filters'
-      }]
-    };
-
     $.when(
-      CRM.api3(apiCalls),
+      this.fetchRequiredApiData(),
       this.resolveCustomFilterDefaultValues()
     )
       .done(function (results) {
-        var apiResults = results[0];
-
-        that.dateFields = apiResults.dateFields.values;
-        that.relativeFilters = apiResults.relativeFilters.values;
-        that.header = apiResults.getHeader.values;
-        that.total = parseInt(apiResults.getCount.values, 10);
-        that.pivotCount = parseInt(apiResults.getPivotCount.values, 10);
-        that.crmConfig = apiResults.getConfig.values[0];
-
-        $.each(that.dateFields, function (i, value) {
-          that.config.derivedAttributes[value + ' (' + ts('per month') + ')'] = $.pivotUtilities.derivers.dateFormat(value, '%y-%m');
-        });
-
-        if (that.config.initialLoad.limit && that.total > that.config.initialLoad.limit) {
-          CRM.alert(that.config.initialLoad.message, '', 'info');
-
-          $('input[type="button"].load-all-data-button', this.pivotReportForm).removeClass('hidden');
-          $('#pivot-report-filters').show();
-          var filter = that.config.initialLoad.getFilter();
-
-          that.loadDataByFilter(filter.getFrom(), filter.getTo());
-        } else {
-          that.loadAllData();
-        }
-      });
+        this.storeApiResults(results[0]);
+        this.initDateFieldDerivedAttributes();
+        this.loadPivotTableData();
+      }.bind(this));
   };
 
   /*
@@ -545,6 +548,24 @@ CRM.PivotReport.PivotTable = (function ($) {
   };
 
   /**
+   * Loads the data needed by the pivot table. If limit filters were specified,
+   * it will load the requested amount of records, otherwise it loads all.
+   */
+  PivotTable.prototype.loadPivotTableData = function () {
+    if (this.config.initialLoad.limit && this.total > this.config.initialLoad.limit) {
+      CRM.alert(this.config.initialLoad.message, '', 'info');
+
+      $('input[type="button"].load-all-data-button', this.pivotReportForm).removeClass('hidden');
+      $('#pivot-report-filters').show();
+      var filter = this.config.initialLoad.getFilter();
+
+      this.loadDataByFilter(filter.getFrom(), filter.getTo());
+    } else {
+      this.loadAllData();
+    }
+  };
+
+  /**
    * Handle Pivot Table refreshing.
    *
    * @param {JSON} config
@@ -658,6 +679,20 @@ CRM.PivotReport.PivotTable = (function ($) {
       var downloader = new CRM.PivotReport.Export(data, config);
       downloader.export('TSV');
     });
+  };
+
+  /**
+   * Stores the given api results for later use.
+   *
+   * @param {Object} apiResults - an object containing each api call result.
+   */
+  PivotTable.prototype.storeApiResults = function (apiResults) {
+    this.dateFields = apiResults.dateFields.values;
+    this.relativeFilters = apiResults.relativeFilters.values;
+    this.header = apiResults.getHeader.values;
+    this.total = parseInt(apiResults.getCount.values, 10);
+    this.pivotCount = parseInt(apiResults.getPivotCount.values, 10);
+    this.crmConfig = apiResults.getConfig.values[0];
   };
 
   /**
