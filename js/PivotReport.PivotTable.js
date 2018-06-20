@@ -367,7 +367,7 @@ CRM.PivotReport.PivotTable = (function ($) {
    * it resolves to the default value.
    */
   PivotTable.prototype.initCustomFilterDefaultValues = function () {
-    this.customFilterForm.find('input, select, textarea')
+    this.customFilterForm.find('[name]')
       .each(function (index, element) {
         var input = $(element);
         var inputName = input.attr('name');

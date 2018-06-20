@@ -34,25 +34,7 @@
       'cacheBuilt': {/literal}{$cacheBuilt|var_export:true}{literal},
       'filter': true,
       'filterField': 'Contract Start Date',
-      'customFilter': function (record) {
-        var endsAfterDate, hasValidStartDates, startsBeforeDate;
-        var date = moment(this.customFilterValues.headCountOnDate);
-        var contract = {
-          start: moment(record['Contract Start Date']),
-          end: moment(record['Contract End Date'])
-        };
-        var role = {
-          start: moment(record['Role Start Date']),
-          end: moment(record['Role End Date'])
-        };
-
-        hasValidStartDates = contract.start.isValid() && role.start.isValid();
-        startsBeforeDate = contract.start.isSameOrBefore(date) && role.start.isSameOrBefore(date);
-        endsAfterDate = (!contract.end.isValid() || date.isBetween(contract.start, contract.end, null, '[]'))
-          && (!role.end.isValid() || date.isBetween(role.start, role.end, null, '[]'));
-
-        return hasValidStartDates && startsBeforeDate && endsAfterDate;
-      },
+      'customFilter': customFilter,
       'initialLoad': {
         'limit': 1000,
         'message': 'There are more than 1000 items, getting only items from last 30 days.',
@@ -73,6 +55,33 @@
         });
       }
     });
+
+    /**
+     * Returns true when the people record has a contract and a job role that
+     * fall between the custom filter dates selected by the user.
+     *
+     * @param {Object} record - the people record.
+     * @return {Boolean}
+     */
+    function customFilter (record) {
+      var endsAfterDate, hasValidStartDates, startsBeforeDate;
+      var date = moment(this.customFilterValues.headCountOnDate);
+      var contract = {
+        start: moment(record['Contract Start Date']),
+        end: moment(record['Contract End Date'])
+      };
+      var role = {
+        start: moment(record['Role Start Date']),
+        end: moment(record['Role End Date'])
+      };
+
+      hasValidStartDates = contract.start.isValid() && role.start.isValid();
+      startsBeforeDate = contract.start.isSameOrBefore(date) && role.start.isSameOrBefore(date);
+      endsAfterDate = (!contract.end.isValid() || date.isBetween(contract.start, contract.end, null, '[]'))
+        && (!role.end.isValid() || date.isBetween(role.start, role.end, null, '[]'));
+
+      return hasValidStartDates && startsBeforeDate && endsAfterDate;
+    }
   });
 </script>
 {/literal}

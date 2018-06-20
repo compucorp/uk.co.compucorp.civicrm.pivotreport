@@ -116,42 +116,59 @@
           return 'No';
         }
       },
-      'hiddenAttributes': ['Is TOIL', 'Absence Amount', 'Absence Calculation Unit', 'Is TOIL'],
-      'resolveCustomFilterDefaultValues': function () {
-        var today = moment().format(this.DEFAULT_DATE_FORMAT);
-
-        return CRM.api3('AbsencePeriod', 'get', {
-          'sequential': 1,
-          'start_date': { '<=': today },
-          'end_date': { '>=': today },
-          'options': { 'limit': 1 }
-        })
-          .then(function (periods) {
-            var period = _.first(periods.values);
-
-            if (!period) {
-              return;
-            }
-
-            return {
-              from: period.start_date,
-              to: period.end_date
-            };
-          });
-      },
-      'customFilter': function (record) {
-        var dates = {
-          start: moment(this.customFilterValues.from),
-          end: moment(this.customFilterValues.to)
-        };
-        var request = {
-          start: moment(record['Absence Start Date']),
-          end: moment(record['Absence End Date'])
-        };
-
-        return request.start.isSameOrAfter(dates.start) && request.end.isSameOrBefore(dates.end);
-      }
+      'hiddenAttributes': ['Absence Amount', 'Absence Calculation Unit', 'Is TOIL'],
+      'resolveCustomFilterDefaultValues': resolveCustomFilterDefaultValues,
+      'customFilter': customFilter
     });
+
+    /**
+     * Returns true for leave request records that are within the custom filter
+     * dates selected by the user.
+     *
+     * @param {Object} record - the leave request record
+     * @return {Boolean}
+     */
+    function customFilter (record) {
+      var dates = {
+        start: moment(this.customFilterValues.from),
+        end: moment(this.customFilterValues.to)
+      };
+      var request = {
+        start: moment(record['Absence Start Date']),
+        end: moment(record['Absence End Date'])
+      };
+
+      return request.start.isSameOrAfter(dates.start) && request.end.isSameOrBefore(dates.end);
+    }
+
+    /**
+     * Returns the default dates for the custom filters. These resolve to the
+     * current absence period start and end dates.
+     *
+     * @return {Promise} resolves to an object.
+     */
+    function resolveCustomFilterDefaultValues () {
+      var today = moment().format(this.DEFAULT_DATE_FORMAT);
+
+      return CRM.api3('AbsencePeriod', 'get', {
+        'sequential': 1,
+        'start_date': { '<=': today },
+        'end_date': { '>=': today },
+        'options': { 'limit': 1 }
+      })
+        .then(function (periods) {
+          var period = _.first(periods.values);
+
+          if (!period) {
+            return;
+          }
+
+          return {
+            from: period.start_date,
+            to: period.end_date
+          };
+        });
+    }
   });
 </script>
 {/literal}
