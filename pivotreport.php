@@ -159,6 +159,11 @@ function pivotreport_civicrm_pageRun($page) {
       ->addStyleFile('uk.co.compucorp.civicrm.pivotreport', 'packages/bootstrap-sweetalert/sweetalert.min.css', 4)
       ->addStyleFile('uk.co.compucorp.civicrm.pivotreport', 'css/style.css', 5);
   }
+
+  if (isExtensionEnabled('org.civicrm.shoreditch')) {
+    CRM_Core_Resources::singleton()
+      ->addStyleFile('uk.co.compucorp.civicrm.pivotreport', 'css/shoreditch-only.min.css', 10);
+  }
 }
 
 /**
@@ -213,4 +218,21 @@ function pivotreport_civicrm_alterAPIPermissions($entity, $action, &$params, &$p
       }
       break;
   }
+}
+
+/**
+ * Checks if an extension is enabled
+ *
+ * @param  string $key extension key
+ * @return bool
+ */
+function isExtensionEnabled($key) {
+  $isEnabled = CRM_Core_DAO::getFieldValue(
+    'CRM_Core_DAO_Extension',
+    $key,
+    'is_active',
+    'full_name'
+  );
+
+  return !empty($isEnabled);
 }
