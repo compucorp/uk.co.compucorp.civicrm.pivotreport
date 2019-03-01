@@ -1,2 +1,4 @@
 resources/customizations/*
 !resources/customizations/.gitkeep
+node_modules
+.DS_Store
