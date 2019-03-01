@@ -25,8 +25,8 @@ div.rebuild-pivot-report-cache div.in-progress i.fa-spin {
 
 #pivot-report-preloader .progress .progress-value {
   position: absolute;
-  width: 100%;
   text-align: center;
+  width: 100%;
 }
 
 #pivot-report-admin .build-date-time {
