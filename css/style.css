@@ -1,44 +1,46 @@
 #pivot-report-table table.pvtTable tr td.pvtVal {
-    color: #3D3D3D;
-    padding: 5px;
-    background-color: #FFF;
-    border: 1px solid #ddd;
-    vertical-align: top;
-    text-align: right;
-    float: none;
-    width: auto;
-    margin: auto;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  color: #3d3d3d;
+  float: none;
+  margin: auto;
+  padding: 5px;
+  text-align: right;
+  vertical-align: top;
+  width: auto;
 }
 
 /* Customizing CSS for PivotTable */
 table.pvtUi {
-  max-width: 100%;
   border-collapse: separate;
+  max-width: 100%;
 }
 
 table.pvtUi td:first-child {
-    width: 20%;
-    overflow: hidden;
+  overflow: hidden;
+  width: 20%;
 }
 
 table.pvtUi td:last-child {
-    width: 80%;
+  width: 80%;
 }
 
 .pvtAxisContainer li span.pvtAttr {
-    height: auto;
+  height: auto;
 }
 
-th.pvtAxisLabel, th.pvtRowLabel, th.pvtColLabel {
-    text-transform: none;
+th.pvtAxisLabel,
+ th.pvtRowLabel,
+ th.pvtColLabel {
+  text-transform: none;
 }
 
 .pvtAttrDropdown {
-    width: 191px;
+  width: 191px;
 }
 
 .pvtRendererArea {
-    overflow-x: scroll;
+  overflow-x: scroll;
 }
 
 select.pvtAggregator {
@@ -47,7 +49,7 @@ select.pvtAggregator {
 }
 
 .pvtHorizList li {
-    display: inline-block;
+  display: inline-block;
 }
 
 #pivot-report-preloader.hidden {
@@ -69,8 +71,8 @@ select.relativeFilter {
 /* Pivot Table configuration block */
 
 #pivot-report-config {
-  padding: 10px 0px;
   margin-top: 12px;
+  padding: 10px 0;
 }
 
 #pivot-report-config .form-item {
@@ -97,46 +99,47 @@ select.relativeFilter {
 .pvtAxisContainer li span.pvtAttr {
   background: none;
   border: none;
-  padding: 0px;
+  padding: 0;
   white-space: normal;
 }
 
 .pvtAxisContainer li.ui-sortable-handle {
-  background: #F3F3F3;
-  border: 1px solid #DEDEDE;
+  background: #f3f3f3;
+  border: 1px solid #dedede;
   -webkit-border-radius: 5px;
   -moz-border-radius: 5px;
   border-radius: 5px;
 }
 
 span.pvtTriangle {
-  background:url(../resources/icons/filter-icon-1.png) 0 1px no-repeat;
-  width: 20px;
-  height: 20px;
+  background: url(../resources/icons/filter-icon-1.png) 0 1px no-repeat;
   display: inline-block;
-  margin-left: 5px;
   float: right;
+  height: 20px;
+  margin-left: 5px;
+  overflow: hidden;
   text-indent: 100%;
   white-space: nowrap;
-  overflow: hidden;
+  width: 20px;
 }
 
 td.pvtVals {
-  width: 20%;
   padding: 20px;
   vertical-align: middle;
+  width: 20%;
 }
 
-#cols_help_msg, #rows_help_msg {
-  margin: 20px;
+#cols_help_msg,
+ #rows_help_msg {
   color: #aaa;
   font-size: small;
+  margin: 20px;
 }
 
 table.pvtUi td.pvtVertList {
+  display: inline-block;
   height: 38em;
   overflow-y: scroll;
-  display: inline-block;
   width: 190px;
 }
 
@@ -156,8 +159,8 @@ div.pivot-report-output-config div.pivot-report-export-button {
 
 #pivot-report-preloader .progress .progress-value {
   position: absolute;
-  width: 100%;
   text-align: center;
+  width: 100%;
 }
 
 div.right-align {
