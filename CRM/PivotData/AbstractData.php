@@ -11,7 +11,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
    * Limit value for API 'get' action on source entity. Used on rebuilding
    * Pivot Data.
    */
-  const ROWS_API_LIMIT = 1000;
+  const ROWS_API_LIMIT = 3000;
 
   /**
    * Maximum number of data rows per page (single cache row).
