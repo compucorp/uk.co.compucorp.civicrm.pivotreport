@@ -182,9 +182,5 @@ function pivotreport_civicrm_permission(&$permissions) {
  *   List of entity types
  */
 function pivotreport_civicrm_entityTypes(&$entityTypes) {
-  $entityTypes[] = [
-    'name'  => 'PivotReportConfig',
-    'class' => 'CRM_PivotReport_DAO_PivotReportConfig',
-    'table' => 'civicrm_pivotreport_config',
-  ];
+  _pivotreport_civix_civicrm_entityTypes($entityTypes);
 }
