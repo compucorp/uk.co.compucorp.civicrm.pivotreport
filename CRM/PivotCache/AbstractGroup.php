@@ -159,12 +159,20 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
    * Gets a cache path string by specified index and page.
    *
    * @param string $index
+   *   Cache index.
    * @param int $page
-   *
+   *   Page number
+   * @param bool $addUniqueSuffix
+   *  Whether to add a unique suffix or not.
    * @return string
    */
-  protected function getPath($index, $page = NULL) {
-    return 'data_' . $index . '_' . str_pad($page, 6, '0', STR_PAD_LEFT);
+  protected function getPath($index, $page = NULL, $addUniqueSuffix = TRUE) {
+    $path = 'data_' . $index . '_' . str_pad($page, 6, '0', STR_PAD_LEFT);
+    if ($addUniqueSuffix) {
+      $path .= '_' . uniqid();
+    }
+
+    return $path;
   }
 
 
