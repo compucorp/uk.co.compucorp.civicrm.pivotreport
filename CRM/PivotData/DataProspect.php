@@ -23,7 +23,7 @@ class CRM_PivotData_DataProspect extends CRM_PivotData_DataCase {
       'api.ProspectConverted.get' => array('prospect_case_id' => '$value.id'),
       'return' => array_merge($this->getCaseFields(), array('subject', 'contacts', 'contact_id')),
       'options' => array(
-        'sort' => 'id ASC',
+        'sort' => 'start_date ASC, id ASC',
         'limit' => self::ROWS_API_LIMIT,
       ),
     );
