@@ -15,9 +15,10 @@ class CRM_PivotCache_GroupActivity extends CRM_PivotCache_AbstractGroup {
   protected function customizeQuery(CRM_PivotReport_DAO_PivotReportCache $queryObject, $page, array $params) {
     if (!empty($params['keyvalue_from'])) {
       $whereStartDate = CRM_Core_DAO::createSQLFilter(
-        'path',
+        // Remove the unique suffix added to the path.
+        'LEFT(path, LENGTH(path) - 14)',
         array(
-          '>=' => $this->getPath(substr($params['keyvalue_from'], 0, 10), $page),
+          '>=' => $this->getPath(substr($params['keyvalue_from'], 0, 10), $page, FALSE),
         ),
         'String'
       );
@@ -27,9 +28,10 @@ class CRM_PivotCache_GroupActivity extends CRM_PivotCache_AbstractGroup {
 
     if (!empty($params['keyvalue_to'])) {
       $whereEndDate = CRM_Core_DAO::createSQLFilter(
-        'path',
+      // Remove the unique suffix added to the path.
+        'LEFT(path, LENGTH(path) - 14)',
         array(
-          '<=' => $this->getPath(substr($params['keyvalue_to'], 0, 10), 999999),
+          '<=' => $this->getPath(substr($params['keyvalue_to'], 0, 10), 999999, FALSE),
         ),
         'String'
       );
