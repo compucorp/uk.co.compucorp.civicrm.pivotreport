@@ -50,6 +50,15 @@ function pivotreport_civicrm_enable() {
 }
 
 /**
+ * Implements hook_civicrm_postInstall().
+ *
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_postInstall
+ */
+function pivotreport_civicrm_postInstall() {
+  _pivotreport_civix_civicrm_postInstall();
+}
+
+/**
  * Implements hook_civicrm_disable().
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_disable
