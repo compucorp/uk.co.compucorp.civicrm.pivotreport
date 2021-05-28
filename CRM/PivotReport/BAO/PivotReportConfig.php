@@ -10,6 +10,7 @@ class CRM_PivotReport_BAO_PivotReportConfig extends CRM_PivotReport_DAO_PivotRep
       'return' => array('label'),
       'options' => array(
         'sort' => 'label ASC',
+        'limit' => 0,
       ),
     ));
 
