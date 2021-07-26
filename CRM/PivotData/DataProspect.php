@@ -19,6 +19,7 @@ class CRM_PivotData_DataProspect extends CRM_PivotData_DataCase {
     $params = array(
       'sequential' => 1,
       'is_deleted' => 0,
+      'client_id' => ['IS NOT NULL' => 1],
       'api.Contact.get' => array('id' => '$value.client_id', 'return' => array('id', 'contact_type', 'contact_sub_type', 'display_name')),
       'api.ProspectConverted.get' => array('prospect_case_id' => '$value.id'),
       'return' => array_merge($this->getCaseFields(), array('subject', 'contacts', 'contact_id')),
@@ -187,5 +188,15 @@ class CRM_PivotData_DataProspect extends CRM_PivotData_DataCase {
     }
 
     return $this->fields;
+  }
+
+  /**
+   * @inheritdoc
+   */
+  public function getCount(array $params = []) {
+    return civicrm_api3('Case', 'getcount', [
+      'is_deleted' => 0,
+      'client_id' => ['IS NOT NULL' => 1],
+    ]);
   }
 }
