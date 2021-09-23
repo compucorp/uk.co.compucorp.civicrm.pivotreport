@@ -6,6 +6,11 @@
 class CRM_PivotData_DataProspect extends CRM_PivotData_DataCase {
 
   /**
+   * @inheritdoc
+   */
+  const ROWS_API_LIMIT = 500;
+
+  /**
    * CRM_PivotData_DataProspect constructor.
    */
   public function __construct() {
