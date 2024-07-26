@@ -178,10 +178,12 @@ function pivotreport_civicrm_pageRun($page) {
  */
 function pivotreport_civicrm_permission(&$permissions) {
   $prefix = ts('CiviCRM Reports') . ': '; // name of extension or module
-  $permissions += array(
-    'access CiviCRM pivot table reports' => $prefix . ts('access CiviCRM pivot table reports'),
-    'Admin Pivot Report' => $prefix . ts('Admin Pivot Report'),
-  );
+  $permissions['access CiviCRM pivot table reports'] = [
+    'label' => $prefix . ts('access CiviCRM pivot table reports'),
+  ];
+  $permissions['Admin Pivot Report'] = [
+    'label' => $prefix . ts('Admin Pivot Report'),
+  ];
 }
 
 /**
