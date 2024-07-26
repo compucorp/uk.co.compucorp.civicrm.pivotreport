@@ -14,10 +14,21 @@
   <version>2.0.7</version>
   <develStage>Stable</develStage>
   <compatibility>
-    <ver>5.35</ver>
+    <ver>5.45</ver>
   </compatibility>
-  <comments></comments>
+  <comments/>
   <civix>
     <namespace>CRM/PivotReport</namespace>
+    <format>23.02.1</format>
   </civix>
+  <mixins>
+    <mixin>menu-xml@1.0.0</mixin>
+    <mixin>smarty-v2@1.0.1</mixin>
+    <mixin>entity-types-php@1.0.0</mixin>
+  </mixins>
+  <classloader>
+    <psr0 prefix="CRM_" path="."/>
+    <psr4 prefix="Civi\" path="Civi"/>
+  </classloader>
+  <upgrader>CRM_PivotReport_Upgrader</upgrader>
 </extension>
