@@ -3,7 +3,7 @@
 /**
  * Collection of upgrade steps.
  */
-class CRM_PivotReport_Upgrader extends CRM_PivotReport_Upgrader_Base {
+class CRM_PivotReport_Upgrader extends CRM_Extension_Upgrader_Base {
 
   /**
    * List of scheduled jobs provided by the extension.
