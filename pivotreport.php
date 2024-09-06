@@ -88,3 +88,12 @@ function pivotreport_civicrm_permission(&$permissions) {
     ],
   ];
 }
+
+/**
+ * Implements hook_civicrm_alterLogTables().
+ *
+ * Exclude tables from logging tables since they hold mostly temp data.
+ */
+function pivotreport_civicrm_alterLogTables(&$logTableSpec) {
+  unset($logTableSpec['civicrm_pivotreportcache']);
+}
