@@ -1,6 +1,7 @@
 <?php
 
 require_once 'pivotreport.civix.php';
+use CRM_PivotReport_ExtensionUtil as E;
 
 /**
  * Implements hook_civicrm_config().
@@ -75,9 +76,15 @@ function pivotreport_civicrm_pageRun($page) {
  * @return void
  */
 function pivotreport_civicrm_permission(&$permissions) {
-  $prefix = ts('CiviCRM Reports') . ': '; // name of extension or module
-  $permissions += array(
-    'access CiviCRM pivot table reports' => $prefix . ts('access CiviCRM pivot table reports'),
-    'Admin Pivot Report' => $prefix . ts('Admin Pivot Report'),
-  );
+  $prefix = ts('CiviCRM Reports') . ': ';
+  $permissions += [
+    'access CiviCRM pivot table reports' => [
+      'label' => $prefix . E::ts('access CiviCRM pivot table reports'),
+      'description' => E::ts('access CiviCRM pivot table reports'),
+    ],
+    'Admin Pivot Report' => [
+      'label' => $prefix . E::ts('Admin Pivot Report'),
+      'description' => E::ts('Admin Pivot Report'),
+    ],
+  ];
 }
