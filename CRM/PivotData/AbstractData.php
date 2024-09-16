@@ -692,9 +692,9 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
       case $dataType == 'File':
         if (is_array($value)) {
           if (isset($value['fileURL']) && isset($value['fileName'])) {
-            $result = CRM_Utils_System::formatWikiURL($value['fileURL'] . ' ' . $value['fileName']);
+            $result = CRM_Utils_System::href($value['fileName'], ltrim($value['fileURL'], '/'), NULL, FALSE);
           } else {
-            $result = CRM_Utils_System::formatWikiURL(implode(' ', $value));
+            $result = CRM_Utils_System::href($value[1] ?? '', $value[0] ? ltrim($value[0], '/') : NULL, NULL, FALSE);
           }
         } else {
           $result = $value;
