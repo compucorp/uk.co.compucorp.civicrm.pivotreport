@@ -16,7 +16,7 @@ class CRM_PivotReport_Upgrader extends CRM_Extension_Upgrader_Base {
 
   /**
    * Installation logic.
-   * 
+   *
    * @return boolean
    */
   public function install() {
@@ -28,13 +28,14 @@ class CRM_PivotReport_Upgrader extends CRM_Extension_Upgrader_Base {
     $this->upgrade_0010();
     $this->upgrade_0011();
     $this->upgrade_0012();
+    $this->upgrade_0013();
 
     return TRUE;
   }
 
   /**
    * Uninstallation logic.
-   * 
+   *
    * @return boolean
    */
   public function uninstall()
@@ -51,7 +52,7 @@ class CRM_PivotReport_Upgrader extends CRM_Extension_Upgrader_Base {
 
   /**
    * Install Pivot Report link under Reports menu.
-   * 
+   *
    * @return boolean
    */
   public function upgrade_0001() {
@@ -242,6 +243,17 @@ class CRM_PivotReport_Upgrader extends CRM_Extension_Upgrader_Base {
   }
 
   /**
+   * Disables scheduled jobs.
+   *
+   * @return boolean
+   */
+  public function upgrade_0013() {
+    $this->setScheduledJobsIsActive(0);
+
+    return TRUE;
+  }
+
+  /**
    * Creates new menu item using provided parameters.
    *
    * @param array $params
@@ -254,7 +266,7 @@ class CRM_PivotReport_Upgrader extends CRM_Extension_Upgrader_Base {
 
   /**
    * Logic which is executing when enabling extension.
-   * 
+   *
    * @return boolean
    */
   public function onEnable() {
@@ -262,8 +274,8 @@ class CRM_PivotReport_Upgrader extends CRM_Extension_Upgrader_Base {
 
     $pivotID = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'pivotreport', 'id', 'name');
     CRM_Core_DAO::executeQuery("
-      UPDATE civicrm_navigation 
-      SET is_active = 1 
+      UPDATE civicrm_navigation
+      SET is_active = 1
       WHERE name IN ('pivotreport', 'Pivot Report Config')
       OR parent_id = $pivotID
     ");
@@ -274,7 +286,7 @@ class CRM_PivotReport_Upgrader extends CRM_Extension_Upgrader_Base {
 
   /**
    * Logic which is executing when disabling extension.
-   * 
+   *
    * @return boolean
    */
   public function onDisable() {
@@ -282,8 +294,8 @@ class CRM_PivotReport_Upgrader extends CRM_Extension_Upgrader_Base {
 
     $pivotID = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'pivotreport', 'id', 'name');
     CRM_Core_DAO::executeQuery("
-      UPDATE civicrm_navigation 
-      SET is_active = 0 
+      UPDATE civicrm_navigation
+      SET is_active = 0
       WHERE name IN ('pivotreport', 'Pivot Report Config')
       OR parent_id = $pivotID
     ");
