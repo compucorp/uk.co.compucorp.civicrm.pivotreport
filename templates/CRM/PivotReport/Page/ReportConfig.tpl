@@ -10,13 +10,13 @@
       </select>
       {if ($canManagePivotReportConfig)}
         <div class="form-item">
-          <input type="button" class="report-config-save-btn btn btn-primary hidden" value="{ts}Save Report{/ts}">
+          <input type="button" class="report-config-save-btn btn btn-primary hidden" value="{ts escape='htmlattribute'}Save Report{/ts}">
         </div>
         <div class="form-item">
-          <input type="button" class="report-config-save-new-btn btn btn-primary" value="{ts}Save As New{/ts}">
+          <input type="button" class="report-config-save-new-btn btn btn-primary" value="{ts escape='htmlattribute'}Save As New{/ts}">
         </div>
         <div class="form-item">
-          <input type="button" class="report-config-delete-btn btn btn-danger hidden" value="{ts}Delete{/ts}">
+          <input type="button" class="report-config-delete-btn btn btn-danger hidden" value="{ts escape='htmlattribute'}Delete{/ts}">
         </div>
       {/if}
     </div>

@@ -1,6 +1,6 @@
 <div id="pivot-report-admin">
   <div class="rebuild-pivot-report-cache">
-    <input class="build-cache-button" type="button" value="{ts}Refresh All Pivot Reports{/ts}">
+    <input class="build-cache-button" type="button" value="{ts escape='htmlattribute'}Refresh All Pivot Reports{/ts}">
     <div class="in-progress hidden">
       <i class="fa fa-spinner fa-spin"></i>
       <span>{ts}Building report cache. This might take a few minutes.{/ts}</span>
