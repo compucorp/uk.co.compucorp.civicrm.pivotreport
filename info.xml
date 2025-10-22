@@ -8,6 +8,9 @@
     <author>Compucorp</author>
   </maintainer>
   <urls>
+    <url desc="Main Extension Page">https://github.com/compucorp/uk.co.compucorp.civicrm.pivotreport</url>
+    <url desc="Documentation">https://github.com/compucorp/uk.co.compucorp.civicrm.pivotreport</url>
+    <url desc="Support">https://github.com/compucorp/uk.co.compucorp.civicrm.pivotreport/issues</url>
     <url desc="Licensing">http://www.gnu.org/licenses/agpl-3.0.html</url>
   </urls>
   <releaseDate>2025-09-09</releaseDate>
