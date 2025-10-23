@@ -16,7 +16,7 @@ function _civicrm_api3_pivot_report_get_spec(&$spec) {
  *
  * @param array $params
  * @return array API result descriptor
- * @throws API_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_pivot_report_get($params) {
   $entity = !empty($params['entity']) ? $params['entity'] : 'Activity';
@@ -44,7 +44,7 @@ function civicrm_api3_pivot_report_get($params) {
  *
  * @param array $params
  * @return array API result descriptor
- * @throws API_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_pivot_report_getheader($params) {
   $entity = !empty($params['entity']) ? $params['entity'] : 'Activity';
@@ -58,7 +58,7 @@ function civicrm_api3_pivot_report_getheader($params) {
  *
  * @param array $params
  * @return array API result descriptor
- * @throws API_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_pivot_report_rebuildcache($params) {
   $result = array();
@@ -90,7 +90,7 @@ function civicrm_api3_pivot_report_rebuildcache($params) {
  *
  * @param array $params
  * @return array API result descriptor
- * @throws API_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_pivot_report_rebuildcachechunk($params) {
   $result = CRM_PivotReport_BAO_PivotReportCache::rebuildCacheChunk();
@@ -106,7 +106,7 @@ function civicrm_api3_pivot_report_rebuildcachechunk($params) {
  *
  * @param array $params
  * @return array API result descriptor
- * @throws API_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_pivot_report_rebuildcachepartial($params) {
   $entity = !empty($params['entity']) ? $params['entity'] : NULL;
@@ -148,7 +148,7 @@ function civicrm_api3_pivot_report_getdatefields($params) {
  *
  * @param array $params
  * @return array API result descriptor
- * @throws API_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_pivot_report_getsupportedentities($params) {
   return civicrm_api3_create_success(
@@ -162,7 +162,7 @@ function civicrm_api3_pivot_report_getsupportedentities($params) {
  *
  * @param array $params
  * @return array API result descriptor
- * @throws API_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_pivot_report_getsupportedentitiescount($params) {
   $entities = CRM_PivotReport_Entity::getSupportedEntities();
@@ -184,7 +184,7 @@ function civicrm_api3_pivot_report_getsupportedentitiescount($params) {
  *
  * @param array $params
  * @return array API result descriptor
- * @throws API_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_pivot_report_gettotalcount($params) {
   $entities = CRM_PivotReport_Entity::getSupportedEntities();
@@ -206,7 +206,7 @@ function civicrm_api3_pivot_report_gettotalcount($params) {
  *
  * @param array $params
  * @return array API result descriptor
- * @throws API_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_pivot_report_getcount($params) {
   $entity = !empty($params['entity']) ? $params['entity'] : NULL;
@@ -224,7 +224,7 @@ function civicrm_api3_pivot_report_getcount($params) {
  *
  * @param array $params
  * @return array API result descriptor
- * @throws API_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_pivot_report_getentitycount($params) {
   $entity = !empty($params['entity']) ? $params['entity'] : NULL;
@@ -242,7 +242,7 @@ function civicrm_api3_pivot_report_getentitycount($params) {
  *
  * @param array $params
  * @return array API result descriptor
- * @throws API_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_pivot_report_getpivotcount($params) {
   $entity = !empty($params['entity']) ? $params['entity'] : NULL;
@@ -262,7 +262,7 @@ function civicrm_api3_pivot_report_getpivotcount($params) {
  *
  * @param array $params
  * @return array API result descriptor
- * @throws API_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_pivot_report_getbuilddatetime($params) {
   $result = CRM_PivotReport_BAO_PivotReportCache::getBuildDatetime();
@@ -282,7 +282,7 @@ function civicrm_api3_pivot_report_getbuilddatetime($params) {
  *
  * @param array $params
  * @return array API result descriptor
- * @throws API_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_pivot_report_updatebuilddatetime($params) {
   return civicrm_api3_create_success(
