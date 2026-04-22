@@ -336,7 +336,7 @@ CRM.PivotReport.PivotTable = (function($) {
       that.data = that.data.concat(that.processData(result['values'][0].data));
       var nextKeyValue = result['values'][0].nextKeyValue;
       var nextPage = result['values'][0].nextPage;
-      var progressValue = parseInt((that.totalLoaded / totalCount) * 100, 10);
+      var progressValue = Math.min(parseInt((that.totalLoaded / totalCount) * 100, 10), 100);
 
       that.Preloader.setValue(progressValue);
 
