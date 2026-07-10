@@ -10,7 +10,7 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
   /**
    * Name of cache group.
    *
-   * @var string 
+   * @var string
    */
   protected $name = NULL;
 
@@ -153,6 +153,31 @@ abstract class CRM_PivotCache_AbstractGroup implements CRM_PivotCache_GroupInter
    * @param array $params
    */
   protected function customizeQuery(CRM_PivotReport_DAO_PivotReportCache $queryObject, $page, array $params) {
+    if (!empty($params['keyvalue_from'])) {
+      $whereStartDate = CRM_Core_DAO::createSQLFilter(
+        // Remove the unique suffix added to the path.
+        'LEFT(path, LENGTH(path) - 14)',
+        array(
+          '>=' => $this->getPath(substr($params['keyvalue_from'], 0, 10), $page, FALSE),
+        ),
+        'String'
+      );
+
+      $queryObject->whereAdd($whereStartDate);
+    }
+
+    if (!empty($params['keyvalue_to'])) {
+      $whereEndDate = CRM_Core_DAO::createSQLFilter(
+        // Remove the unique suffix added to the path.
+        'LEFT(path, LENGTH(path) - 14)',
+        array(
+          '<=' => $this->getPath(substr($params['keyvalue_to'], 0, 10), 999999, FALSE),
+        ),
+        'String'
+      );
+
+      $queryObject->whereAdd($whereEndDate);
+    }
   }
 
   /**
