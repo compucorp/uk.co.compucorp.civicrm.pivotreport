@@ -34,14 +34,14 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
    *
    * @var array
    */
-  protected $fields = array();
+  protected $fields = [];
 
   /**
    * Empty Pivot Report row containing Entity fields as keys and NULL values.
    *
    * @var array
    */
-  protected $emptyRow = array();
+  protected $emptyRow = [];
 
   /**
    * Additional fields we want to attach to each Pivot row.
@@ -50,28 +50,28 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
    *
    * @var array
    */
-  protected $additionalHeaderFields = array();
+  protected $additionalHeaderFields = [];
 
   /**
    * An array containing Multi Values for particular Entity row.
    *
    * @var array
    */
-  protected $multiValues = array();
+  protected $multiValues = [];
 
   /**
    * An array containing output values basing on original Entity values.
    *
    * @var array
    */
-  protected $formattedValues = array();
+  protected $formattedValues = [];
 
   /**
    * An array containing customized values basing on original Entity values.
    *
    * @var array
    */
-  protected $customizedValues = array();
+  protected $customizedValues = [];
 
   /**
    * Name of data group.
@@ -134,12 +134,12 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
     $dataSetInstance = new CRM_PivotCache_DataSet($this->name);
     $dataSet = $dataSetInstance->get($cacheGroup, $page, $this::ROWS_RETURN_LIMIT, $params);
 
-    return array(
-      array(
+    return [
+      [
       'nextKeyValue' => $dataSet->getNextIndex(),
       'nextPage' => $dataSet->getNextPage(),
       'data' => $dataSet->getData(),
-    ));
+    ]];
   }
 
   /**
@@ -151,7 +151,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
    * @return array
    */
   protected function getRowValues($data, $entityName) {
-    $result = array();
+    $result = [];
     $fields = $this->getFields();
 
     foreach ($data as $key => $value) {
@@ -182,7 +182,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
    */
   protected function formatRow($baseKey, $row) {
     $fields = $this->getFields();
-    $result = array();
+    $result = [];
 
     foreach ($row as $key => $value) {
       $label = $key;
@@ -209,7 +209,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
    */
   public function rebuildCache(AbstractGroup $cacheGroup, array $params) {
     $this->emptyRow = $this->getEmptyRow();
-    $this->multiValues = array();
+    $this->multiValues = [];
 
     $time = microtime(true);
 
@@ -226,12 +226,12 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
     CRM_PivotReport_BAO_PivotReportCache::deleteActiveCache($cacheGroup->getName());
     CRM_PivotReport_BAO_PivotReportCache::activateCache($cacheGroup);
 
-    return array(
-      array(
+    return [
+      [
         'rows' => $result['count'],
         'time' => (microtime(true) - $time),
-      )
-    );
+      ]
+    ];
   }
 
   /**
@@ -239,7 +239,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
    */
   public function rebuildCachePartial(AbstractGroup $cacheGroup, array $params, $offset, $multiValuesOffset, $index, $page, $pivotCount) {
     $this->emptyRow = $this->getEmptyRow();
-    $this->multiValues = array();
+    $this->multiValues = [];
 
     if (!$offset && !$multiValuesOffset) {
       $cacheGroup->clear();
@@ -293,13 +293,13 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
       }
     }
 
-    return array(
+    return [
       'offset' => $offset,
       'multiValuesOffset' => $multiValuesOffset,
       'page' => $page,
       'index' => $index,
       'count' => $count,
-    );
+    ];
   }
 
   /**
@@ -359,7 +359,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
    * @return int
    */
   protected function getPaginatedResults(array $apiParams, $offset = 0, $multiValuesOffset = 0, $page = 0, $index = NULL) {
-    $result = array();
+    $result = [];
     $rowsCount = 0;
     $apiParams['options']['offset'] = $offset;
     $entities = civicrm_api3($this->apiEntityName, 'get', $apiParams);
@@ -419,13 +419,13 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
    * @return array
    */
   protected function getEntityApiParams(array $inputParams) {
-    $params = array(
+    $params = [
       'sequential' => 1,
       'return' => implode(',', array_keys($this->getFields())),
-      'options' => array(
+      'options' => [
         'limit' => $this::ROWS_API_LIMIT,
-      ),
-    );
+      ],
+    ];
 
     return $params;
   }
@@ -447,7 +447,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
    * @return array
    */
   protected function splitMultiValues(array $data, $totalOffset, $multiValuesOffset) {
-    $result = array();
+    $result = [];
     $index = NULL;
     $i = 0;
 
@@ -484,15 +484,15 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
       unset($this->multiValues[$key]);
     }
 
-    return array(
-      'info' => array(
+    return [
+      'info' => [
         'index' => $index,
         'nextOffset' => !empty($multiValuesRows['info']['multiValuesOffset']) ? $totalOffset - 1: $totalOffset,
         'multiValuesOffset' => !empty($multiValuesRows['info']['multiValuesOffset']) ? $multiValuesRows['info']['multiValuesOffset'] : 0,
         'multiValuesTotal' => !empty($multiValuesRows['info']['multiValuesTotal']) ? $multiValuesRows['info']['multiValuesTotal'] : 0,
-      ),
+      ],
       'data' => $result,
-    );
+    ];
   }
 
   /**
@@ -512,17 +512,17 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
    * @return array
    */
   protected function populateMultiValuesRow(array $row, array $fields, $offset, $limit) {
-    $data = array();
-    $info = array(
+    $data = [];
+    $info = [
       'multiValuesTotal' => $this->getTotalCombinations($row, $fields),
       'multiValuesOffset' => 0,
-    );
+    ];
     $found = true;
     $i = 0;
 
     while ($found) {
       if ($i >= $offset) {
-        $rowResult = array();
+        $rowResult = [];
         foreach ($fields as $key => $index) {
           $rowResult[$key] = $row[$key][$index];
         }
@@ -545,10 +545,10 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
       }
     }
 
-    return array(
+    return [
       'info' => $info,
       'data' => $data,
-    );
+    ];
   }
 
   /**
@@ -586,7 +586,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
    * @return type
    */
   protected function formatResult($data, $dataKey = null, $level = 0) {
-    $result = array();
+    $result = [];
     $fields = $this->getFields();
 
     if ($level < 2) {
@@ -653,7 +653,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
 
     // Handle multiple values
     if (is_array($value) && $dataType !== 'File') {
-      $valueArray = array();
+      $valueArray = [];
       foreach ($value as $valueKey => $valueItem) {
         $valueArray[] = $this->formatValue($key, $valueItem, $level + 1);
       }
@@ -685,7 +685,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
       case $dataType == 'Memo':
       case $customHTMLType == 'Text':
       case $customHTMLType == 'TextArea':
-        $result = strtr($value, array("\r\n" => ' ', "\n" => ' ', "\r" => ' '));
+        $result = strtr($value, ["\r\n" => ' ', "\n" => ' ', "\r" => ' ']);
         break;
 
       // Handle files
@@ -707,7 +707,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
       case $dataType == 'Link':
       case $dataType == 'StateProvince':
       case $dataType == 'Country':
-        $data = array('data' => $value);
+        $data = ['data' => $value];
         CRM_Utils_System::url();
         $result = CRM_Core_BAO_CustomField::displayValue($data, $fields[$key]['customField']);
         break;
@@ -774,7 +774,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
    * @return array
    */
   protected function getEmptyRow() {
-    $result = array();
+    $result = [];
     $fields = $this->getFields();
 
     foreach ($fields as $key => $value) {
@@ -795,7 +795,7 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
    * @inheritdoc
    */
   public function getDateFields() {
-    $result = array();
+    $result = [];
     $fields = $this->getFields();
 
     foreach ($fields as $field => $fieldData) {
@@ -827,9 +827,9 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
       $entity = $this->apiEntityName;
     }
 
-    $result = civicrm_api3($entity, 'getoptions', array(
+    $result = civicrm_api3($entity, 'getoptions', [
       'field' => $field['name'],
-    ));
+    ]);
 
     return $result['values'];
   }
@@ -895,5 +895,5 @@ abstract class CRM_PivotData_AbstractData implements CRM_PivotData_DataInterface
    *
    * @return int
    */
-  abstract public function getCount(array $params = array());
+  abstract public function getCount(array $params = []);
 }

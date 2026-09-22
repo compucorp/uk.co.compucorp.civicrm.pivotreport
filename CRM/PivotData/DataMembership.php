@@ -16,19 +16,19 @@ class CRM_PivotData_DataMembership extends CRM_PivotData_AbstractData {
    * @inheritdoc
    */
   protected function getEntityApiParams(array $inputParams) {
-    $params = array(
+    $params = [
       'sequential' => 1,
       'is_test' => 0,
       'return' => implode(',', $this->getMembershipFields()),
-      'api.Contact.getsingle' => array(
+      'api.Contact.getsingle' => [
         'id' => '$value.contact_id',
-        'return' => array('display_name', 'sort_name', 'contact_type')
-      ),
-      'options' => array(
+        'return' => ['display_name', 'sort_name', 'contact_type']
+      ],
+      'options' => [
         'sort' => 'join_date ASC, id ASC',
         'limit' => self::ROWS_API_LIMIT,
-      ),
-    );
+      ],
+    ];
 
     return $params;
   }
@@ -39,7 +39,7 @@ class CRM_PivotData_DataMembership extends CRM_PivotData_AbstractData {
    * @return array
    */
   protected function getMembershipFields() {
-    $result = array();
+    $result = [];
     $fields = array_keys($this->getFields());
 
     foreach ($fields as $field) {
@@ -56,7 +56,7 @@ class CRM_PivotData_DataMembership extends CRM_PivotData_AbstractData {
    * @inheritdoc
    */
   protected function formatResult($data, $dataKey = null, $level = 0) {
-    $result = array();
+    $result = [];
 
     foreach ($data as $key => $membership) {
       $membershipValues = $this->getRowValues($membership, 'membership');
@@ -81,15 +81,15 @@ class CRM_PivotData_DataMembership extends CRM_PivotData_AbstractData {
    */
   protected function getFields() {
     if (empty($this->fields)) {
-      $fields = array();
-      $keys = array();
-      $groups = array('membership', 'contact');
+      $fields = [];
+      $keys = [];
+      $groups = ['membership', 'contact'];
 
       // Get standard Fields and Keys of Membership entity.
       $fields['membership'] = CRM_Member_DAO_Membership::fields();
       $keys['membership'] = CRM_Member_DAO_Membership::fieldKeys();
 
-      $result = array();
+      $result = [];
 
       // Now get Custom Fields for entity.
       $customFieldsResult = CRM_Core_DAO::executeQuery(
@@ -106,23 +106,23 @@ class CRM_PivotData_DataMembership extends CRM_PivotData_AbstractData {
         $customField->id = $customFieldsResult->id;
         $customField->find(true);
 
-        $fields['membership']['custom_' . $customFieldsResult->id] = array(
+        $fields['membership']['custom_' . $customFieldsResult->id] = [
           'name' => 'custom_' . $customFieldsResult->id,
           'title' => $customFieldsResult->label,
-          'pseudoconstant' => array(
+          'pseudoconstant' => [
             'optionGroupName' => $customFieldsResult->option_group_name,
-          ),
+          ],
           'customField' => (array)$customField,
-        );
+        ];
       }
 
-      $fields['membership']['membership_name'] = array('name' => 'membership_name', 'title' => ts('Membership Name'));
-      $fields['membership']['relationship_name'] = array('name' => 'relationship_name', 'title' => ts('Relationship Name'));
+      $fields['membership']['membership_name'] = ['name' => 'membership_name', 'title' => ts('Membership Name')];
+      $fields['membership']['relationship_name'] = ['name' => 'relationship_name', 'title' => ts('Relationship Name')];
 
-      $fields['contact']['display_name'] = array('name' => 'display_name', 'title' => 'Display Name');
-      $fields['contact']['sort_name'] = array('name' => 'sort_name', 'title' => 'Sort Name');
-      $fields['contact']['contact_type'] = array('name' => 'contact_type', 'title' => 'Contact Type');
-      $fields['contact']['contact_id'] = array('name' => 'contact_id', 'title' => 'Contact ID');
+      $fields['contact']['display_name'] = ['name' => 'display_name', 'title' => 'Display Name'];
+      $fields['contact']['sort_name'] = ['name' => 'sort_name', 'title' => 'Sort Name'];
+      $fields['contact']['contact_type'] = ['name' => 'contact_type', 'title' => 'Contact Type'];
+      $fields['contact']['contact_id'] = ['name' => 'contact_id', 'title' => 'Contact ID'];
 
       foreach ($groups as $group) {
         foreach ($fields[$group] as $key => $value) {
@@ -146,10 +146,10 @@ class CRM_PivotData_DataMembership extends CRM_PivotData_AbstractData {
   /**
    * @inheritdoc
    */
-  public function getCount(array $params = array()) {
-    $apiParams = array(
+  public function getCount(array $params = []) {
+    $apiParams = [
       'is_test' => 0,
-    );
+    ];
 
     return civicrm_api3('Membership', 'getcount', $apiParams);
   }
