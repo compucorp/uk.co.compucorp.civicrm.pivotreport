@@ -16,22 +16,22 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
    * @inheritdoc
    */
   protected function getEntityApiParams(array $inputParams) {
-    $params = array(
+    $params = [
       'sequential' => 1,
       'is_deleted' => 0,
-      'api.Contact.get' => array('id' => '$value.client_id', 'return' => array('id', 'contact_type', 'contact_sub_type', 'display_name')),
-      'return' => array_merge($this->getCaseFields(), array('subject', 'contacts', 'contact_id')),
-      'options' => array(
+      'api.Contact.get' => ['id' => '$value.client_id', 'return' => ['id', 'contact_type', 'contact_sub_type', 'display_name']],
+      'return' => array_merge($this->getCaseFields(), ['subject', 'contacts', 'contact_id']),
+      'options' => [
         'sort' => 'start_date ASC, id ASC',
         'limit' => self::ROWS_API_LIMIT,
-      ),
-    );
+      ],
+    ];
 
     return $params;
   }
 
   protected function getCaseFields() {
-    $result = array();
+    $result = [];
     $fields = array_keys($this->getFields());
 
     foreach ($fields as $field) {
@@ -48,7 +48,7 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
    * @inheritdoc
    */
   protected function formatResult($data, $dataKey = null, $level = 0) {
-    $result = array();
+    $result = [];
 
     foreach ($data as $key => $case) {
       $caseValues = $this->getCaseValues($case);
@@ -72,7 +72,7 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
    * @return array
    */
   protected function getClients($clients) {
-    $clientFields = array();
+    $clientFields = [];
 
     foreach ($clients as $currentClient) {
       $rowValues = $this->getRowValues($currentClient, 'client');
@@ -100,9 +100,9 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
    * @return array
    */
   protected function getCaseValues($data) {
-    $result = array();
+    $result = [];
     $fields = $this->getFields();
-    $include = array('id', 'subject', 'case_type_id', 'status_id', 'start_date', 'end_date');
+    $include = ['id', 'subject', 'case_type_id', 'status_id', 'start_date', 'end_date'];
 
     foreach ($data as $key => $value) {
       $resultKey = 'case.' . $key;
@@ -127,7 +127,7 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
    * @return array
    */
   protected function getRowValues($data, $entityName) {
-    $result = array();
+    $result = [];
     $fields = $this->getFields();
 
     foreach ($data as $key => $value) {
@@ -159,15 +159,15 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
   protected function getManager($contacts) {
     foreach ($contacts as $contact) {
       if (!empty($contact['manager']) && (int) $contact['manager'] === 1) {
-        return array(
+        return [
           ts('Case Manager Display Name') => $contact['display_name'],
-        );
+        ];
       }
     }
 
-    return array(
+    return [
       ts('Case Manager Display Name') => '',
-    );
+    ];
   }
 
   /**
@@ -182,12 +182,12 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
    */
   protected function getFields() {
     if (empty($this->fields)) {
-      $fields = array();
-      $keys = array();
-      $groups = array('case', 'client', 'manager');
+      $fields = [];
+      $keys = [];
+      $groups = ['case', 'client', 'manager'];
 
       // Get standard Fields of Case entity.
-      $includeCaseFields = array('case_id', 'case_subject', 'case_type_id', 'case_status_id', 'case_start_date', 'case_end_date');
+      $includeCaseFields = ['case_id', 'case_subject', 'case_type_id', 'case_status_id', 'case_start_date', 'case_end_date'];
       $caseFields = CRM_Case_DAO_Case::fields();
 
       foreach ($includeCaseFields as $includeField) {
@@ -197,7 +197,7 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
       }
 
       $keys['case'] = CRM_Case_DAO_Case::fieldKeys();
-      $result = array();
+      $result = [];
 
       // Now get Custom Fields of Case entity.
       $customFieldsResult = CRM_Core_DAO::executeQuery(
@@ -214,14 +214,14 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
         $customField->id = $customFieldsResult->id;
         $customField->find(true);
 
-        $fields['case']['custom_' . $customFieldsResult->id] = array(
+        $fields['case']['custom_' . $customFieldsResult->id] = [
           'name' => 'custom_' . $customFieldsResult->id,
           'title' => $customFieldsResult->label,
-          'pseudoconstant' => array(
+          'pseudoconstant' => [
             'optionGroupName' => $customFieldsResult->option_group_name,
-          ),
+          ],
           'customField' => (array)$customField,
-        );
+        ];
       }
 
       // Additional fields connected with Case data.
@@ -254,9 +254,9 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
   /**
    * @inheritdoc
    */
-  public function getCount(array $params = array()) {
-    return civicrm_api3('Case', 'getcount', array(
+  public function getCount(array $params = []) {
+    return civicrm_api3('Case', 'getcount', [
       'is_deleted' => 0
-    ));
+    ]);
   }
 }

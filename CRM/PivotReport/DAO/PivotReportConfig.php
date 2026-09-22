@@ -78,32 +78,32 @@ class CRM_PivotReport_DAO_PivotReportConfig extends CRM_Core_DAO {
    */
   static function &fields() {
     if (!isset(Civi::$statics[__CLASS__]['fields'])) {
-      Civi::$statics[__CLASS__]['fields'] = array(
-        'id' => array(
+      Civi::$statics[__CLASS__]['fields'] = [
+        'id' => [
           'name' => 'id',
           'type' => CRM_Utils_Type::T_INT,
           'description' => 'Unique ID',
           'required' => true,
-        ),
-        'entity' => array(
+        ],
+        'entity' => [
           'name' => 'entity',
           'type' => CRM_Utils_Type::T_STRING,
           'description' => 'Entity name',
           'required' => true,
-        ),
-        'label' => array(
+        ],
+        'label' => [
           'name' => 'label',
           'type' => CRM_Utils_Type::T_STRING,
           'description' => 'Configuration label',
           'required' => true,
-        ),
-        'json_config' => array(
+        ],
+        'json_config' => [
           'name' => 'json_config',
           'type' => CRM_Utils_Type::T_TEXT,
           'description' => 'Configuration JSON data',
           'required' => true,
-        ),
-      );
+        ],
+      ];
 
       CRM_Core_DAO_AllCoreTables::invoke(__CLASS__, 'fields_callback', Civi::$statics[__CLASS__]['fields']);
     }
@@ -151,7 +151,7 @@ class CRM_PivotReport_DAO_PivotReportConfig extends CRM_Core_DAO {
    * @return array
    */
   static function &import($prefix = false) {
-    $r = CRM_Core_DAO_AllCoreTables::getImports(__CLASS__, 'pivotreport_config', $prefix, array());
+    $r = CRM_Core_DAO_AllCoreTables::getImports(__CLASS__, 'pivotreport_config', $prefix, []);
     return $r;
   }
 
@@ -163,7 +163,7 @@ class CRM_PivotReport_DAO_PivotReportConfig extends CRM_Core_DAO {
    * @return array
    */
   static function &export($prefix = false) {
-    $r = CRM_Core_DAO_AllCoreTables::getExports(__CLASS__, 'pivotreport_config', $prefix, array());
+    $r = CRM_Core_DAO_AllCoreTables::getExports(__CLASS__, 'pivotreport_config', $prefix, []);
     return $r;
   }
 }

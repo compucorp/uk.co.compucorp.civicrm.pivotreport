@@ -14,7 +14,7 @@ class CRM_PivotData_DataPage {
    *
    * @var array
    */
-  private $data = array();
+  private $data = [];
 
   /**
    * Page index.

@@ -29,10 +29,10 @@ function civicrm_api3_pivot_report_get($params) {
   return civicrm_api3_create_success(
     $entityInstance->getDataInstance()->get(
       $entityInstance->getGroupInstance(),
-      array(
+      [
         'keyvalue_from' => $keyValueFrom,
         'keyvalue_to' => $keyValueTo,
-      ),
+      ],
       $page
     ),
     $params
@@ -61,10 +61,10 @@ function civicrm_api3_pivot_report_getheader($params) {
  * @throws CRM_Core_Exception
  */
 function civicrm_api3_pivot_report_rebuildcache($params) {
-  $result = array();
+  $result = [];
 
   if (!empty($params['entity'])) {
-    $entities = array($params['entity']);
+    $entities = [$params['entity']];
   } else {
     $entities = CRM_PivotReport_Entity::getSupportedEntities();
   }
@@ -73,7 +73,7 @@ function civicrm_api3_pivot_report_rebuildcache($params) {
     $entityInstance = new CRM_PivotReport_Entity($entity);
     $result[$entity] = $entityInstance->getDataInstance()->rebuildCache(
       $entityInstance->getGroupInstance(CRM_PivotReport_BAO_PivotReportCache::SOURCE_REBUILDCACHE),
-      array()
+      []
     );
   }
 
@@ -96,7 +96,7 @@ function civicrm_api3_pivot_report_rebuildcachechunk($params) {
   $result = CRM_PivotReport_BAO_PivotReportCache::rebuildCacheChunk();
 
   return civicrm_api3_create_success(
-    array($result),
+    [$result],
     $params
   );
 }
@@ -166,7 +166,7 @@ function civicrm_api3_pivot_report_getsupportedentities($params) {
  */
 function civicrm_api3_pivot_report_getsupportedentitiescount($params) {
   $entities = CRM_PivotReport_Entity::getSupportedEntities();
-  $result = array();
+  $result = [];
 
   foreach ($entities as $entity) {
     $entityInstance = new CRM_PivotReport_Entity($entity);
@@ -174,7 +174,7 @@ function civicrm_api3_pivot_report_getsupportedentitiescount($params) {
   }
 
   return civicrm_api3_create_success(
-    array($result),
+    [$result],
     $params
   );
 }
