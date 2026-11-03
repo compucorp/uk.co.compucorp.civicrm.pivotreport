@@ -7,32 +7,32 @@ class CRM_PivotReport_Entity {
    *
    * @var array
    */
-  private static $entities = array(
-    'Activity' => array(),
-    'Case' => array(),
-    'Contribution' => array(
-      'components' => array(
+  private static $entities = [
+    'Activity' => [],
+    'Case' => [],
+    'Contribution' => [
+      'components' => [
         'CiviContribute',
-      ),
-    ),
-    'Membership' => array(),
-    'Prospect' => array(
-      'extensions' => array(
+      ],
+    ],
+    'Membership' => [],
+    'Prospect' => [
+      'extensions' => [
         'uk.co.compucorp.civicrm.prospect',
-      ),
-      'entities' => array(
+      ],
+      'entities' => [
         'Contribution',
         'Pledge',
-      ),
-    ),
-  );
+      ],
+    ],
+  ];
 
   /**
    * Entities supported by the extension.
    *
    * @var array
    */
-  private static $supportedEntities = array();
+  private static $supportedEntities = [];
 
   /**
    * List of Components enabled in CiviCRM.
@@ -101,7 +101,7 @@ class CRM_PivotReport_Entity {
         $entity = new self($key, FALSE);
         $dataInstance = $entity->getDataInstance();
         $apiEntityName = $dataInstance->getApiEntityName();
-        if (!self::checkApiEntities(array($apiEntityName))) {
+        if (!self::checkApiEntities([$apiEntityName])) {
           continue;
         }
 
@@ -139,15 +139,15 @@ class CRM_PivotReport_Entity {
    */
   private static function getEnabledComponents() {
     if (self::$enabledComponents == NULL) {
-      $settings = civicrm_api3('Setting', 'get', array(
+      $settings = civicrm_api3('Setting', 'get', [
         'sequential' => 1,
-        'return' => array('enable_components'),
-      ));
+        'return' => ['enable_components'],
+      ]);
 
       if (!empty($settings['values'][0]['enable_components'])) {
         self::$enabledComponents = $settings['values'][0]['enable_components'];
       } else {
-        self::$enabledComponents = array();
+        self::$enabledComponents = [];
       }
     }
 

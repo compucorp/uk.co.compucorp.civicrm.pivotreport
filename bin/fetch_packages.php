@@ -3,44 +3,44 @@
 
 # Fetch package files
 
-$packages = array (
-  'd3' => array(
-    'files' => array (
+$packages = [
+  'd3' => [
+    'files' => [
       'd3.min.js',
-    ),
+    ],
     'version' => '3.5.17'
-  ),
-  'c3' => array (
-    'files' => array(
+  ],
+  'c3' => [
+    'files' => [
       'c3.min.js',
       'c3.min.css',
-    ),
+    ],
     'version' => 'latest'
-  ),
-  'pivottable' => array (
-    'files' => array(
+  ],
+  'pivottable' => [
+    'files' => [
       'c3_renderers.min.js',
       'd3_renderers.min.js',
       'export_renderers.min.js',
       'pivot.min.js',
       'pivot.min.css',
-    ),
+    ],
     'version' => 'latest'
-  ),
-  'moment.js' => array(
-    'files' => array(
+  ],
+  'moment.js' => [
+    'files' => [
       'moment.min.js',
-    ),
+    ],
     'version' => 'latest'
-  ),
-  'bootstrap-sweetalert' => array(
-    'files' => array(
+  ],
+  'bootstrap-sweetalert' => [
+    'files' => [
       'sweetalert.min.js',
       'sweetalert.min.css',
-    ),
+    ],
     'version' => 'latest',
-  ),
-);
+  ],
+];
 
 $package_dir = "packages";
 if (!is_dir($package_dir)) {

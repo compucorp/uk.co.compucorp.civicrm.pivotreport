@@ -46,7 +46,7 @@ class CRM_PivotReport_BAO_PivotReportCache extends CRM_PivotReport_DAO_PivotRepo
     $entityInstance = new CRM_PivotReport_Entity($status->getEntity());
     $result = $entityInstance->getDataInstance()->rebuildCachePartial(
       $entityInstance->getGroupInstance(self::SOURCE_REBUILDCACHECHUNK),
-      array(),
+      [],
       $status->getOffset(),
       $status->getMultiValuesOffset(),
       $status->getIndex(),
@@ -74,13 +74,13 @@ class CRM_PivotReport_BAO_PivotReportCache extends CRM_PivotReport_DAO_PivotRepo
 
     self::setIsLocked(FALSE);
 
-    return array(
+    return [
       'entity' => $status->getEntity(),
       'offset' => $status->getOffset(),
       'multiValuesOffset' => $status->getMultiValuesOffset(),
       'time' => microtime(true) - $time,
       'cacheBuilt' => $cacheBuilt,
-    );
+    ];
   }
 
   /**
@@ -96,7 +96,7 @@ class CRM_PivotReport_BAO_PivotReportCache extends CRM_PivotReport_DAO_PivotRepo
    */
   public static function &getItem($group, $path) {
     if (self::$_cache === NULL) {
-      self::$_cache = array();
+      self::$_cache = [];
     }
 
     $argString = "CRM_CT_{$group}_{$path}";
@@ -131,7 +131,7 @@ class CRM_PivotReport_BAO_PivotReportCache extends CRM_PivotReport_DAO_PivotRepo
    */
   public static function setItem(&$data, $group, $path, $source = NULL) {
     if (self::$_cache === NULL) {
-      self::$_cache = array();
+      self::$_cache = [];
     }
 
     $lock = Civi::lockManager()->acquire("cache.{$group}_{$path}");
@@ -147,23 +147,23 @@ class CRM_PivotReport_BAO_PivotReportCache extends CRM_PivotReport_DAO_PivotRepo
 
     if ($dataExists) {
       $sql = "UPDATE $table SET data = %1, created_date = %2 WHERE {$where}";
-      $args = array(
-        1 => array($dataSerialized, 'String'),
-        2 => array($now, 'String'),
-      );
+      $args = [
+        1 => [$dataSerialized, 'String'],
+        2 => [$now, 'String'],
+      ];
       $dao = CRM_Core_DAO::executeQuery($sql, $args, TRUE, NULL, FALSE, FALSE);
     }
     else {
       $insert = CRM_Utils_SQL_Insert::into($table)
-        ->row(array(
+        ->row([
           'group_name' => $group,
           'path' => $path,
           'data' => $dataSerialized,
           'created_date' => $now,
           'is_active' => 0,
           'source' => $source,
-        ));
-      $dao = CRM_Core_DAO::executeQuery($insert->toSQL(), array(), TRUE, NULL, FALSE, FALSE);
+        ]);
+      $dao = CRM_Core_DAO::executeQuery($insert->toSQL(), [], TRUE, NULL, FALSE, FALSE);
     }
 
     $lock->release();
@@ -208,7 +208,7 @@ class CRM_PivotReport_BAO_PivotReportCache extends CRM_PivotReport_DAO_PivotRepo
    * @return string
    */
   protected static function whereCache($group, $path = NULL, $source = NULL) {
-    $clauses = array();
+    $clauses = [];
 
     $clauses[] = 'group_name = "' . CRM_Core_DAO::escapeString($group) . '"';
 

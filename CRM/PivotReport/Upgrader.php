@@ -10,9 +10,9 @@ class CRM_PivotReport_Upgrader extends CRM_Extension_Upgrader_Base {
    *
    * @var array
    */
-  private $scheduledJobs = array(
+  private $scheduledJobs = [
     'rebuildcachechunk',
-  );
+  ];
 
   /**
    * Installation logic.
@@ -59,7 +59,7 @@ class CRM_PivotReport_Upgrader extends CRM_Extension_Upgrader_Base {
     CRM_Core_DAO::executeQuery("DELETE FROM `civicrm_navigation` WHERE name = 'pivotreport' and parent_id IS NULL");
     $reportsNavId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'Reports', 'id', 'name');
     $navigation = new CRM_Core_DAO_Navigation();
-    $params = array (
+    $params = [
         'domain_id'  => CRM_Core_Config::domainID(),
         'label'      => ts('Pivot Report'),
         'name'       => 'pivotreport',
@@ -69,7 +69,7 @@ class CRM_PivotReport_Upgrader extends CRM_Extension_Upgrader_Base {
         'permission' => 'access CiviCRM pivot table reports',
         'separator'  => 1,
         'is_active'  => 1
-    );
+    ];
     $navigation->copyValues($params);
     $navigation->save();
     CRM_Core_BAO_Navigation::resetNavigation();
@@ -108,7 +108,7 @@ class CRM_PivotReport_Upgrader extends CRM_Extension_Upgrader_Base {
     $administerNavId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'Administer', 'id', 'name');
 
     $navigation = new CRM_Core_DAO_Navigation();
-    $params = array (
+    $params = [
         'domain_id'  => CRM_Core_Config::domainID(),
         'label'      => ts('Pivot Report Config'),
         'name'       => 'Pivot Report Config',
@@ -117,7 +117,7 @@ class CRM_PivotReport_Upgrader extends CRM_Extension_Upgrader_Base {
         'weight'     => CRM_Core_BAO_Navigation::calculateWeight($administerNavId),
         'permission' => 'Admin Pivot Report',
         'is_active'  => 1
-    );
+    ];
     $navigation->copyValues($params);
     $navigation->save();
 
@@ -135,7 +135,7 @@ class CRM_PivotReport_Upgrader extends CRM_Extension_Upgrader_Base {
     $reportsNavId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'Reports', 'id', 'name');
 
     CRM_Core_DAO::executeQuery("DELETE FROM `civicrm_navigation` WHERE name = 'pivotreport'");
-    $this->createNavigationItem(array(
+    $this->createNavigationItem([
       'domain_id'  => CRM_Core_Config::domainID(),
       'label'      => ts('Pivot Report'),
       'name'       => 'pivotreport',
@@ -145,7 +145,7 @@ class CRM_PivotReport_Upgrader extends CRM_Extension_Upgrader_Base {
       'permission' => 'access CiviCRM pivot table reports',
       'has_separator'  => 1,
       'is_active'  => 1
-    ));
+    ]);
 
     $entities = CRM_PivotReport_Entity::getSupportedEntities();
     $pivotID = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'pivotreport', 'id', 'name');
@@ -154,7 +154,7 @@ class CRM_PivotReport_Upgrader extends CRM_Extension_Upgrader_Base {
     foreach ($entities as $currentItem) {
       $itemName = strtolower($currentItem) . '-report';
       CRM_Core_DAO::executeQuery("DELETE FROM `civicrm_navigation` WHERE name = '$itemName'");
-      $this->createNavigationItem(array(
+      $this->createNavigationItem([
         'domain_id'  => CRM_Core_Config::domainID(),
         'label'      => ts($currentItem),
         'name'       => $itemName,
@@ -164,7 +164,7 @@ class CRM_PivotReport_Upgrader extends CRM_Extension_Upgrader_Base {
         'permission' => 'access CiviCRM pivot table reports',
         'has_separator'  => 0,
         'is_active'  => 1
-      ));
+      ]);
     }
 
     CRM_Core_BAO_Navigation::resetNavigation();
@@ -177,16 +177,16 @@ class CRM_PivotReport_Upgrader extends CRM_Extension_Upgrader_Base {
    * @return bool
    */
   public function upgrade_0008() {
-    $configItem = civicrm_api3('Navigation', 'get', array(
+    $configItem = civicrm_api3('Navigation', 'get', [
       'sequential' => 1,
       'name' => 'Pivot Report Config',
-    ));
+    ]);
 
     if (!empty($configItem['id'])) {
-      civicrm_api3('Navigation', 'create', array(
+      civicrm_api3('Navigation', 'create', [
         'id' => $configItem['id'],
         'label' => ts('Pivot Report Configuration'),
-      ));
+      ]);
 
       CRM_Core_BAO_Navigation::resetNavigation();
     }
@@ -313,12 +313,12 @@ class CRM_PivotReport_Upgrader extends CRM_Extension_Upgrader_Base {
    * @return int|NULL
    */
   private function getScheduledJobId($action) {
-    $result = civicrm_api3('Job', 'get', array(
+    $result = civicrm_api3('Job', 'get', [
       'sequential' => 1,
       'api_entity' => 'PivotReport',
       'api_action' => $action,
       'limit' => 1,
-    ));
+    ]);
 
     if (empty($result['id'])) {
       return NULL;
@@ -340,10 +340,10 @@ class CRM_PivotReport_Upgrader extends CRM_Extension_Upgrader_Base {
       return NULL;
     }
 
-    civicrm_api3('Job', 'update', array(
+    civicrm_api3('Job', 'update', [
       'id' => $id,
       'is_active' => (int) $isActive,
-    ));
+    ]);
   }
 
   /**
@@ -362,14 +362,14 @@ class CRM_PivotReport_Upgrader extends CRM_Extension_Upgrader_Base {
    */
   private function createScheduledJobs() {
     if (!$this->getScheduledJobId('rebuildcachechunk')) {
-      civicrm_api3('Job', 'create', array(
+      civicrm_api3('Job', 'create', [
         'run_frequency' => 'Hourly',
         'name' => 'Pivot Report Cache Build (chunk)',
         'description' => 'Job to create Pivot Report cache partials. Depending on the amount of records, it might take numbers of runs to complete a new report cache.',
         'api_entity' => 'PivotReport',
         'api_action' => 'rebuildcachechunk',
         'is_active' => 0,
-      ));
+      ]);
     }
   }
 
@@ -384,9 +384,9 @@ class CRM_PivotReport_Upgrader extends CRM_Extension_Upgrader_Base {
       return NULL;
     }
 
-    civicrm_api3('Job', 'delete', array(
+    civicrm_api3('Job', 'delete', [
       'id' => $id,
-    ));
+    ]);
   }
 
   /**

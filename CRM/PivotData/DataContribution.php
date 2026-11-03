@@ -16,19 +16,19 @@ class CRM_PivotData_DataContribution extends CRM_PivotData_AbstractData {
    * @inheritdoc
    */
   protected function getEntityApiParams(array $inputParams) {
-    $params = array(
+    $params = [
       'sequential' => 1,
       'is_test' => 0,
       'return' => implode(',', $this->getContributionFields()),
-      'api.Contact.getsingle' => array(
+      'api.Contact.getsingle' => [
         'id' => '$value.contact_id',
-        'return' => array('display_name', 'sort_name', 'contact_type')
-      ),
-      'options' => array(
+        'return' => ['display_name', 'sort_name', 'contact_type']
+      ],
+      'options' => [
         'sort' => 'receive_date ASC, id ASC',
         'limit' => self::ROWS_API_LIMIT,
-      ),
-    );
+      ],
+    ];
 
     return $params;
   }
@@ -39,7 +39,7 @@ class CRM_PivotData_DataContribution extends CRM_PivotData_AbstractData {
    * @return array
    */
   protected function getContributionFields() {
-    $result = array();
+    $result = [];
     $fields = array_keys($this->getFields());
 
     foreach ($fields as $field) {
@@ -56,7 +56,7 @@ class CRM_PivotData_DataContribution extends CRM_PivotData_AbstractData {
    * @inheritdoc
    */
   protected function formatResult($data, $dataKey = null, $level = 0) {
-    $result = array();
+    $result = [];
 
     foreach ($data as $key => $contribution) {
       $contributionValues = $this->getRowValues($contribution, 'contribution');
@@ -78,11 +78,11 @@ class CRM_PivotData_DataContribution extends CRM_PivotData_AbstractData {
     switch ($key) {
       case 'campaign_id':
         if (!empty($value)) {
-          $campaign = civicrm_api3('Campaign', 'getsingle', array(
+          $campaign = civicrm_api3('Campaign', 'getsingle', [
             'sequential' => 1,
             'return' => 'title',
             'id' => $value,
-          ));
+          ]);
           if ($campaign['is_error']) {
             $result = '';
           } else {
@@ -107,15 +107,15 @@ class CRM_PivotData_DataContribution extends CRM_PivotData_AbstractData {
    */
   protected function getFields() {
     if (empty($this->fields)) {
-      $fields = array();
-      $keys = array();
-      $groups = array('contribution', 'contact');
+      $fields = [];
+      $keys = [];
+      $groups = ['contribution', 'contact'];
 
       // Get standard Fields and Keys of Contribution entity.
       $fields['contribution'] = CRM_Contribute_DAO_Contribution::fields();
       $keys['contribution'] = CRM_Contribute_DAO_Contribution::fieldKeys();
 
-      $result = array();
+      $result = [];
 
       // Now get Custom Fields for entity.
       $customFieldsResult = CRM_Core_DAO::executeQuery(
@@ -132,20 +132,20 @@ class CRM_PivotData_DataContribution extends CRM_PivotData_AbstractData {
         $customField->id = $customFieldsResult->id;
         $customField->find(true);
 
-        $fields['contribution']['custom_' . $customFieldsResult->id] = array(
+        $fields['contribution']['custom_' . $customFieldsResult->id] = [
           'name' => 'custom_' . $customFieldsResult->id,
           'title' => $customFieldsResult->label,
-          'pseudoconstant' => array(
+          'pseudoconstant' => [
             'optionGroupName' => $customFieldsResult->option_group_name,
-          ),
+          ],
           'customField' => (array)$customField,
-        );
+        ];
       }
 
-      $fields['contact']['display_name'] = array('name' => 'display_name', 'title' => 'Display Name');
-      $fields['contact']['sort_name'] = array('name' => 'sort_name', 'title' => 'Sort Name');
-      $fields['contact']['contact_type'] = array('name' => 'contact_type', 'title' => 'Contact Type');
-      $fields['contact']['contact_id'] = array('name' => 'contact_id', 'title' => 'Contact ID');
+      $fields['contact']['display_name'] = ['name' => 'display_name', 'title' => 'Display Name'];
+      $fields['contact']['sort_name'] = ['name' => 'sort_name', 'title' => 'Sort Name'];
+      $fields['contact']['contact_type'] = ['name' => 'contact_type', 'title' => 'Contact Type'];
+      $fields['contact']['contact_id'] = ['name' => 'contact_id', 'title' => 'Contact ID'];
 
       foreach ($groups as $group) {
         foreach ($fields[$group] as $key => $value) {
@@ -169,11 +169,11 @@ class CRM_PivotData_DataContribution extends CRM_PivotData_AbstractData {
   /**
    * @inheritdoc
    */
-  public function getCount(array $params = array()) {
-    $apiParams = array(
+  public function getCount(array $params = []) {
+    $apiParams = [
       'is_deleted' => 0,
       'is_test' => 0,
-    );
+    ];
 
     return civicrm_api3('Contribution', 'getcount', $apiParams);
   }

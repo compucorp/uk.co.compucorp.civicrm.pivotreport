@@ -32,7 +32,7 @@ abstract class CRM_PivotCache_AbstractDataSet implements CRM_PivotCache_DataSetI
    *
    * @var array 
    */
-  private $data = array();
+  private $data = [];
 
   public function __construct($name) {
     $this->name = $name;

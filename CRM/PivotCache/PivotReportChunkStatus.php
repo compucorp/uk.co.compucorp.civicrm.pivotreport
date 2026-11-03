@@ -71,14 +71,14 @@ class CRM_PivotCache_PivotReportChunkStatus {
    * Updates Chunk Status cached values.
    */
   public function update() {
-    $statusValues = array(
+    $statusValues = [
       'entity' => $this->entity,
       'offset' => $this->offset,
       'multiValuesOffset' => $this->multiValuesOffset,
       'index' => $this->index,
       'page' => $this->page,
       'pivotCount' => $this->pivotCount,
-    );
+    ];
 
     PivotReportCache::setItem(
       $statusValues,

@@ -38,17 +38,17 @@ class CRM_PivotData_DataActivity extends CRM_PivotData_AbstractData {
    * @inheritdoc
    */
   protected function getEntityApiParams(array $inputParams) {
-    $params = array(
+    $params = [
       'sequential' => 1,
       'is_current_revision' => 1,
       'is_deleted' => 0,
       'is_test' => 0,
       'return' => implode(',', array_keys($this->getFields())),
-      'options' => array(
+      'options' => [
         'sort' => 'activity_date_time ASC, id ASC',
         'limit' => self::ROWS_API_LIMIT,
-      ),
-    );
+      ],
+    ];
 
     $startDate = !empty($inputParams['start_date']) ? $inputParams['start_date'] : NULL;
     $endDate = !empty($inputParams['end_date']) ? $inputParams['end_date'] : NULL;
@@ -74,13 +74,13 @@ class CRM_PivotData_DataActivity extends CRM_PivotData_AbstractData {
     $apiFilter = null;
 
     if (!empty($startDate) && !empty($endDate)) {
-      $apiFilter = array('BETWEEN' => array($startDate, $endDate));
+      $apiFilter = ['BETWEEN' => [$startDate, $endDate]];
     }
     else if (!empty($startDate) && empty($endDate)) {
-      $apiFilter = array('>=' => $startDate);
+      $apiFilter = ['>=' => $startDate];
     }
     else if (empty($startDate) && !empty($endDate)) {
-      $apiFilter = array('<=' => $endDate);
+      $apiFilter = ['<=' => $endDate];
     }
 
     return $apiFilter;
@@ -95,11 +95,11 @@ class CRM_PivotData_DataActivity extends CRM_PivotData_AbstractData {
     switch ($key) {
       case 'campaign_id':
         if (!empty($value)) {
-          $campaign = civicrm_api3('Campaign', 'getsingle', array(
+          $campaign = civicrm_api3('Campaign', 'getsingle', [
             'sequential' => 1,
             'return' => 'title',
             'id' => $value,
-          ));
+          ]);
           if ($campaign['is_error']) {
             $result = '';
           } else {
@@ -124,7 +124,7 @@ class CRM_PivotData_DataActivity extends CRM_PivotData_AbstractData {
    */
   protected function getFields() {
     if (empty($this->fields)) {
-      $unsetFields = array(
+      $unsetFields = [
         'is_current_revision',
         'activity_is_deleted',
         'weight',
@@ -137,7 +137,7 @@ class CRM_PivotData_DataActivity extends CRM_PivotData_AbstractData {
         'parent_id',
         'original_id',
         'activity_details',
-      );
+      ];
       // Get standard Fields of Activity entity.
       $fields = CRM_Activity_DAO_Activity::fields();
 
@@ -153,7 +153,7 @@ class CRM_PivotData_DataActivity extends CRM_PivotData_AbstractData {
       }
 
       $keys = CRM_Activity_DAO_Activity::fieldKeys();
-      $result = array();
+      $result = [];
 
       // Now get Custom Fields of Activity entity.
       $customFieldsResult = CRM_Core_DAO::executeQuery(
@@ -171,14 +171,14 @@ class CRM_PivotData_DataActivity extends CRM_PivotData_AbstractData {
         $customField->id = $customFieldsResult->id;
         $customField->find(true);
 
-        $fields['custom_' . $customFieldsResult->id] = array(
+        $fields['custom_' . $customFieldsResult->id] = [
           'name' => 'custom_' . $customFieldsResult->id,
           'title' => $customFieldsResult->label,
-          'pseudoconstant' => array(
+          'pseudoconstant' => [
             'optionGroupName' => $customFieldsResult->option_group_name,
-          ),
+          ],
           'customField' => (array)$customField,
-        );
+        ];
       }
 
       foreach ($fields as $key => $value) {
@@ -198,12 +198,12 @@ class CRM_PivotData_DataActivity extends CRM_PivotData_AbstractData {
   /**
    * @inheritdoc
    */
-  public function getCount(array $params = array()) {
-    $apiParams = array(
+  public function getCount(array $params = []) {
+    $apiParams = [
       'is_current_revision' => 1,
       'is_deleted' => 0,
       'is_test' => 0,
-    );
+    ];
 
     $startDate = !empty($params['start_date']) ? $params['start_date'] : NULL;
     $endDate = !empty($params['end_date']) ? $params['end_date'] : NULL;
