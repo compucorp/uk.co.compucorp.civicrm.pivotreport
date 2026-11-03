@@ -1,8 +1,5 @@
 <?php
 
-require_once 'CRM/Core/DAO.php';
-require_once 'CRM/Utils/Type.php';
-
 class CRM_PivotReport_DAO_PivotReportConfig extends CRM_Core_DAO {
   /**
    * static instance to hold the table name

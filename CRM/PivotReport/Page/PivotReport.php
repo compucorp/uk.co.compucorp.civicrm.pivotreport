@@ -1,7 +1,5 @@
 <?php
 
-require_once 'CRM/Core/Page.php';
-
 class CRM_PivotReport_Page_PivotReport extends CRM_Core_Page {
   function run() {
     $args = func_get_args();
