@@ -110,7 +110,7 @@ class CRM_PivotData_DataCase extends CRM_PivotData_AbstractData {
         continue;
       }
 
-      if (in_array($key, $include) || CRM_Utils_String::startsWith($key, 'custom_')) {
+      if (in_array($key, $include) || str_starts_with($key, 'custom_')) {
         $result[$resultKey] = $value;
       }
     }
